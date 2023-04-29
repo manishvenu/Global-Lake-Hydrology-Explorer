@@ -1,6 +1,6 @@
 import cdsapi
 import xarray as xr
-
+import os
 
 def check_if_module_works() -> str:
     """A simple check if user is able to access functions in this file"""
@@ -76,8 +76,9 @@ def get_total_precip_runoff_evap_in_sub_region(west: float, east: float, south: 
                     east,
                 ],
                 'format': 'netcdf',
-            }, )
+            },
+            ".temp/TEMPORARY_DONOTOPEN_ERA5LAND.nc" )
     except:
         print("Error calling API")
         return None
-    return xr.open_dataset(response['stream'])
+    return xr.open_dataset(".temp/TEMPORARY_DONOTOPEN_ERA5LAND.nc")

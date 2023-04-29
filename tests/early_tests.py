@@ -3,9 +3,8 @@ from GLHE import helpers
 import xarray as xr
 import numpy as np
 import pandas as pd
-
-
-def test_ERA5_Land():
+import os
+def test_era5_Land():
     era5_dataset = ERA5_Land.get_total_precip_runoff_evap_in_sub_region(1.1, 1.2, 0.5, 0.6)
     print(era5_dataset)
 
@@ -26,7 +25,10 @@ def get_sample_data_2()->xr.Dataset:
 
 
 def main():
-    helpers.group_dataset_by_month(get_sample_data_2())
+    if not os.path.exists(".temp"):
+        os.mkdir(".temp")
+    dataset = ERA5_Land.get_total_precip_runoff_evap_in_sub_region(0.1,0.2,0.1,0.2)
+    helpers.clean_up_temporary_files()
     print("Ran Main")
 
 
