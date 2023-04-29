@@ -1,5 +1,5 @@
 init:
-    pip install -r requirements.txt
+    conda create --name GlobalLakeHydrologyExplorer --file requirements.txt
 
 test:
     py.test tests
