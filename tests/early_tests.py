@@ -1,4 +1,4 @@
-from GLHE.data_access import ERA5_Land
+import GLHE.data_access.ERA5_Land as ERA5_Land
 from GLHE import helpers
 import xarray as xr
 import numpy as np
@@ -7,7 +7,6 @@ import os
 def test_era5_Land():
     era5_dataset = ERA5_Land.get_total_precip_runoff_evap_in_sub_region(1.1, 1.2, 0.5, 0.6)
     print(era5_dataset)
-
 
 def get_sample_data()->xr.Dataset:
     return xr.open_dataset(
