@@ -1,6 +1,6 @@
 import cdsapi
 import xarray as xr
-import os
+
 
 def check_if_module_works() -> str:
     """A simple check if user is able to access functions in this file"""
@@ -30,7 +30,7 @@ def get_total_precip_runoff_evap_in_sub_region(west: float, east: float, south: 
 
     c = cdsapi.Client()
     try:
-        response = c.retrieve(
+        c.retrieve(
             'reanalysis-era5-land-monthly-means',
             {
                 'product_type': 'monthly_averaged_reanalysis',
@@ -77,7 +77,7 @@ def get_total_precip_runoff_evap_in_sub_region(west: float, east: float, south: 
                 ],
                 'format': 'netcdf',
             },
-            ".temp/TEMPORARY_DONOTOPEN_ERA5LAND.nc" )
+            ".temp/TEMPORARY_DONOTOPEN_ERA5LAND.nc")
     except:
         print("Error calling API")
         return None
