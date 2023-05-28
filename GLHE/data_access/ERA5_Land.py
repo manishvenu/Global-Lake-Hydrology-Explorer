@@ -7,8 +7,18 @@ def check_if_module_works() -> str:
 
     return "Success"
 
+def get_ERA5_total() -> xr.Dataset:
+    """Returns the Total ERA5 Local File, is very inefficient, also 17 GB and doesn't work on my computer
 
-def get_total_precip_runoff_evap_in_sub_region(west: float, east: float, south: float, north: float) -> xr.Dataset:
+    Returns
+    -------
+    xarray Dataset
+        xarray Dataset format of the evap, precip, & runoff in a grid of the total ERA5 area
+    """
+
+    return xr.load_dataset("GLHE/LocalData/ERA5LandTotal.grib",engine="cfgrib")
+
+def get_total_precip_runoff_evap_in_subset_box_api(west: float, east: float, south: float, north: float) -> xr.Dataset:
     """Gets ERA5 Land precip, evap, & runoff data in a known subregion by lat-long
 
     Parameters
