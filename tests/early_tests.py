@@ -1,5 +1,6 @@
 from GLHE.data_access import ERA5_Land
 from GLHE import helpers
+from GLHE import lake_extraction
 import xarray as xr
 import numpy as np
 import pandas as pd
@@ -27,13 +28,27 @@ def get_sample_data_2() -> xr.Dataset:
     return ds.to_dataset()
 
 
-def main():
+def test_ERA_api():
     if not os.path.exists(".temp"):
         os.mkdir(".temp")
     dataset = ERA5_Land.get_total_precip_runoff_evap_in_sub_region(0.1, 0.2, 0.1, 0.2)
+
+def test_ERA_total():
+    dataset = ERA5_Land.get_ERA5_total()
+    print(dataset)
+def test_lake_extraction():
+    dataset = get_sample_data()
+    polygon = lake_extraction.extract_lake(798)
+    r = lake_extraction.subset_box(dataset,polygon,1)
+    terraclimate_dummy = (helpers.spatially_average_dataset(r,"ppt"))
+    print("Units:",r.variables['ppt'].attrs['units'])
+def main():
+    os.chdir(r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\GLHE')
+    #test_ERA_api()
+    #test_ERA_total()
+    test_lake_extraction()
     helpers.clean_up_temporary_files()
     print("Ran Main")
-
 
 if __name__ == "__main__":
     main()

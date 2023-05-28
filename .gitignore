@@ -8,6 +8,9 @@
 .idea/**/dictionaries
 .idea/**/shelf
 
+# Manish Stuff
+GLHE/LocalData/
+
 # AWS User-specific
 .idea/**/aws.xml
 
