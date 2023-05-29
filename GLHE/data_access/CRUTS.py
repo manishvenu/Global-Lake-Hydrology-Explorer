@@ -20,6 +20,7 @@ def get_total_precip_evap() -> xr.Dataset:
     xarray Dataset
         xarray Dataset format of the evap, precip, & runoff in a grid
     """
+    logger.info("Reading in CRUTS data from LocalData folder")
     ds = xr.load_dataset("LocalData\\cruts_pet_pre_4.07_1901_2022.nc")
     return ds
 

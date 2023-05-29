@@ -1,7 +1,10 @@
-import os
-import xarray as xr
-import pandas as pd
 import logging
+import os
+
+import pandas as pd
+import xarray as xr
+import cf_xarray.units
+import pint_xarray
 
 logger = logging.getLogger(__name__)
 # Globals
@@ -13,7 +16,7 @@ runoff_codes = ["r", "runoff"]
 
 class MVSeries:
     """This class is just to store the pandas series with some extra metadata,
-    a dictionary would probably work just as well
+    a dictionary would probably work just as well, idk, should it be a
     ...
 
     Attributes
@@ -53,7 +56,22 @@ class MVSeries:
     def set_units(self, unit):
         self.unit = unit
 
+def make_sure_dataset_is_positive(series:pd.Series) ->pd.Series:
+    """
+    This function makes sure that the dataset is positive, if not it makes it positive
+    Parameters
+    ----------
+    series: pd.Series
+        the series to be checked
+    Returns
+    -------
+    pd.Series
+        the series with all positive values
+    """
 
+    if series.min() < 0:
+        logger.info("The dataset has negative values, making it positive")
+    return series.abs()
 def spatially_average_dataset(dataset: xr.Dataset, var: str) -> pd.Series:
     """Spatially average xarray data to one value over entire grid
 
@@ -134,11 +152,80 @@ def label_xarray_dataset(dataset: xr.Dataset, name: str) -> xr.Dataset:
     return dataset
 
 
+def fix_weird_units_descriptors(dataset: xr.Dataset, var: str, correct_unit: str) -> xr.Dataset:
+    """
+    This function fixes the weird units descriptors in the dataset, like ERA5's 'm of water equivalent' to just 'm'
+    Parameters
+    ----------
+    dataset:xr.Dataset
+        the dataset in question
+    var:str
+        the variable in question
+    correct_unit:str
+        the correct unit to replace the weird one
+    Returns
+    -------
+    dataset:xr.Dataset
+        the dataset with the fixed units
+    """
+    logger.info("Fixed the weird units descriptors in the dataset {} for variable {} from {} to {}".format(dataset.attrs["name"], var,dataset[var].attrs["units"],correct_unit))
+    dataset[var].attrs["units"] = correct_unit
+    return dataset
+
+
+def add_descriptive_time_component_to_units(dataset: xr.Dataset, time_denominator: str) -> xr.Dataset:
+    """
+    This one is a little harder to explain, but for pint_xarray, some of these netcdf files
+    don't like do m/month, they just say, m, so this function just adds the /month or /day part.
+    Parameters
+    ----------
+    dataset: xr.Dataset
+        the dataset in question
+    time_denominator: str
+        the time denominator, either month or day
+    Returns
+    -------
+    dataset: xr.Dataset
+        the dataset with the time component added to the units
+    """
+    logger.info("Added the time component ({}) to the units of the dataset {}".format(time_denominator,dataset.attrs["name"]))
+    for var in dataset.keys():
+        if "units" in dataset[var].attrs and '/' not in dataset[var].attrs["units"]:
+            dataset[var].attrs["units"] += f'/{time_denominator}'
+    return dataset
+
+
+def convert_units(dataset: xr.Dataset, output_unit: str, *variable: str) -> xr.Dataset:
+    """
+    Converts the units of the dataset from input_unit to output_unit, mostly to mm/month or cubic meters/month,
+    Parameters
+    ----------
+    dataset: xr.Dataset
+        The input dataset to convert units
+    variable: str
+        The variable to convert units
+    output_unit: str
+        The output unit of the dataset
+    Returns
+    -------
+    xr.Dataset
+        The dataset with the units converted
+    """
+    logger.info(
+        "Converted the dataset {}, variable {}, to units {}".format(dataset.attrs["name"], variable, output_unit))
+
+    dataset = dataset.pint.quantify()
+    for var in variable:
+        if (dataset[var].pint.units == pint_xarray.unit_registry.parse_units(output_unit)):
+            continue
+        dataset = dataset.pint.to({var: output_unit})
+    dataset = dataset.pint.dequantify()
+    return dataset
+
+
 def clean_up_temporary_files() -> list:
     """removes files that start with TEMPORARY
 
-        Parameters
-        ----------
         Returns
         -------
         list
