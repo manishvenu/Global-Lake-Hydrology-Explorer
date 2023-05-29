@@ -4,6 +4,7 @@ Global Lake Hydrology Explorer is a tool for predicting future water levels of l
 ## Current Status
  - Local Data Folder is not uploaded to GitHub. Please contact me for access to the data folder. I'll set up lfs or smthng IDK.
  - The tool is currently in development. The current version is a prototype and is not ready for use.
+ - I don't know what coordinate systems are
 
 ## Getting Started
 ### Installation
@@ -13,7 +14,7 @@ To use Global Lake Hydrology Explorer, you will need to install the required lib
 To use the tool, TBA
 
 ### Contributing
-TBA
+TBA, See Credits for code stealing and things like that.
 
 ### License
 Global Lake Hydrology Explorer is open source and distributed under the MIT License.

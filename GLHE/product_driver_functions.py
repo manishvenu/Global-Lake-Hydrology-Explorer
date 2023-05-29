@@ -3,6 +3,7 @@
 from GLHE.data_access import ERA5_Land, CRUTS
 from GLHE.helpers import MVSeries
 from GLHE import helpers, lake_extraction
+import pandas as pd
 
 
 def ERA_Land_driver(polygon) -> list[MVSeries]:
@@ -57,6 +58,8 @@ def CRUTS_driver(polygon) -> list[MVSeries]:
     dataset = lake_extraction.subset_box(dataset, polygon.buffer(0.5), 1)
     pet_ds = helpers.spatially_average_dataset(dataset, "pet")
     precip_ds = helpers.spatially_average_dataset(dataset, "pre")
+    pet_ds.index = pet_ds.index - pd.offsets.MonthBegin(1)
+    precip_ds.index = precip_ds.index - pd.offsets.MonthBegin(1)
     helpers.clean_up_temporary_files()
     list_of_mv_series = [MVSeries(pet_ds, dataset.variables['pet'].attrs['units'], "pet", "CRUTS"),
                          MVSeries(precip_ds, dataset.variables['pre'].attrs['units'], "p", "CRUTS")]
@@ -64,4 +67,5 @@ def CRUTS_driver(polygon) -> list[MVSeries]:
 
 
 if __name__ == "__main__":
-    print("Driver Functions Accessed Here")
+    print("Product Driver Functions Accessed Here")
+    #CRUTS_driver(lake_extraction.extract_lake(798))

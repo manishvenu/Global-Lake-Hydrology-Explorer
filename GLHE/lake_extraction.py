@@ -1,7 +1,9 @@
 from osgeo.gdal import OpenEx, OF_VECTOR
-from shapely.geometry import shape,Polygon
+from shapely.geometry import shape, Polygon
 from json import loads
 import xarray as xr
+
+
 def extract_lake(hylak_id: int) -> Polygon:
     """Extracts lake from shapefile
 
@@ -70,8 +72,8 @@ def subset_box(da: xr.Dataset, poly: Polygon, pad=1) -> xr.Dataset:
         mask = mask.rolling(**{dim: 2 * pad + 1}, min_periods=1, center=True).max()
     return da.where(mask.astype(int), drop=True)
 
+
 if __name__ == "__main__":
     print("This is the lake extraction module")
     print("It is not meant to be run directly")
     s = extract_lake(1)
-

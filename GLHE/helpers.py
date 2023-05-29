@@ -1,5 +1,4 @@
 import os
-
 import xarray as xr
 import pandas as pd
 
@@ -8,8 +7,32 @@ import pandas as pd
 precip_codes = ["p", "precip", "precipitation"]
 evap_codes = ["e", "pet", "evap", "evaporation"]
 runoff_codes = ["r", "runoff"]
+
+
 class MVSeries:
-    # Class Variable
+    """This class is just to store the pandas series with some extra metadata,
+    a dictionary would probably work just as well
+    ...
+
+    Attributes
+    ----------
+    dataset : pd.Series
+        a formatted series of the dataset
+    product_name : str
+        data source
+    unit : str
+        the unit of the data
+    single_letter_code : str
+        what kind of product, reference helper globals, precip_codes, evap_codes, & runoff_codes
+
+    Methods
+    -------
+    set_units(self,unit)
+        Changes the unit, does NOT convert it.
+
+    """
+
+    # Class Variables
     dataset: pd.Series
     unit: str
     single_letter_code: str

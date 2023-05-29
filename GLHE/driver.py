@@ -11,9 +11,9 @@ def driver() -> None:
     hylak_id = 798
     lake_polygon = lake_extraction.extract_lake(hylak_id)
 
-    # Get Data
-    ERA5_Datasets = product_driver_functions.ERA_Land_Driver(lake_polygon)
-    CRUTS_Datasets = product_driver_functions.CRUTS_Driver(lake_polygon)
+    # Get Data with polygon
+    ERA5_Datasets = product_driver_functions.ERA_Land_driver(lake_polygon)
+    CRUTS_Datasets = product_driver_functions.CRUTS_driver(lake_polygon)
     print(*ERA5_Datasets)
     print(*CRUTS_Datasets)
 
