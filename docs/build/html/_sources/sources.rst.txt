@@ -6,7 +6,7 @@ Right now, sources of the code are listed here. Hopefully we will have more robu
 Lakes
 ------------
 
-To find the lakes we wanted, we use the HydroLakes database. 
+To find the lakes we wanted, we use the HydroLakes database.
 
 The database is a shapefile that takes lake above 10 ha.
 

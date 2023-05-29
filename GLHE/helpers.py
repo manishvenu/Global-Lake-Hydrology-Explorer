@@ -1,7 +1,9 @@
 import os
 import xarray as xr
 import pandas as pd
+import logging
 
+logger = logging.getLogger(__name__)
 # Globals
 
 precip_codes = ["p", "precip", "precipitation"]
@@ -68,6 +70,8 @@ def spatially_average_dataset(dataset: xr.Dataset, var: str) -> pd.Series:
         """
     lat_name = 'lat'
     lon_name = 'lon'
+    logger.debug("Spatially Averaged the dataset {}".format(dataset.attrs['name']))
+
     return dataset.mean(dim=[lat_name, lon_name]).get(var).to_series()
 
 
@@ -100,6 +104,7 @@ def fix_lat_long_names(dataset: xr.Dataset) -> xr.Dataset:
         print("Latitude or longitude variable name not found.")
     if lat_name != 'lat' or lon_name != 'lon':
         dataset = dataset.rename({lat_name: 'lat', lon_name: 'lon'})
+    logger.debug("Renamed the dataset {} to lat, long standard names".format(dataset.attrs["name"]))
 
     return dataset
 
@@ -116,8 +121,17 @@ def group_dataset_by_month(dataset: xr.Dataset) -> xr.Dataset:
         xarray Dataset
             xarray with index of year,month added
         """
+    logger.debug("Grouped the dataset {} to monthly values".format(dataset.attrs["name"]))
 
     return dataset.resample(time='M').sum()
+
+
+def label_xarray_dataset(dataset: xr.Dataset, name: str) -> xr.Dataset:
+    """Adds a label to the dataset describing the product called product_name,
+    accessed by dataset.attrs["name"] """
+
+    dataset.attrs["name"] = name
+    return dataset
 
 
 def clean_up_temporary_files() -> list:
@@ -138,4 +152,5 @@ def clean_up_temporary_files() -> list:
         if file.split("_")[0] == "TEMPORARY":
             os.remove(".temp/" + file)
             deleted_files.append(file)
+    logger.debug("Cleared temporary files")
     return deleted_files
