@@ -1,47 +1,17 @@
 INFO:root:Starting driver function
 INFO:GLHE.lake_extraction:Extracted Lake: (-119.14861756772737, 37.9408333333331, -118.90782831534014, 38.07549818250851)
+INFO:GLHE.product_driver_functions:ERA Driver Started
 INFO:cdsapi:Welcome to the CDS
 INFO:cdsapi:Sending request to https://cds.climate.copernicus.eu/api/v2/resources/reanalysis-era5-land-monthly-means
 INFO:cdsapi:Request is completed
 INFO:cdsapi:Downloading https://download-0018.copernicus-climate.eu/cache-compute-0018/cache/data1/adaptor.mars.internal-1685303326.5498588-6386-12-405293ec-5685-40be-80ee-855287056321.nc to .temp/TEMPORARY_DONOTOPEN_ERA5LAND.nc (2.5M)
-INFO:cdsapi:Download rate 767.4K/s
-INFO:GLHE.helpers:Renamed a dataset lat, long standard names
-INFO:GLHE.lake_extraction:Subsetted a dataset to lake area
-INFO:GLHE.helpers:Spatially Averaged Dataset
-INFO:GLHE.helpers:Spatially Averaged Dataset
-INFO:GLHE.helpers:Cleared temporary files
+INFO:cdsapi:Download rate 1M/s
+INFO:GLHE.lake_extraction:Subsetted the dataset ERA5 Land to lake area
 INFO:GLHE.product_driver_functions:ERA Driver Finished
-INFO:GLHE.helpers:Renamed a dataset lat, long standard names
-INFO:GLHE.lake_extraction:Subsetted a dataset to lake area
-INFO:GLHE.helpers:Spatially Averaged Dataset
-INFO:GLHE.helpers:Spatially Averaged Dataset
-INFO:GLHE.helpers:Cleared temporary files
+INFO:GLHE.product_driver_functions:CRUTS Driver Started
+INFO:GLHE.lake_extraction:Subsetted the dataset CRUTS to lake area
 INFO:GLHE.product_driver_functions:CRUTS Driver Finished
-INFO:GLHE.all_data_actions:Merged datasets into pandas dataframe
-INFO:GLHE.all_data_actions:Plotting done here
-INFO:GLHE.all_data_actions:Plotting Finished
-INFO:root:Ended driver function
-INFO:root:Starting driver function
-INFO:GLHE.lake_extraction:Extracted Lake: (-119.14861756772737, 37.9408333333331, -118.90782831534014, 38.07549818250851)
-INFO:cdsapi:Welcome to the CDS
-INFO:cdsapi:Sending request to https://cds.climate.copernicus.eu/api/v2/resources/reanalysis-era5-land-monthly-means
-INFO:cdsapi:Request is completed
-INFO:cdsapi:Downloading https://download-0018.copernicus-climate.eu/cache-compute-0018/cache/data1/adaptor.mars.internal-1685303326.5498588-6386-12-405293ec-5685-40be-80ee-855287056321.nc to .temp/TEMPORARY_DONOTOPEN_ERA5LAND.nc (2.5M)
-INFO:cdsapi:Download rate 897.2K/s
-INFO:GLHE.helpers:Renamed a dataset lat, long standard names
-INFO:GLHE.lake_extraction:Subsetted a dataset to lake area
-INFO:GLHE.helpers:Spatially Averaged Dataset
-INFO:GLHE.helpers:Spatially Averaged Dataset
-INFO:GLHE.helpers:Cleared temporary files
-INFO:GLHE.product_driver_functions:ERA Driver Finished
-INFO:GLHE.helpers:Renamed a dataset lat, long standard names
-INFO:GLHE.lake_extraction:Subsetted a dataset to lake area
-INFO:GLHE.helpers:Spatially Averaged Dataset
-INFO:GLHE.helpers:Spatially Averaged Dataset
-INFO:GLHE.helpers:Cleared temporary files
-INFO:GLHE.product_driver_functions:CRUTS Driver Finished
-INFO:GLHE.all_data_actions:Merged datasets into pandas dataframe
-INFO:GLHE.all_data_actions:Plotting done here
-INFO:GLHE.all_data_actions:Plotting Finished
-INFO:GLHE.all_data_actions:Output CSV accessed here: .temp/test.csv
+INFO:GLHE.combined_data_functions:Merged datasets into pandas dataframe
+INFO:GLHE.combined_data_functions:Plotting Data
+INFO:GLHE.combined_data_functions:Output CSV written here: .temp/test.csv
 INFO:root:Ended driver function
