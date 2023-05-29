@@ -1,8 +1,10 @@
-from osgeo.gdal import OpenEx, OF_VECTOR
-from shapely.geometry import shape, Polygon
+import logging
 from json import loads
 import xarray as xr
+from osgeo.gdal import OpenEx, OF_VECTOR, UseExceptions
+from shapely.geometry import shape, Polygon
 
+logger = logging.getLogger(__name__)
 
 def extract_lake(hylak_id: int) -> Polygon:
     """Extracts lake from shapefile
@@ -19,6 +21,7 @@ def extract_lake(hylak_id: int) -> Polygon:
     shapely Polygon
             polygon of specified lake
     """
+    UseExceptions()
     hydro_lakes_shapefile_location = r'LocalData\HydroLAKES_polys_v10_shp\HydroLAKES_polys_v10.shp'
     hydro_lakes = OpenEx(hydro_lakes_shapefile_location, OF_VECTOR)
     layer = hydro_lakes.GetLayer()
@@ -29,6 +32,7 @@ def extract_lake(hylak_id: int) -> Polygon:
     polygon = shape(geojson_format['geometry'])
     feature.Destroy()
     hydro_lakes.ReleaseResultSet(result)
+    logger.info("Extracted Lake: {}".format(polygon.bounds))
     return polygon
 
 
@@ -70,6 +74,7 @@ def subset_box(da: xr.Dataset, poly: Polygon, pad=1) -> xr.Dataset:
 
     for dim in dims:
         mask = mask.rolling(**{dim: 2 * pad + 1}, min_periods=1, center=True).max()
+    logger.info("Subsetted the dataset {} to lake area".format(da.attrs["name"]))
     return da.where(mask.astype(int), drop=True)
 
 

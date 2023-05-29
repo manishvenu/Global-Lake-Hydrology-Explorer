@@ -1,6 +1,7 @@
 from GLHE.data_access import ERA5_Land
 from GLHE import helpers
 from GLHE import lake_extraction
+from GLHE import combined_data_functions
 import xarray as xr
 import numpy as np
 import pandas as pd
@@ -42,11 +43,21 @@ def test_lake_extraction():
     r = lake_extraction.subset_box(dataset,polygon,1)
     terraclimate_dummy = (helpers.spatially_average_dataset(r,"ppt"))
     print("Units:",r.variables['ppt'].attrs['units'])
+
+def test_plotting():
+
+    #read in the data
+    dataset = pd.read_csv(r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\GLHE\.temp\test.csv')
+    #convert the date column to a datetime object
+    dataset['date'] = pd.to_datetime(dataset['date'])
+    #set the date column as the index
+    dataset.set_index('date', inplace=True)
+    #read into plotting function
+    combined_data_functions.plot_all_data(dataset)
+    return
 def main():
     os.chdir(r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\GLHE')
-    #test_ERA_api()
-    #test_ERA_total()
-    test_lake_extraction()
+    test_plotting()
     helpers.clean_up_temporary_files()
     print("Ran Main")
 

@@ -1,5 +1,6 @@
 import xarray as xr
-
+import logging
+logger = logging.getLogger(__name__)
 
 def check_if_module_works() -> str:
     """A simple check if user is able to access functions in this file"""
