@@ -1,11 +1,11 @@
-from GLHE.data_access import ERA5_Land
-from GLHE import helpers
-from GLHE import lake_extraction
-from GLHE import combined_data_functions
-import xarray as xr
+import os
+
 import numpy as np
 import pandas as pd
-import os
+import xarray as xr
+
+from GLHE import helpers, lake_extraction, combined_data_functions
+from GLHE.data_access import ERA5_Land
 
 
 def test_era5_land():
@@ -14,9 +14,11 @@ def test_era5_land():
 
 
 def get_sample_data() -> xr.Dataset:
-    return xr.open_dataset(
+    s = xr.load_dataset(
         r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology '
         r'Explorer\tests\DummyData\agg_terraclimate_ppt_1958_CurrentYear_GLOBE.nc')
+    s = helpers.label_xarray_dataset(s,"TerraClimateDummyData")
+    return s
 
 
 def get_sample_data_2() -> xr.Dataset:
@@ -28,7 +30,11 @@ def get_sample_data_2() -> xr.Dataset:
     ds = xr.DataArray(data=np.random.randn(len(time), len(lat), len(lon)), coords=coords, dims=dims).rename("my_var")
     return ds.to_dataset()
 
-
+def test_unit_conversion():
+    dataset = get_sample_data()
+    dataset = helpers.convert_units(dataset, "ppt", "in")
+    print(dataset)
+    return
 def test_ERA_api():
     if not os.path.exists(".temp"):
         os.mkdir(".temp")
@@ -57,7 +63,7 @@ def test_plotting():
     return
 def main():
     os.chdir(r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\GLHE')
-    test_plotting()
+    test_unit_conversion()
     helpers.clean_up_temporary_files()
     print("Ran Main")
 

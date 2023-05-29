@@ -32,7 +32,7 @@ def extract_lake(hylak_id: int) -> Polygon:
     polygon = shape(geojson_format['geometry'])
     feature.Destroy()
     hydro_lakes.ReleaseResultSet(result)
-    logger.info("Extracted Lake: {}".format(polygon.bounds))
+    logger.info("Extracted Lake: {}".format(geojson_format['properties']['Lake_name']))
     return polygon
 
 
