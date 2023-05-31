@@ -17,7 +17,7 @@ def get_sample_data() -> xr.Dataset:
     s = xr.load_dataset(
         r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology '
         r'Explorer\tests\DummyData\agg_terraclimate_ppt_1958_CurrentYear_GLOBE.nc')
-    s = helpers.label_xarray_dataset(s,"TerraClimateDummyData")
+    s = helpers.label_xarray_dataset_with_product_name(s, "TerraClimateDummyData")
     return s
 
 
