@@ -5,15 +5,29 @@ import pandas as pd
 import xarray as xr
 import cf_xarray.units
 import pint_xarray
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 # Globals
 
-precip_codes = ["p", "precip", "precipitation"]
-evap_codes = ["e", "pet", "evap", "evaporation"]
-runoff_codes = ["r", "runoff"]
+slc_mapping = {
+    "e": "e",
+    "pet": "e",
+    "evap": "e",
+    "evaow": "e",
+    "p": "p",
+    "tp": "p",
+    "pre": "p",
+    "precip": "p",
+    "precipitation": "p",
+    "r":"r",
+    "runoff":"r"
+    # Add more mappings as needed
+}
 
 
+
+@dataclass
 class MVSeries:
     """This class is just to store the pandas series with some extra metadata,
     a dictionary would probably work just as well, idk, should it be a
@@ -32,8 +46,6 @@ class MVSeries:
 
     Methods
     -------
-    set_units(self,unit)
-        Changes the unit, does NOT convert it.
 
     """
 
@@ -42,55 +54,77 @@ class MVSeries:
     unit: str
     single_letter_code: str
     product_name: str
-
-    def __init__(self, dataset, unit, single_letter_code, product_name):
-        self.dataset = dataset
-        self.unit = unit
-        self.single_letter_code = single_letter_code
-        self.product_name = product_name
+    variable_name: str
 
     def __str__(self):
-        return f"Product: {self.product_name}, SLC: {self.single_letter_code}, Unit: {self.unit}"
+        return "Product: {},Variable Name: {} SLC: {}, Unit: {}".format(self.product_name,self.variable_name,self.single_letter_code,self.unit)
 
     # Change Units MetaData DOESNT CHANGE ACTUAL VALUES
     def set_units(self, unit):
         self.unit = unit
 
-def make_sure_dataset_is_positive(series:pd.Series) ->pd.Series:
+
+def make_sure_dataset_is_positive(series: MVSeries) -> MVSeries:
     """
     This function makes sure that the dataset is positive, if not it makes it positive
     Parameters
     ----------
-    series: pd.Series
+    series: MVSeries
         the series to be checked
     Returns
     -------
-    pd.Series
+    MVSeries
         the series with all positive values
     """
 
-    if series.min() < 0:
-        logger.info("The dataset has negative values, making it positive")
-    return series.abs()
-def spatially_average_dataset(dataset: xr.Dataset, var: str) -> pd.Series:
+    if series.dataset.min() < 0:
+        logger.info("The series ({}) has negative values, making it positive".format(series))
+        series.dataset = series.dataset.abs()
+    return series
+
+
+def move_date_index_to_first_of_the_month(*series: MVSeries) -> tuple[MVSeries]:
+    """
+    This function moves the date index to the first of the month
+    Parameters
+    ----------
+    series: MVSeries
+        the series to be modified
+    Returns
+    -------
+    list[MVSeries]
+        the modified series
+    """
+    series_list = []
+    for s in series:
+        s.dataset.index = s.dataset.index - pd.offsets.MonthBegin(1)
+        series_list.append(s)
+    return tuple(series_list)
+
+
+def spatially_average_dataset(dataset: xr.Dataset, *vars: str) -> tuple[MVSeries]:
     """Spatially average xarray data to one value over entire grid
 
         Parameters
         ----------
         dataset : xr.Dataset
             The daily xarray dataset to group
-        var: str
-            The variable name to average over
+        vars: str
+            The variable names to average over
         Returns
         -------
-        pandas Series
-            pandas Series with time & variables
+        tuple of MVSeries
+            MVSeries with time & variables
         """
     lat_name = 'lat'
     lon_name = 'lon'
     logger.debug("Spatially Averaged the dataset {}".format(dataset.attrs['name']))
-
-    return dataset.mean(dim=[lat_name, lon_name]).get(var).to_series()
+    series_list = []
+    for var in vars:
+        pandas_dataset = dataset.mean(dim=[lat_name, lon_name]).get(var).to_series()
+        metadata_series = MVSeries(pandas_dataset, dataset.variables[var].attrs['units'], slc_mapping.get(var), dataset.attrs['name'],var)
+        series_list.append(metadata_series)
+    return tuple(series_list)
 
 
 def fix_lat_long_names(dataset: xr.Dataset) -> xr.Dataset:
@@ -144,7 +178,7 @@ def group_dataset_by_month(dataset: xr.Dataset) -> xr.Dataset:
     return dataset.resample(time='M').sum()
 
 
-def label_xarray_dataset(dataset: xr.Dataset, name: str) -> xr.Dataset:
+def label_xarray_dataset_with_product_name(dataset: xr.Dataset, name: str) -> xr.Dataset:
     """Adds a label to the dataset describing the product called product_name,
     accessed by dataset.attrs["name"] """
 
@@ -168,7 +202,8 @@ def fix_weird_units_descriptors(dataset: xr.Dataset, var: str, correct_unit: str
     dataset:xr.Dataset
         the dataset with the fixed units
     """
-    logger.info("Fixed the weird units descriptors in the dataset {} for variable {} from {} to {}".format(dataset.attrs["name"], var,dataset[var].attrs["units"],correct_unit))
+    logger.info("Fixed the weird units descriptors in the dataset {} for variable {} from {} to {}".format(
+        dataset.attrs["name"], var, dataset[var].attrs["units"], correct_unit))
     dataset[var].attrs["units"] = correct_unit
     return dataset
 
@@ -188,7 +223,8 @@ def add_descriptive_time_component_to_units(dataset: xr.Dataset, time_denominato
     dataset: xr.Dataset
         the dataset with the time component added to the units
     """
-    logger.info("Added the time component ({}) to the units of the dataset {}".format(time_denominator,dataset.attrs["name"]))
+    logger.info(
+        "Added the time component ({}) to the units of the dataset {}".format(time_denominator, dataset.attrs["name"]))
     for var in dataset.keys():
         if "units" in dataset[var].attrs and '/' not in dataset[var].attrs["units"]:
             dataset[var].attrs["units"] += f'/{time_denominator}'

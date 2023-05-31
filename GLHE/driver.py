@@ -19,9 +19,11 @@ def driver() -> None:
 
     # Get Data and subset it to lake polygon
     ERA5_Datasets = product_driver_functions.ERA_Land_driver(lake_polygon)
+    for i in ERA5_Datasets:
+        logging.info(i)
     CRUTS_Datasets = product_driver_functions.CRUTS_driver(lake_polygon)
-    print(*ERA5_Datasets)
-    print(*CRUTS_Datasets)
+    for i in CRUTS_Datasets:
+        logging.info(i)
 
     # Compile Data
     pandas_dataset = combined_data_functions.merge_mv_series(*ERA5_Datasets, *CRUTS_Datasets)

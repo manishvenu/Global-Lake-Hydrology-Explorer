@@ -20,9 +20,9 @@ def plot_all_data(dataset: pd.DataFrame) -> None:
         None
         """
     logger.info("Plotting Data")
-    precip_cols = [col for col in dataset if col.startswith(tuple([string + '.' for string in precip_codes]))]
-    evap_cols = [col for col in dataset if col.startswith(tuple([string + '.' for string in evap_codes]))]
-    runoff_cols = [col for col in dataset if col.startswith(tuple([string + '.' for string in runoff_codes]))]
+    precip_cols = [col for col in dataset if col.startswith("p")]
+    evap_cols = [col for col in dataset if col.startswith("e")]
+    runoff_cols = [col for col in dataset if col.startswith("r")]
 
     fig, axs = plt.subplots(3, 1, figsize=(10, 10))
     dataset.plot(y=precip_cols, ax=axs[0],
