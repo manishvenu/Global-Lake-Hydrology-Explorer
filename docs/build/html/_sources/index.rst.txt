@@ -23,8 +23,10 @@ Contents
 
 .. toctree::
 
+   organization
    usage
    sources
+
 
 Indices and tables
 ==================

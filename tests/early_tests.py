@@ -5,14 +5,17 @@ import pandas as pd
 import xarray as xr
 
 from GLHE import helpers, lake_extraction, combined_data_functions
-from GLHE.data_access import ERA5_Land
+from GLHE.data_access import ERA5_Land, DAHITI
 
 
 def test_era5_land():
     era5_dataset = ERA5_Land.get_total_precip_runoff_evap_in_sub_region(1.1, 1.2, 0.5, 0.6)
     print(era5_dataset)
 
-
+def test_dahiti() ->None:
+    poly = lake_extraction.extract_lake(798)
+    wlm = DAHITI.extract_lake_water_levels(poly)
+    print(wlm)
 def get_sample_data() -> xr.Dataset:
     s = xr.load_dataset(
         r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology '
@@ -63,8 +66,7 @@ def test_plotting():
     return
 def main():
     os.chdir(r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\GLHE')
-    test_unit_conversion()
-    helpers.clean_up_temporary_files()
+    test_dahiti()
     print("Ran Main")
 
 if __name__ == "__main__":

@@ -3,7 +3,12 @@ Global Lake Hydrology Explorer is a tool for predicting future water levels of l
 
 **Disclaimer**: This project is written by a undergraduate student with limited knowledge in hydrology and programming. It is not intended to be used for any serious research. Please use it at your own risk.
 
+## Things To Do 
+ - Set Precision Levels
+ - Runoff
+ - UI
 ## Current Status
+ - There are NO protections against bad arguments, so be careful!
  - Local Data Folder is not uploaded to GitHub. Please contact me for access to the data folder.
  - The tool is currently in development. The current version is a prototype and is not ready for use.
  - I don't know what coordinate systems are
@@ -13,8 +18,9 @@ Global Lake Hydrology Explorer is a tool for predicting future water levels of l
 To use Global Lake Hydrology Explorer, you will need to install the required libraries and dependencies. Please see the requirements.txt file for a list of required libraries and installation instructions.
 
 ### Usage
+
 To use the tool in its current form, you will need your lakes' Hylak ID, you can find it here: https://hub.arcgis.com/maps/0abb136c398942e080f736c8eb09f5c4/explore
-Write that into the 'driver.py' file, and run the code. It takes about a minute to run after the first time, or 11 minutes the first time if the ERA5 dataset hasn't been called before
+Write that into the 'GLHE/driver.py' file, and run the code. It takes about a minute to run after the first time, or 11 minutes the first time if the ERA5 dataset hasn't been called before
 You can find the output data in the .temp folder and you should see a matplotlib plot pop up at the end. You can also see the logging file 'GLHE.log' to see current progress.
 
 ### Contributing

@@ -1,9 +1,15 @@
-from GLHE import lake_extraction, data_access, product_driver_functions
-from GLHE.helpers import *
+import logging
+
+import geopandas as gpd
+import rioxarray
 import xarray as xr
+import rasterio
+from rasterio.merge import merge
+from rasterio.warp import reproject
 import matplotlib.pyplot as plt
 import pandas as pd
-import logging
+
+from GLHE.helpers import *
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +60,7 @@ def output_all_compiled_data_to_csv(dataset: pd.DataFrame, filename: str) -> Non
     dataset.to_csv(".temp/" + filename)
 
 
-def merge_mv_series(*datasets: MVSeries) -> pd.DataFrame:
+def merge_mv_series_into_pandas_dataframe(*datasets: MVSeries) -> pd.DataFrame:
     """
     Merges mv_series from all the products into a single dataframe
     Parameters
@@ -83,13 +89,40 @@ def merge_mv_series(*datasets: MVSeries) -> pd.DataFrame:
             runoff.append(i.dataset)
             runoff_col_names.append(i.single_letter_code + "." + i.product_name)
 
-    df = pd.concat(precip + evap + runoff, axis=1).set_axis(labels=precip_col_names + evap_col_names + runoff_col_names,
+    df = pd.concat(precip + evap , axis=1).set_axis(labels=precip_col_names + evap_col_names ,
                                                             axis=1)
     df.index.name = "date"
     logger.info("Merged datasets into pandas dataframe")
 
     return df
 
+
+def present_mv_series_as_geopackage( filename: str,*dss: MVSeries) -> None:
+    """
+    present xarray datasets into geopackage format, partially written by ChatGPT
+    Parameters
+    ----------
+    datasets : list[mv_series]
+        List of mv_series to be merged
+    filename : str
+        The output file name/location
+    """
+    gdfs = []
+    datasets=[]
+    for counter,mvs in enumerate(dss):
+        datasets.append(mvs.xarray_dataset)
+    common_crs = "EPSG:4326"  # Replace with your desired CRS
+    datasets = [dataset.rio.set_crs(common_crs) for dataset in datasets]
+    merged = xr.concat(datasets, dim="time")
+    output_dir = ".temp/"# Replace with your desired output directory
+    merged = merged.rename({'lon': 'x', 'lat': 'y'})  # Rename the longitude and latitude dimensions
+    merged = merged.rio.set_spatial_dims('x', 'y')  # Set the spatial dimensions
+    merged.rio.to_raster(output_dir, prefix='raster_', dtype='float32')
+    metadata = [dict(zip(dataset.attrs.keys(), dataset.attrs.values())) for dataset in datasets]
+    gdf = gpd.GeoDataFrame(metadata)
+    output_gpkg = ".temp/"+filename+".gpkg"  # Replace with your desired output GeoPackage file path
+    gdf.to_file(output_gpkg, layer='metadata', driver='GPKG')
+    return None
 
 if __name__ == "__main__":
     print("This is the all_data_actions file")
