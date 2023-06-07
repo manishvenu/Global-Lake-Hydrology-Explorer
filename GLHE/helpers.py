@@ -6,6 +6,7 @@ import xarray as xr
 import cf_xarray.units
 import pint_xarray
 from dataclasses import dataclass
+import pickle
 
 logger = logging.getLogger(__name__)
 # Globals
@@ -20,17 +21,17 @@ slc_mapping = {
     "pre": "p",
     "precip": "p",
     "precipitation": "p",
-    "r":"r",
-    "runoff":"r"
+    "r": "r",
+    "runoff": "r"
     # Add more mappings as needed
 }
-
 
 
 @dataclass
 class MVSeries:
     """This class is just to store the pandas series with some extra metadata,
-    a dictionary would probably work just as well, idk, should it be a
+    a dictionary would probably work just as well, but this is more readable
+    spatially_average_dataset function.
     ...
 
     Attributes
@@ -43,6 +44,10 @@ class MVSeries:
         the unit of the data
     single_letter_code : str
         what kind of product, reference helper globals, precip_codes, evap_codes, & runoff_codes
+    variable_name : str
+        the name of the variable
+    xarray_dataset : xr.Dataset
+        the original xarray dataset - this might be bad
 
     Methods
     -------
@@ -55,13 +60,49 @@ class MVSeries:
     single_letter_code: str
     product_name: str
     variable_name: str
+    xarray_dataset: xr.Dataset
 
     def __str__(self):
-        return "Product: {},Variable Name: {} SLC: {}, Unit: {}".format(self.product_name,self.variable_name,self.single_letter_code,self.unit)
+        return "Product: {},Variable Name: {} SLC: {}, Unit: {}".format(self.product_name, self.variable_name,
+                                                                        self.single_letter_code, self.unit)
 
     # Change Units MetaData DOESNT CHANGE ACTUAL VALUES
     def set_units(self, unit):
         self.unit = unit
+
+
+def pickle_xarray_dataset(dataset: xr.Dataset) -> None:
+    """Pickle xarray dataset to disk
+
+    Parameters
+    ----------
+    dataset : xr.Dataset
+        The xarray dataset to pickle
+    Returns
+    -------
+    None
+
+    """
+    pickle_file = ".temp/" + dataset.attrs['name'] + '.pickle'
+    with open(pickle_file, 'wb') as file:
+        pickle.dump(dataset, file)
+
+
+def load_pickle_dataset(pickle_file: str) -> xr.Dataset:
+    """Load pickled xarray dataset from disk
+
+    Parameters
+    ----------
+    pickle_file : str
+        The xarray dataset to pickle
+    Returns
+    -------
+    xr.Dataset
+
+    """
+    with open(".temp/" + pickle_file+".pickle", 'rb') as file:
+        dataset = pickle.load(file)
+    return dataset
 
 
 def make_sure_dataset_is_positive(series: MVSeries) -> MVSeries:
@@ -118,11 +159,12 @@ def spatially_average_dataset(dataset: xr.Dataset, *vars: str) -> tuple[MVSeries
         """
     lat_name = 'lat'
     lon_name = 'lon'
-    logger.debug("Spatially Averaged the dataset {}".format(dataset.attrs['name']))
+    logger.info("Spatially Averaged the dataset {}".format(dataset.attrs['name']))
     series_list = []
     for var in vars:
         pandas_dataset = dataset.mean(dim=[lat_name, lon_name]).get(var).to_series()
-        metadata_series = MVSeries(pandas_dataset, dataset.variables[var].attrs['units'], slc_mapping.get(var), dataset.attrs['name'],var)
+        metadata_series = MVSeries(pandas_dataset, dataset.variables[var].attrs['units'], slc_mapping.get(var),
+                                   dataset.attrs['name'], var, dataset)
         series_list.append(metadata_series)
     return tuple(series_list)
 
@@ -233,7 +275,7 @@ def add_descriptive_time_component_to_units(dataset: xr.Dataset, time_denominato
 
 def convert_units(dataset: xr.Dataset, output_unit: str, *variable: str) -> xr.Dataset:
     """
-    Converts the units of the dataset from input_unit to output_unit, mostly to mm/month or cubic meters/month,
+    Converts the units of the dataset to output_unit, mostly to mm/month or cubic meters/month,
     Parameters
     ----------
     dataset: xr.Dataset
