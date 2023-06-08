@@ -84,4 +84,3 @@ def subset_box(da: xr.Dataset, poly: Polygon, pad=1) -> xr.Dataset:
 if __name__ == "__main__":
     print("This is the lake extraction module")
     print("It is not meant to be run directly")
-    s = extract_lake(1)

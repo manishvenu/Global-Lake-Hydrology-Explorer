@@ -93,3 +93,7 @@ def get_total_precip_runoff_evap_in_subset_box_api(west: float, east: float, sou
         print("Error calling API")
         return None
     return xr.open_dataset(".temp/TEMPORARY_DONOTOPEN_ERA5LAND.nc")
+
+
+if __name__ == "__main__":
+    print("This is the ERA5 module, not a script")
