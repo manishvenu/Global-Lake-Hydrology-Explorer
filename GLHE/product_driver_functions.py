@@ -2,8 +2,6 @@
 
 import logging
 
-import pandas as pd
-
 from GLHE import helpers, lake_extraction
 from GLHE.data_access import ERA5_Land, CRUTS
 from GLHE.helpers import MVSeries
@@ -40,7 +38,8 @@ def ERA_Land_driver(polygon, debug=False) -> list[MVSeries]:
         try:
             dataset = lake_extraction.subset_box(dataset, polygon, 1)
         except ValueError:
-            logging.error("ERA5 Labd subset Failed: Polygon is too small for ERA5 Land, trying again with larger polygon")
+            logging.error(
+                "ERA5 Labd subset Failed: Polygon is too small for ERA5 Land, trying again with larger polygon")
             dataset = lake_extraction.subset_box(dataset, polygon.buffer(0.5), 0)
         dataset = helpers.fix_weird_units_descriptors(dataset, "e", "m")
         dataset = helpers.add_descriptive_time_component_to_units(dataset, "day")
@@ -48,7 +47,7 @@ def ERA_Land_driver(polygon, debug=False) -> list[MVSeries]:
         helpers.pickle_xarray_dataset(dataset)
     else:
         dataset = helpers.load_pickle_dataset("ERA5 Land")
-    evap_ds,precip_ds = helpers.spatially_average_dataset(dataset, "e","tp")
+    evap_ds, precip_ds = helpers.spatially_average_dataset(dataset, "e", "tp")
     evap_ds = helpers.make_sure_dataset_is_positive(evap_ds)
     helpers.clean_up_temporary_files()
     list_of_MVSeries = [precip_ds, evap_ds]
@@ -72,7 +71,7 @@ def CRUTS_driver(polygon, debug=False) -> list[MVSeries]:
     logger.info("CRUTS Driver Started: Precip & PET")
     if not debug:
         dataset = CRUTS.get_total_precip_evap()
-        dataset = helpers.label_xarray_dataset_with_product_name(dataset,"CRUTS")
+        dataset = helpers.label_xarray_dataset_with_product_name(dataset, "CRUTS")
         dataset = helpers.fix_lat_long_names(dataset)
         try:
             dataset = lake_extraction.subset_box(dataset, polygon, 1)

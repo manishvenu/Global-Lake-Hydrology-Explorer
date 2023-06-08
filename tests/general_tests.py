@@ -26,9 +26,6 @@ class BaseTestCase(unittest.TestCase):
                                            dims=dims).rename(
             "my_var").to_dataset()
 
-    def tearDown(self):
-        x = 1
-
 
 class MyTestCase(BaseTestCase):
 
