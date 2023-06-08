@@ -13,7 +13,7 @@ the usage of free global data products, so *no* prep work is needed (theoretical
 
 .. note::
 
-   This project is under active development.
+   This project is under active development, and is not public. If you are interested in seeing the code or helping out, please contact me at manishrv@umich.edu.
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
