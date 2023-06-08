@@ -7,6 +7,7 @@ Global Lake Hydrology Explorer is a tool for predicting future water levels of l
  - Set Precision Levels
  - Runoff
  - UI
+ - Map
 ## Current Status
  - There are NO protections against bad arguments, so be careful!
  - Local Data Folder is not uploaded to GitHub. Please contact me for access to the data folder.
