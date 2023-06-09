@@ -8,6 +8,8 @@ import pint_xarray
 from dataclasses import dataclass
 import pickle
 
+import GLHE.globals
+
 logger = logging.getLogger(__name__)
 # Globals
 
@@ -46,7 +48,7 @@ class MVSeries:
         what kind of product, reference helper globals, precip_codes, evap_codes, & runoff_codes
     variable_name : str
         the name of the variable
-    xarray_dataset : xr.Dataset
+    xarray_dataarray : xr.Dataset
         the original xarray dataset - this might be bad
 
     Methods
@@ -60,7 +62,7 @@ class MVSeries:
     single_letter_code: str
     product_name: str
     variable_name: str
-    xarray_dataset: xr.Dataset
+    xarray_dataarray: xr.DataArray
 
     def __str__(self):
         return "Product: {},Variable Name: {} SLC: {}, Unit: {}".format(self.product_name, self.variable_name,
@@ -83,7 +85,7 @@ def pickle_xarray_dataset(dataset: xr.Dataset) -> None:
     None
 
     """
-    pickle_file = ".temp/" + dataset.attrs['name'] + '.pickle'
+    pickle_file = ".temp/" + GLHE.globals.LAKE_NAME+"_"+dataset.attrs['name'] + '.pickle'
     with open(pickle_file, 'wb') as file:
         pickle.dump(dataset, file)
 
@@ -100,28 +102,30 @@ def load_pickle_dataset(pickle_file: str) -> xr.Dataset:
     xr.Dataset
 
     """
-    with open(".temp/" + pickle_file+".pickle", 'rb') as file:
+    with open(".temp/" +GLHE.globals.LAKE_NAME+"_"+ pickle_file+".pickle", 'rb') as file:
         dataset = pickle.load(file)
     return dataset
 
 
-def make_sure_dataset_is_positive(series: MVSeries) -> MVSeries:
+def make_sure_dataset_is_positive(dataset: xr.Dataset, *vars:str) -> xr.Dataset:
     """
     This function makes sure that the dataset is positive, if not it makes it positive
     Parameters
     ----------
-    series: MVSeries
-        the series to be checked
+    dataset: xr.Dataset
+        the dataset that needs to be converted to positive
+    vars: str
+        the name of the variable to be converted
     Returns
     -------
-    MVSeries
-        the series with all positive values
+    xr.Dataset
+        the dataset with all positive values
     """
-
-    if series.dataset.min() < 0:
-        logger.info("The series ({}) has negative values, making it positive".format(series))
-        series.dataset = series.dataset.abs()
-    return series
+    for variable_name in vars:
+        if dataset[variable_name].values.min() < 0:
+            logger.info("The dataset ({} {}) has negative values, making it positive".format(dataset.attrs['name'],variable_name))
+            dataset[variable_name].values = abs(dataset[variable_name].values)
+    return dataset
 
 
 def move_date_index_to_first_of_the_month(*series: MVSeries) -> tuple[MVSeries]:
@@ -143,7 +147,7 @@ def move_date_index_to_first_of_the_month(*series: MVSeries) -> tuple[MVSeries]:
     return tuple(series_list)
 
 
-def spatially_average_dataset(dataset: xr.Dataset, *vars: str) -> tuple[MVSeries]:
+def spatially_average_dataset_and_convert(dataset: xr.Dataset, *vars: str) -> tuple[MVSeries]:
     """Spatially average xarray data to one value over entire grid
 
         Parameters
@@ -164,7 +168,7 @@ def spatially_average_dataset(dataset: xr.Dataset, *vars: str) -> tuple[MVSeries
     for var in vars:
         pandas_dataset = dataset.mean(dim=[lat_name, lon_name]).get(var).to_series()
         metadata_series = MVSeries(pandas_dataset, dataset.variables[var].attrs['units'], slc_mapping.get(var),
-                                   dataset.attrs['name'], var, dataset)
+                                   dataset.attrs['name'], var, dataset[var])
         series_list.append(metadata_series)
     return tuple(series_list)
 
@@ -300,6 +304,18 @@ def convert_units(dataset: xr.Dataset, output_unit: str, *variable: str) -> xr.D
     dataset = dataset.pint.dequantify()
     return dataset
 
+def make_output_directory(output_directory: str) -> None:
+    """Makes the output directory if it doesn't exist
+
+    Parameters
+    ----------
+    output_directory : str
+        The output directory to make
+    """
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
+    GLHE.globals.OUTPUT_DIRECTORY = output_directory
+    logger.info("Made the output directory {}".format(output_directory))
 
 def clean_up_temporary_files() -> list:
     """removes files that start with TEMPORARY

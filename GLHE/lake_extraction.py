@@ -3,7 +3,7 @@ from json import loads
 import xarray as xr
 from osgeo.gdal import OpenEx, OF_VECTOR, UseExceptions
 from shapely.geometry import shape, Polygon
-
+import GLHE.globals
 logger = logging.getLogger(__name__)
 
 def extract_lake(hylak_id: int) -> Polygon:
@@ -32,7 +32,9 @@ def extract_lake(hylak_id: int) -> Polygon:
     polygon = shape(geojson_format['geometry'])
     feature.Destroy()
     hydro_lakes.ReleaseResultSet(result)
-    logger.info("Extracted Lake: {}".format(geojson_format['properties']['Lake_name']))
+    GLHE.globals.LAKE_NAME = geojson_format['properties']['Lake_name'].replace(" ", "_")
+    logger.info("Extracted Lake: {}".format(GLHE.globals.LAKE_NAME ))
+
     return polygon
 
 
