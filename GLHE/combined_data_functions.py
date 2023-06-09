@@ -1,14 +1,10 @@
-import logging
+import zipfile
 
-import geopandas as gpd
-import rioxarray
-import xarray as xr
-import rasterio
-from rasterio.merge import merge
-from rasterio.warp import reproject
 import matplotlib.pyplot as plt
 import pandas as pd
+import rasterio
 
+import GLHE.globals
 from GLHE.helpers import *
 
 logger = logging.getLogger(__name__)
@@ -35,11 +31,12 @@ def plot_all_data(dataset: pd.DataFrame) -> None:
                  xlim=(dataset[precip_cols].first_valid_index(), dataset[precip_cols].last_valid_index()))
     dataset.plot(y=evap_cols, ax=axs[1],
                  xlim=(dataset[evap_cols].first_valid_index(), dataset[evap_cols].last_valid_index()))
-    if (len(runoff_cols) > 0):
+    if len(runoff_cols) > 0:
         dataset.plot(y=runoff_cols, ax=axs[2],
                      xlim=(dataset[runoff_cols].first_valid_index(), dataset[runoff_cols].last_valid_index()))
     plt.tight_layout()
     plt.show()
+    plt.save_fig(GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME+"_products_plot.png")
     return
 
 
@@ -56,8 +53,8 @@ def output_all_compiled_data_to_csv(dataset: pd.DataFrame, filename: str) -> Non
         -------
         a csv file in the location specified
         """
-    logger.info("Output CSV written here: .temp/" + filename)
-    dataset.to_csv(".temp/" + filename)
+    logger.info("Output CSV written here: " + GLHE.globals.OUTPUT_DIRECTORY + "/" + filename)
+    dataset.to_csv(GLHE.globals.OUTPUT_DIRECTORY + "/" + filename)
 
 
 def merge_mv_series_into_pandas_dataframe(*datasets: MVSeries) -> pd.DataFrame:
@@ -89,40 +86,59 @@ def merge_mv_series_into_pandas_dataframe(*datasets: MVSeries) -> pd.DataFrame:
             runoff.append(i.dataset)
             runoff_col_names.append(i.single_letter_code + "." + i.product_name)
 
-    df = pd.concat(precip + evap , axis=1).set_axis(labels=precip_col_names + evap_col_names ,
-                                                            axis=1)
+    df = pd.concat(precip + evap, axis=1).set_axis(labels=precip_col_names + evap_col_names,
+                                                   axis=1)
     df.index.name = "date"
     logger.info("Merged datasets into pandas dataframe")
 
     return df
 
 
-def present_mv_series_as_geopackage( filename: str,*dss: MVSeries) -> None:
+def present_mv_series_as_geospatial_at_date_time(date: pd.Timestamp, *dss: MVSeries) -> None:
     """
-    present xarray datasets into geopackage format, partially written by ChatGPT
+    present xarray datasets into some format, partially written by ChatGPT
     Parameters
     ----------
     datasets : list[mv_series]
         List of mv_series to be merged
+    date : pd.Timestamp
+        The date to be presented
     filename : str
         The output file name/location
     """
-    gdfs = []
-    datasets=[]
-    for counter,mvs in enumerate(dss):
-        datasets.append(mvs.xarray_dataset)
-    common_crs = "EPSG:4326"  # Replace with your desired CRS
-    datasets = [dataset.rio.set_crs(common_crs) for dataset in datasets]
-    merged = xr.concat(datasets, dim="time")
-    output_dir = ".temp/"# Replace with your desired output directory
-    merged = merged.rename({'lon': 'x', 'lat': 'y'})  # Rename the longitude and latitude dimensions
-    merged = merged.rio.set_spatial_dims('x', 'y')  # Set the spatial dimensions
-    merged.rio.to_raster(output_dir, prefix='raster_', dtype='float32')
-    metadata = [dict(zip(dataset.attrs.keys(), dataset.attrs.values())) for dataset in datasets]
-    gdf = gpd.GeoDataFrame(metadata)
-    output_gpkg = ".temp/"+filename+".gpkg"  # Replace with your desired output GeoPackage file path
-    gdf.to_file(output_gpkg, layer='metadata', driver='GPKG')
-    return None
+    logger.info("Outputting datasets on {} to GeoTIFF".format(date.strftime('%Y%m%d')))
+    input_files = []
+    input_filenames = []
+    for counter, mvs in enumerate(dss):
+        variable = mvs.xarray_dataarray
+        lat = variable['lat'].values
+        lon = variable['lon'].values
+        filename = mvs.variable_name + "_" + mvs.product_name + "_" + GLHE.globals.LAKE_NAME + "_" + date.strftime(
+            '%Y%m%d') + ".tif"
+        filepath = ".temp/TEMPORARY_" + filename
+        input_files.append(filepath)
+        input_filenames.append(filename)
+        width = len(lon)
+        height = len(lat)
+        nearest_idx = list(variable.time.values).index(variable.sel(time=date, method='nearest').time)
+
+        # Create the raster layer using rasterio
+        with rasterio.open(filepath, 'w', driver='GTiff', height=len(lat), width=len(lon), count=1,
+                           dtype=variable.dtype, crs='EPSG:4326',
+                           transform=rasterio.transform.from_bounds(lon.min(), lat.min(), lon.max(), lat.max(), width,
+                                                                    height)) as dst:
+            dst.write(variable[nearest_idx], 1)
+
+    zip_file = GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME + "_data_layers_on" + date.strftime('%Y%m%d') + ".zip"
+
+    # Create a new ZIP file
+    with zipfile.ZipFile(zip_file, 'w') as zf:
+        # Add each GeoTIFF file to the ZIP archive
+        for index, file in enumerate(input_files):
+            zf.write(file, input_filenames[index])
+
+    print(f"GeoTIFF files zipped successfully: {zip_file}")
+
 
 if __name__ == "__main__":
     print("This is the all_data_actions file")

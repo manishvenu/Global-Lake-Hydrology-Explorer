@@ -49,7 +49,7 @@ class MyTestCase(BaseTestCase):
     def test_spatially_average_dataset(self):
         polygon = lake_extraction.extract_lake(798)
         self.terra_dataset = lake_extraction.subset_box(self.terra_dataset, polygon, 1)
-        self.assertIsNotNone(helpers.spatially_average_dataset(self.terra_dataset, "ppt"))
+        self.assertIsNotNone(helpers.spatially_average_dataset_and_convert(self.terra_dataset, "ppt"))
 
     def test_plotting(self):
         csv_dataset = pd.read_csv(
