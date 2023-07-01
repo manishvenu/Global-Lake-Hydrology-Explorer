@@ -10,7 +10,7 @@
 
 # Manish Stuff
 GLHE/LocalData/
-
+GLHE/.temp/
 # AWS User-specific
 .idea/**/aws.xml
 
