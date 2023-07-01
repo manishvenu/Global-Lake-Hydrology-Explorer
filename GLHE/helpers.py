@@ -1,12 +1,12 @@
 import logging
 import os
+import pickle
+from dataclasses import dataclass
 
 import pandas as pd
 import xarray as xr
 import cf_xarray.units
 import pint_xarray
-from dataclasses import dataclass
-import pickle
 
 import GLHE.globals
 
@@ -64,6 +64,14 @@ class MVSeries:
     variable_name: str
     xarray_dataarray: xr.DataArray
 
+    def __init__(self, dataset: pd.Series, unit: str, single_letter_code: str, product_name: str, variable_name: str):
+        self.dataset = dataset
+        self.unit = unit
+        self.single_letter_code = single_letter_code
+        self.product_name = product_name
+        self.variable_name = variable_name
+        self.xarray_dataarray = None
+
     def __str__(self):
         return "Product: {},Variable Name: {} SLC: {}, Unit: {}".format(self.product_name, self.variable_name,
                                                                         self.single_letter_code, self.unit)
@@ -85,7 +93,7 @@ def pickle_xarray_dataset(dataset: xr.Dataset) -> None:
     None
 
     """
-    pickle_file = ".temp/" + GLHE.globals.LAKE_NAME+"_"+dataset.attrs['name'] + '.pickle'
+    pickle_file = ".temp/" + GLHE.globals.LAKE_NAME + "_" + dataset.attrs['name'] + '.pickle'
     with open(pickle_file, 'wb') as file:
         pickle.dump(dataset, file)
 
@@ -102,12 +110,12 @@ def load_pickle_dataset(pickle_file: str) -> xr.Dataset:
     xr.Dataset
 
     """
-    with open(".temp/" +GLHE.globals.LAKE_NAME+"_"+ pickle_file+".pickle", 'rb') as file:
+    with open(".temp/" + GLHE.globals.LAKE_NAME + "_" + pickle_file + ".pickle", 'rb') as file:
         dataset = pickle.load(file)
     return dataset
 
 
-def make_sure_dataset_is_positive(dataset: xr.Dataset, *vars:str) -> xr.Dataset:
+def make_sure_dataset_is_positive(dataset: xr.Dataset, *vars: str) -> xr.Dataset:
     """
     This function makes sure that the dataset is positive, if not it makes it positive
     Parameters
@@ -123,7 +131,8 @@ def make_sure_dataset_is_positive(dataset: xr.Dataset, *vars:str) -> xr.Dataset:
     """
     for variable_name in vars:
         if dataset[variable_name].values.min() < 0:
-            logger.info("The dataset ({} {}) has negative values, making it positive".format(dataset.attrs['name'],variable_name))
+            logger.info("The dataset ({} {}) has negative values, making it positive".format(dataset.attrs['name'],
+                                                                                             variable_name))
             dataset[variable_name].values = abs(dataset[variable_name].values)
     return dataset
 
@@ -304,6 +313,7 @@ def convert_units(dataset: xr.Dataset, output_unit: str, *variable: str) -> xr.D
     dataset = dataset.pint.dequantify()
     return dataset
 
+
 def make_output_directory(output_directory: str) -> None:
     """Makes the output directory if it doesn't exist
 
@@ -316,6 +326,7 @@ def make_output_directory(output_directory: str) -> None:
         os.mkdir(output_directory)
     GLHE.globals.OUTPUT_DIRECTORY = output_directory
     logger.info("Made the output directory {}".format(output_directory))
+
 
 def clean_up_temporary_files() -> list:
     """removes files that start with TEMPORARY

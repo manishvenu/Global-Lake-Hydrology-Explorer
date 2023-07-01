@@ -1,10 +1,14 @@
 import logging
 from json import loads
+
 import xarray as xr
 from osgeo.gdal import OpenEx, OF_VECTOR, UseExceptions
 from shapely.geometry import shape, Polygon
+
 import GLHE.globals
+
 logger = logging.getLogger(__name__)
+
 
 def extract_lake(hylak_id: int) -> Polygon:
     """Extracts lake from shapefile
@@ -32,8 +36,8 @@ def extract_lake(hylak_id: int) -> Polygon:
     polygon = shape(geojson_format['geometry'])
     feature.Destroy()
     hydro_lakes.ReleaseResultSet(result)
-    GLHE.globals.LAKE_NAME = geojson_format['properties']['Lake_name'].replace(" ", "_")
-    logger.info("Extracted Lake: {}".format(GLHE.globals.LAKE_NAME ))
+    GLHE.globals.LAKE_NAME += "\\" + geojson_format['properties']['Lake_name'].replace(" ", "_")
+    logger.info("Extracted Lake: {}".format(GLHE.globals.LAKE_NAME))
 
     return polygon
 
@@ -78,9 +82,6 @@ def subset_box(da: xr.Dataset, poly: Polygon, pad=1) -> xr.Dataset:
         mask = mask.rolling(**{dim: 2 * pad + 1}, min_periods=1, center=True).max()
     logger.info("Subsetted the dataset {} to lake area".format(da.attrs["name"]))
     return da.where(mask.astype(int), drop=True)
-
-
-
 
 
 if __name__ == "__main__":

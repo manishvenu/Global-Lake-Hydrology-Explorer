@@ -1,11 +1,13 @@
 import os
 import unittest
+import sys
 
 import numpy as np
 import pandas as pd
 import xarray as xr
-
+import logging
 from GLHE import helpers, lake_extraction, combined_data_functions
+from GLHE.data_access import ERA5_Land, CRUTS, NWM, data_check
 
 
 class BaseTestCase(unittest.TestCase):
@@ -28,6 +30,17 @@ class BaseTestCase(unittest.TestCase):
 
 
 class MyTestCase(BaseTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        logging.basicConfig(
+            filename='C:\\Users\\manis\\OneDrive - Umich\\Documents\\Global Lake Hydrology Explorer\\GLHE\\.temp\\GLHE.log',
+            encoding='utf-8', level=os.environ.get("LOGLEVEL", "INFO"),
+            format='%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S', )
+        logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
+        logging.info("***********************Starting Test Functions*************************")
 
     def test_name(self):
         self.terra_dataset = helpers.label_xarray_dataset_with_product_name(self.terra_dataset, "TerraClimateDummyData")
@@ -57,6 +70,21 @@ class MyTestCase(BaseTestCase):
         csv_dataset['date'] = pd.to_datetime(csv_dataset['date'])
         csv_dataset.set_index('date', inplace=True)
         combined_data_functions.plot_all_data(csv_dataset)
+        self.assertEqual(1, 1)
+
+    def test_nwm_find_lake_id(self):
+        polygon = lake_extraction.extract_lake(61)
+        NWM.find_lake_id(polygon)
+        self.assertEqual(1, 1)
+
+    def test_download_data_check(self):
+        list_of_files = data_check.check_data_and_download_missing_data_or_files()
+        self.assertEqual(1, 1)
+
+    def test_ERA5_class(self):
+        ERA5_object = ERA5_Land.ERA5_Land()
+        polygon = lake_extraction.extract_lake(61)
+        ERA5_object.product_driver(polygon)
         self.assertEqual(1, 1)
 
 
