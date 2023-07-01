@@ -24,7 +24,9 @@ slc_mapping = {
     "precip": "p",
     "precipitation": "p",
     "r": "r",
-    "runoff": "r"
+    "runoff": "r",
+    "inflow": "r",
+    "outflow": "o"
     # Add more mappings as needed
 }
 
@@ -93,9 +95,42 @@ def pickle_xarray_dataset(dataset: xr.Dataset) -> None:
     None
 
     """
-    pickle_file = ".temp/" + GLHE.globals.LAKE_NAME + "_" + dataset.attrs['name'] + '.pickle'
+    pickle_file = GLHE.globals.OUTPUT_DIRECTORY + "/save_files/" + GLHE.globals.LAKE_NAME + "_" + dataset.attrs[
+        'name'] + '.pickle'
     with open(pickle_file, 'wb') as file:
         pickle.dump(dataset, file)
+
+
+def convert_dicts_to_MVSeries(*dicts: dict, date_column_name: str, units_key_name: str, product_name_key_name: str) -> \
+        list[
+            MVSeries]:
+    """Convert dictionaries to MVSeries
+
+    Parameters
+    ----------
+    dicts : dict
+        The dictionaries to convert, each must have a "date" column
+    date_column_name : str
+        The name of the date column
+    units_key_name : str
+        The name of the units string value
+    product_name_key_name : str
+        The name of the key to the product name
+    Returns
+    -------
+    list of MVSeries
+        MVSeries of the data
+
+    """
+    series_list = []
+    for dictionary in dicts:
+        for key, value in dictionary.items():
+            if key != date_column_name:
+                series = pd.Series(value, index=dictionary[date_column_name])
+                metadata_series = MVSeries(value, dictionary[units_key_name], slc_mapping.get(key),
+                                           dictionary[product_name_key_name], key)
+                series_list.append(metadata_series)
+    return series_list
 
 
 def load_pickle_dataset(pickle_file: str) -> xr.Dataset:
@@ -110,7 +145,8 @@ def load_pickle_dataset(pickle_file: str) -> xr.Dataset:
     xr.Dataset
 
     """
-    with open(".temp/" + GLHE.globals.LAKE_NAME + "_" + pickle_file + ".pickle", 'rb') as file:
+    with open(GLHE.globals.OUTPUT_DIRECTORY + "/save_files/" + GLHE.globals.LAKE_NAME + "_" + pickle_file + ".pickle",
+              'rb') as file:
         dataset = pickle.load(file)
     return dataset
 
@@ -314,7 +350,7 @@ def convert_units(dataset: xr.Dataset, output_unit: str, *variable: str) -> xr.D
     return dataset
 
 
-def make_output_directory(output_directory: str) -> None:
+def setup_output_directory(output_directory: str) -> None:
     """Makes the output directory if it doesn't exist
 
     Parameters
@@ -322,13 +358,14 @@ def make_output_directory(output_directory: str) -> None:
     output_directory : str
         The output directory to make
     """
-    if not os.path.exists(output_directory):
+    if not os.path.exists(output_directory.replace('\\', '')):
         os.mkdir(output_directory)
-    GLHE.globals.OUTPUT_DIRECTORY = output_directory
-    logger.info("Made the output directory {}".format(output_directory))
+        os.mkdir(output_directory + "/save_files")
+        logger.info("Made the output directory {}".format(output_directory))
+    GLHE.globals.OUTPUT_DIRECTORY = os.getcwd() + "/" + output_directory
 
 
-def clean_up_temporary_files() -> list:
+def clean_up_all_temporary_files() -> list:
     """removes files that start with TEMPORARY
 
         Returns
@@ -345,4 +382,27 @@ def clean_up_temporary_files() -> list:
             os.remove(".temp/" + file)
             deleted_files.append(file)
     logger.debug("Cleared temporary files")
+    return deleted_files
+
+
+def clean_up_specific_temporary_files(key: str) -> list:
+    """removes files that start with TEMPORARY
+        Parameters
+        ----------
+        key:str
+            the key to remove
+        Returns
+        -------
+        list
+            list of filenames of deleted files
+        """
+
+    if not os.path.exists(".temp"):
+        return []
+    deleted_files = []
+    for file in os.listdir(".temp"):
+        if file.split("_")[0] == "TEMPORARY" and file.split("_")[1] == key:
+            os.remove(".temp/" + file)
+            deleted_files.append(file)
+    logger.debug("Cleared temporary  with key {} in their filename after the understore".format(key))
     return deleted_files

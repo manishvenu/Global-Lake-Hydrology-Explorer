@@ -92,12 +92,12 @@ class ERA5_Land(data_access_parent_class.DataAccess):
                     ],
                     'format': 'netcdf',
                 },
-                ".temp/TEMPORARY_DONOTOPEN_ERA5LAND.nc")
+                ".temp/TEMPORARY_ERA5Land_DONOTOPEN_ERA5LAND.nc")
         except:
             self.logger.info("Error calling API")
             return None
         self.logger.info("Success calling ERA5 Land API")
-        xarray_dataset = xr.open_dataset(".temp/TEMPORARY_DONOTOPEN_ERA5LAND.nc")
+        xarray_dataset = xr.open_dataset(".temp/TEMPORARY_ERA5Land_DONOTOPEN_ERA5LAND.nc")
         return xarray_dataset
 
     def product_driver(self, polygon, debug=False) -> list[MVSeries]:
@@ -129,7 +129,7 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         else:
             dataset = helpers.load_pickle_dataset("ERA5_Land")
         evap_ds, precip_ds = helpers.spatially_average_dataset_and_convert(dataset, "e", "tp")
-        helpers.clean_up_temporary_files()
+        helpers.clean_up_specific_temporary_files("ERA5Land")
         list_of_MVSeries = [precip_ds, evap_ds]
         self.logger.info("ERA Driver Finished")
         return list_of_MVSeries

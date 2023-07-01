@@ -1,4 +1,5 @@
 import logging
+import os
 from json import loads
 
 import xarray as xr
@@ -36,7 +37,9 @@ def extract_lake(hylak_id: int) -> Polygon:
     polygon = shape(geojson_format['geometry'])
     feature.Destroy()
     hydro_lakes.ReleaseResultSet(result)
-    GLHE.globals.LAKE_NAME += "\\" + geojson_format['properties']['Lake_name'].replace(" ", "_")
+    GLHE.globals.LAKE_NAME += geojson_format['properties']['Lake_name'].replace(" ", "_")
+    GLHE.globals.OUTPUT_DIRECTORY = os.getcwd() + "/" + GLHE.globals.LAKE_NAME
+
     logger.info("Extracted Lake: {}".format(GLHE.globals.LAKE_NAME))
 
     return polygon

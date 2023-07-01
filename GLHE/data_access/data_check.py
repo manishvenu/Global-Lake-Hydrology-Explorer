@@ -24,6 +24,7 @@ def download_data_from_dropbox(dropbox_link: str, filename: str, is_folder: bool
     -------
     None
     """
+    logger.info("** Checking Data **")
     headers = {'user-agent': 'Wget/1.16 (linux-gnu)'}
     r = requests.get(dropbox_link, stream=True, headers=headers)
     filepath = "LocalData/" + filename

@@ -1,31 +1,30 @@
 from datetime import datetime as dt
-
+import os
 import boto3
 import xarray as xr
 from shapely.geometry import Polygon, Point
-
+import pandas as pd
 from GLHE.data_access import data_access_parent_class
 from GLHE.helpers import MVSeries
+from GLHE import helpers
+import GLHE
 
 
 class NWM(data_access_parent_class.DataAccess):
     xarray_dataset: xr.Dataset
     BUCKET_NAME = 'noaa-nwm-retrospective-2-1-pds'
     s3: boto3.client
+    full_data = {"Date": [], "Inflow": [], "Outflow": [], "units": "m^3/s", "name": "NWM"}
 
     def __init__(self):
-        s3 = boto3.client("s3", region_name='us-east-1',
-                          aws_access_key_id="AKIA6BHGCVJLQKADHHWY",
-                          aws_secret_access_key="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")
+        self.s3 = boto3.client("s3", region_name='us-east-1',
+                               aws_access_key_id="AKIA6BHGCVJLQKADHHWY",
+                               aws_secret_access_key="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")
         super().__init__()
 
     def verify_inputs(self) -> bool:
         """See parent class for description"""
         return True
-
-    def product_driver(self, polygon, debug=False) -> list[MVSeries]:
-        """See parent class for description, unimplemnted"""
-        raise NotImplementedError()
 
     def find_lake_id(self, polygon: Polygon) -> tuple[list[int], bool]:
         """
@@ -42,12 +41,9 @@ class NWM(data_access_parent_class.DataAccess):
             The lake ID
         """
 
-        # Define the latitude and longitude coordinates
         latitude = polygon.centroid.y
         longitude = polygon.centroid.x
-
         flag_stream_links_used = False
-        # Use Iterator to find a lakeout file
         lo_file_name = ".temp/TEMPORARY_NWM_LAKEOUT.nc"
         co_file_name = ".temp/TEMPORARY_NWM_CHRTOUT.nc"
         with open(lo_file_name, 'wb') as f:
@@ -64,25 +60,26 @@ class NWM(data_access_parent_class.DataAccess):
             if closest is None or dist < closest[0]:
                 closest = (dist, i, lo_nwm.longitude[i].values, lo_nwm.latitude[i].values)
         feature_id_index = closest[1]
-        if closest[0] > 0.0001:
+        if closest[0] > 0.001:
             flag_stream_links_used = True
             self.logger.error("The lake is not in the NWM domain")
             self.logger.error(
                 "Doing it the hard way, accessing direct stream links in the area, if this lake is incorrectly "
                 "placed in the HydroLakes database, this data is bogus, flags will be added here, and a map downloaded. check "
                 "it!")
-            co_nwm = xr.open_dataset(co_file_name)
+            self.logger.error("THIS MODULE HAS NOT BEEN EFFICIENTLY IMPLEMENTED. IT'S NOT CORRECT!")
+            # co_nwm = xr.open_dataset(co_file_name)
             feature_ids_index = []
-            for count, i in enumerate(co_nwm.feature_id):
-                print(count)
-                point = Point(co_nwm.longitude[count].values, co_nwm.latitude[count].values)
-                if point.within(polygon):
-                    feature_ids_index.append(count)
+            # for count, i in enumerate(co_nwm.feature_id):
+            #     print(count)
+            #     point = Point(co_nwm.longitude[count].values, co_nwm.latitude[count].values)
+            #     if point.within(polygon):
+            #         feature_ids_index.append(count)
             return feature_ids_index, flag_stream_links_used
         else:
             return [feature_id_index], flag_stream_links_used
 
-    def get_nwm_runoff(self, polygon: Polygon) -> MVSeries:
+    def product_driver(self, polygon, debug=False) -> list[MVSeries]:
         """
         Gets the runoff data for a given polygon
 
@@ -95,34 +92,110 @@ class NWM(data_access_parent_class.DataAccess):
         MVSeries
             The monthly runoff data
         """
+
         list_of_feature_ids, flag_stream_links_used = self.find_lake_id(polygon)
+        if (flag_stream_links_used):
+            self.chrtout_file_process(list_of_feature_ids)
+        else:
+            self.lakeout_file_process(list_of_feature_ids)
+        list_of_MVSeries = helpers.convert_dicts_to_MVSeries(self.full_data, "date", "units", "name")
+
+        return list_of_MVSeries
+
+    def lakeout_file_process(self, list_of_feature_ids):
+        """If we are using lake files
+        Parameters
+        ----------
+        list_of_feature_ids : list
+            List of feature ids
+        Returns
+        -------
+        None
+        """
+
+        start_date, end_date = self.check_save_file()
+        if start_date is None:
+            start_date = dt.strptime("1931-02-01", '%Y-%m-%d')
+            end_date = dt.strptime("2025-02-28", '%Y-%m-%d')
         # Create Iterator
         paginator = self.s3.get_paginator('list_objects_v2')
         pages = paginator.paginate(Bucket=self.BUCKET_NAME, Prefix='model_output/')
+        self.logger.info("Iterating through NWM files")
         for page in pages:
             for obj in page['Contents']:
-                # Accessing only netcdf files with Lake Information ##
-                if (not flag_stream_links_used) and obj['Key'].endswith("comp") and \
-                        obj["Key"].split("/")[2].split(".")[1].split("_")[0] == "LAKEOUT":
+
+                # Accessing only netcdf files with Lake Information #
+                if obj['Key'].endswith("comp") and obj["Key"].split("/")[2].split(".")[1].split("_")[0] == "LAKEOUT":
                     filename = obj["Key"].split("/")[2] + ".nc"
                     date = dt.strptime(filename.split(".")[0], '%Y%m%d%H%M')
-                    filepath = ".temp/TEMPORARY_" + filename
+                    filepath = ".temp/TEMPORARY_NWM_" + filename
+
+                    ## Access only the file at 1200 time (We don't need hourly files) ##
+                    if date.hour != 12:
+                        continue
+                    if date < start_date or date > end_date:
+                        continue
+                    if date.day == 1:
+                        self.save_interim()
                     # Download File ##
                     with open(filepath, 'wb') as f:
                         self.s3.download_fileobj(self.BUCKET_NAME, obj["Key"], f)
-                        self.logger.info("Succesfully Downloaded", filename)
                         f.close()
+                    dict_data = self.extract_data(filepath, list_of_feature_ids, date)
+                    self.full_data["Date"].append(dict_data['date'])
+                    self.full_data["Outflow"].append(dict_data['outflow'])
+                    self.full_data["Inflow"].append(dict_data['inflow'])
+                    self.logger.debug("NWM File Processed: " + str(date))
+                    os.remove(filepath)
 
-                    file_found = True
-                elif flag_stream_links_used and obj['Key'].endswith("comp") and \
-                        obj["Key"].split("/")[2].split(".")[1].split("_")[0] == "CHRTOUT":
+    def chrtout_file_process(self, list_of_feature_ids):
+        """If we are using stream files"""
+        paginator = self.s3.get_paginator('list_objects_v2')
+        pages = paginator.paginate(Bucket=self.BUCKET_NAME, Prefix='model_output/')
+        self.logger.info("Iterating through NWM files")
+        full_data = {"Date": [], "Inflow": [], "Outflow": []}
+        for page in pages:
+            for obj in page['Contents']:
+                if obj['Key'].endswith("comp") and obj["Key"].split("/")[2].split(".")[1].split("_")[0] == "CHRTOUT":
                     filename = obj["Key"].split("/")[2] + ".nc"
                     date = dt.strptime(filename.split(".")[0], '%Y%m%d%H%M')
-                    co_filepath = ".temp/TEMPORARY_" + filename
-                    # Download File ##
+                    co_filepath = ".temp/TEMPORARY_NWM_" + filename
                     with open(co_filepath, 'wb') as f:
                         self.s3.download_fileobj(self.BUCKET_NAME, obj["Key"], f)
                         self.logger.info("Succesfully Downloaded", filename)
                         f.close()
 
-        return None
+    def extract_data(self, nwm_file: xr.Dataset, feature_id: int, date: dt):
+
+        ## Open File ##
+        ds_nwm = xr.open_dataset(nwm_file)
+
+        ## Find the streams we want ##
+        ds_nwm_wanted = ds_nwm.sel(feature_id=ds_nwm.feature_id[feature_id].values[0])
+
+        ## Access inflow values ##
+        inflow = ds_nwm_wanted['inflow'].item()
+        outflow = ds_nwm_wanted['outflow'].item()
+        ## Add streamflows to output by ID ##
+        data_aa = {'inflow': inflow, "date": date, "outflow": outflow}
+
+        ## Return data ##
+        return data_aa
+
+    def save_interim(self) -> None:
+        """Saves the interim data"""
+        filepath = GLHE.globals.OUTPUT_DIRECTORY + "/save_files/" + GLHE.globals.LAKE_NAME + "_" + "NWM.csv"
+        df = pd.DataFrame(self.full_data)
+        df.to_csv(filepath)
+
+    def check_save_file(self) -> tuple[str]:
+        """Checks if the file is already saved and returns the first and last date of the file"""
+        filepath = GLHE.globals.OUTPUT_DIRECTORY + "/save_files/" + GLHE.globals.LAKE_NAME + "_" + "NWM.csv"
+        if os.path.exists(filepath):
+            saved_NWM_data = pd.read_csv(filepath)
+            self.full_data = saved_NWM_data.to_dict()
+            if len(self.full_data["Date"]) < 2:
+                return None, None
+            return self.full_data["Date"][0], self.full_data["Date"][-1]
+        else:
+            return None, None

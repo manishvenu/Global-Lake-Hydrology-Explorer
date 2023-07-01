@@ -55,7 +55,7 @@ class CRUTS(data_access_parent_class.DataAccess):
             dataset = helpers.load_pickle_dataset("CRUTS")
         pet_ds, precip_ds = helpers.spatially_average_dataset_and_convert(dataset, "pet", "pre")
         pet_ds, precip_ds = helpers.move_date_index_to_first_of_the_month(pet_ds, precip_ds)
-        helpers.clean_up_temporary_files()
+        helpers.clean_up_specific_temporary_files("CRUTS")
         list_of_MVSeries = [pet_ds, precip_ds]
         self.logger.info("CRUTS Driver Finished")
         return list_of_MVSeries
