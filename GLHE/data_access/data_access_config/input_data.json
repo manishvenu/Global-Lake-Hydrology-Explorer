@@ -1,0 +1,31 @@
+{
+  "data_products": [
+    {
+      "name": "ERA5_Land",
+      "access_code": "api",
+      "description": "P & E data from ERA5",
+      "api_access_script": "ERA5_Land"
+    },
+    {
+      "name": "CRUTS",
+      "access_code": "local",
+      "local_remote_storage_filename": "cruts_pet_pre_4.07_1901_2022.nc",
+      "dropbox_download_link": "https://www.dropbox.com/scl/fi/vqs1x27wnlplx6wpbay7t/cruts_pet_pre_4.07_1901_2022.nc?dl=0&rlkey=pkctmwuk1idba07mntcxscc87",
+      "description": "Pre, PET data from CRU TS"
+    },
+    {
+      "name": "NWM",
+      "access_code": "api",
+      "description": "Runoff data from NWM",
+      "api_access_script": "NWM"
+    },
+    {
+      "name": "Lake_Shapefiles",
+      "access_code": "local",
+      "description": "Dataset of all lakes in the world",
+      "local_remote_storage_filename": "HydroLAKES_polys_v10_shp/",
+      "dropbox_download_link": "https://www.dropbox.com/sh/91riy601jr1itet/AABgOkSunThe35mvsM5KhJyQa?dl=1"
+    }
+  ],
+  "metadata": "This is a list of data products, and they have specific access methods. Right now that is API or Local. MUST HAVE NAME AND ACCESS CODE But eventually all you would need to do here is add the product, but that's far far away. "
+}

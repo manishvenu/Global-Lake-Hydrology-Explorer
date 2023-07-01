@@ -10,53 +10,6 @@ from GLHE.helpers import *
 logger = logging.getLogger(__name__)
 
 
-def plot_all_data(dataset: pd.DataFrame) -> None:
-    """Plot Precip, Evap, & Runoff in a three panel plot
-
-        Parameters
-        ----------
-        dataset : pd.DataFrame
-            The monthly Pandas dataset
-        Returns
-        -------
-        None
-        """
-    logger.info("Plotting Data")
-    precip_cols = [col for col in dataset if col.startswith("p")]
-    evap_cols = [col for col in dataset if col.startswith("e")]
-    runoff_cols = [col for col in dataset if col.startswith("r")]
-
-    fig, axs = plt.subplots(3, 1, figsize=(10, 10))
-    dataset.plot(y=precip_cols, ax=axs[0],
-                 xlim=(dataset[precip_cols].first_valid_index(), dataset[precip_cols].last_valid_index()))
-    dataset.plot(y=evap_cols, ax=axs[1],
-                 xlim=(dataset[evap_cols].first_valid_index(), dataset[evap_cols].last_valid_index()))
-    if len(runoff_cols) > 0:
-        dataset.plot(y=runoff_cols, ax=axs[2],
-                     xlim=(dataset[runoff_cols].first_valid_index(), dataset[runoff_cols].last_valid_index()))
-    plt.tight_layout()
-    plt.show()
-    plt.save_fig(GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME+"_products_plot.png")
-    return
-
-
-def output_all_compiled_data_to_csv(dataset: pd.DataFrame, filename: str) -> None:
-    """Output data into csv
-
-        Parameters
-        ----------
-        dataset : pd.DataFrame
-            The monthly pandas Dataframe dataset
-        filename: str
-            The output file name/location
-        Returns
-        -------
-        a csv file in the location specified
-        """
-    logger.info("Output CSV written here: " + GLHE.globals.OUTPUT_DIRECTORY + "/" + filename)
-    dataset.to_csv(GLHE.globals.OUTPUT_DIRECTORY + "/" + filename)
-
-
 def merge_mv_series_into_pandas_dataframe(*datasets: MVSeries) -> pd.DataFrame:
     """
     Merges mv_series from all the products into a single dataframe
@@ -94,6 +47,53 @@ def merge_mv_series_into_pandas_dataframe(*datasets: MVSeries) -> pd.DataFrame:
     return df
 
 
+def plot_all_data(dataset: pd.DataFrame) -> None:
+    """Plot Precip, Evap, & Runoff in a three panel plot
+
+        Parameters
+        ----------
+        dataset : pd.DataFrame
+            The monthly Pandas dataset
+        Returns
+        -------
+        None
+        """
+    logger.info("Plotting Data")
+    precip_cols = [col for col in dataset if col.startswith("p")]
+    evap_cols = [col for col in dataset if col.startswith("e")]
+    runoff_cols = [col for col in dataset if col.startswith("r")]
+
+    fig, axs = plt.subplots(3, 1, figsize=(10, 10))
+    dataset.plot(y=precip_cols, ax=axs[0],
+                 xlim=(dataset[precip_cols].first_valid_index(), dataset[precip_cols].last_valid_index()))
+    dataset.plot(y=evap_cols, ax=axs[1],
+                 xlim=(dataset[evap_cols].first_valid_index(), dataset[evap_cols].last_valid_index()))
+    if len(runoff_cols) > 0:
+        dataset.plot(y=runoff_cols, ax=axs[2],
+                     xlim=(dataset[runoff_cols].first_valid_index(), dataset[runoff_cols].last_valid_index()))
+    plt.tight_layout()
+    plt.show()
+    plt.savefig(GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME + "_products_plot.png")
+    return
+
+
+def output_all_compiled_data_to_csv(dataset: pd.DataFrame, filename: str) -> None:
+    """Output data into csv
+
+        Parameters
+        ----------
+        dataset : pd.DataFrame
+            The monthly pandas Dataframe dataset
+        filename: str
+            The output file name/location
+        Returns
+        -------
+        a csv file in the location specified
+        """
+    logger.info("Output CSV written here: " + GLHE.globals.OUTPUT_DIRECTORY + "/" + filename)
+    dataset.to_csv(GLHE.globals.OUTPUT_DIRECTORY + "/" + filename)
+
+
 def present_mv_series_as_geospatial_at_date_time(date: pd.Timestamp, *dss: MVSeries) -> None:
     """
     present xarray datasets into some format, partially written by ChatGPT
@@ -129,7 +129,8 @@ def present_mv_series_as_geospatial_at_date_time(date: pd.Timestamp, *dss: MVSer
                                                                     height)) as dst:
             dst.write(variable[nearest_idx], 1)
 
-    zip_file = GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME + "_data_layers_on" + date.strftime('%Y%m%d') + ".zip"
+    zip_file = GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME + "_data_layers_on_" + date.strftime(
+        '%Y%m%d') + ".zip"
 
     # Create a new ZIP file
     with zipfile.ZipFile(zip_file, 'w') as zf:

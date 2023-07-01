@@ -1,2 +1,3 @@
 LAKE_NAME =""
 OUTPUT_DIRECTORY= ""
+DEBUG = True
