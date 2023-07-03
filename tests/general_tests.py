@@ -47,7 +47,7 @@ class MyTestCase(BaseTestCase):
         self.assertEqual(self.terra_dataset.attrs['name'], "TerraClimateDummyData")
 
     def test_unit_conversion(self):
-        self.terra_dataset = helpers.convert_units(self.terra_dataset, "in", "ppt")
+        self.terra_dataset = helpers.convert_xarray_units(self.terra_dataset, "in", "ppt")
         self.assertIsNotNone(self.terra_dataset)
 
     def test_lake_extraction(self):
@@ -86,6 +86,18 @@ class MyTestCase(BaseTestCase):
         polygon = lake_extraction.extract_lake(61)
         ERA5_object.product_driver(polygon)
         self.assertEqual(1, 1)
+
+    def test_NWM_class(self):
+        NWM_object = NWM.NWM()
+        polygon = lake_extraction.extract_lake(61)
+        NWM_object.product_driver(polygon)
+        self.assertEqual(1, 1)
+
+    def test_NWM_unit_converter(self):
+        NWM_object = NWM.NWM()
+        NWM_object.check_save_file()
+        data = pd.DataFrame(NWM_object.full_data)
+        helpers.convert_MVSeries_units([data['inflow']], "m3/month")
 
 
 if __name__ == '__main__':

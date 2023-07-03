@@ -49,7 +49,7 @@ class CRUTS(data_access_parent_class.DataAccess):
             except ValueError:
                 self.logger.error("CRUTS subset Polygon is too small for CRUTS, trying again with larger polygon")
                 dataset = lake_extraction.subset_box(dataset, polygon.buffer(0.5), 0)
-            dataset = helpers.convert_units(dataset, "mm/month", "pet", "pre")
+            dataset = helpers.convert_xarray_units(dataset, "mm/month", "pet", "pre")
             helpers.pickle_xarray_dataset(dataset)
         else:
             dataset = helpers.load_pickle_dataset("CRUTS")
