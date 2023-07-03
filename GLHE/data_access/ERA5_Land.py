@@ -1,5 +1,5 @@
 import logging
-
+import asyncio
 import cdsapi
 import xarray as xr
 from GLHE.data_access import data_access_parent_class
@@ -23,8 +23,8 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         self.logger.info("Verifying inputs: " + self.__class__.__name__)
         return True
 
-    def get_total_precip_runoff_evap_in_subset_box_api(self, west: float, east: float, south: float,
-                                                       north: float) -> xr.Dataset:
+    async def get_total_precip_runoff_evap_in_subset_box_api(self, west: float, east: float, south: float,
+                                                             north: float) -> xr.Dataset:
         """Gets ERA5 Land precip, evap, & runoff data in a known subregion by lat-long
 
         Parameters
@@ -100,7 +100,7 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         xarray_dataset = xr.open_dataset(".temp/TEMPORARY_ERA5Land_DONOTOPEN_ERA5LAND.nc")
         return xarray_dataset
 
-    def product_driver(self, polygon, debug=False) -> list[MVSeries]:
+    async def product_driver(self, polygon, debug=False) -> list[MVSeries]:
         """See parent function for details"""
         self.logger.info("ERA Driver Started: Precip & Evap")
         if not debug:
@@ -112,7 +112,7 @@ class ERA5_Land(data_access_parent_class.DataAccess):
             min_lat = min_lat - 1
             max_lat = max_lat + 1
 
-            dataset = self.get_total_precip_runoff_evap_in_subset_box_api(min_lon, max_lon, min_lat, max_lat)
+            dataset = await self.get_total_precip_runoff_evap_in_subset_box_api(min_lon, max_lon, min_lat, max_lat)
             dataset = helpers.label_xarray_dataset_with_product_name(dataset, "ERA5_Land")
             dataset = helpers.fix_lat_long_names(dataset)
             try:
@@ -123,7 +123,7 @@ class ERA5_Land(data_access_parent_class.DataAccess):
                 dataset = lake_extraction.subset_box(dataset, polygon.buffer(0.5), 0)
             dataset = helpers.fix_weird_units_descriptors(dataset, "e", "m")
             dataset = helpers.add_descriptive_time_component_to_units(dataset, "day")
-            dataset = helpers.convert_units(dataset, "mm/month", "tp", "e")
+            dataset = helpers.convert_xarray_units(dataset, "mm/month", "tp", "e")
             dataset = helpers.make_sure_dataset_is_positive(dataset, "e")
             helpers.pickle_xarray_dataset(dataset)
         else:

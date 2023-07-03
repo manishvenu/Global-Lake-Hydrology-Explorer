@@ -1,18 +1,26 @@
 import logging
 import os
 import pickle
+from calendar import monthrange
 from dataclasses import dataclass
 
 import pandas as pd
-import xarray as xr
-import cf_xarray.units
 import pint_xarray
+import xarray as xr
+from pint import Unit
 
 import GLHE.globals
+from . import ureg
 
 logger = logging.getLogger(__name__)
-# Globals
 
+# Globals
+slc_mapping_reverse = {
+    "e": "evap",
+    "r": "runoff",
+    "p": "precip",
+    "o": "outflow"
+}
 slc_mapping = {
     "e": "e",
     "pet": "e",
@@ -25,8 +33,8 @@ slc_mapping = {
     "precipitation": "p",
     "r": "r",
     "runoff": "r",
-    "inflow": "r",
-    "outflow": "o"
+    "Inflow": "r",
+    "Outflow": "o"
     # Add more mappings as needed
 }
 
@@ -60,19 +68,20 @@ class MVSeries:
 
     # Class Variables
     dataset: pd.Series
-    unit: str
+    unit: Unit
     single_letter_code: str
     product_name: str
     variable_name: str
     xarray_dataarray: xr.DataArray
 
-    def __init__(self, dataset: pd.Series, unit: str, single_letter_code: str, product_name: str, variable_name: str):
+    def __init__(self, dataset: pd.Series, unit: Unit, single_letter_code: str, product_name: str,
+                 variable_name: str, xarr_dataset: xr.DataArray):
         self.dataset = dataset
         self.unit = unit
         self.single_letter_code = single_letter_code
         self.product_name = product_name
         self.variable_name = variable_name
-        self.xarray_dataarray = None
+        self.xarray_dataarray = xarr_dataset
 
     def __str__(self):
         return "Product: {},Variable Name: {} SLC: {}, Unit: {}".format(self.product_name, self.variable_name,
@@ -101,7 +110,7 @@ def pickle_xarray_dataset(dataset: xr.Dataset) -> None:
         pickle.dump(dataset, file)
 
 
-def convert_dicts_to_MVSeries(*dicts: dict, date_column_name: str, units_key_name: str, product_name_key_name: str) -> \
+def convert_dicts_to_MVSeries(date_column_name: str, units_key_name: str, product_name_key_name: str, *dicts: dict) -> \
         list[
             MVSeries]:
     """Convert dictionaries to MVSeries
@@ -125,10 +134,11 @@ def convert_dicts_to_MVSeries(*dicts: dict, date_column_name: str, units_key_nam
     series_list = []
     for dictionary in dicts:
         for key, value in dictionary.items():
-            if key != date_column_name:
+            if key != date_column_name and key != units_key_name and key != product_name_key_name:
                 series = pd.Series(value, index=dictionary[date_column_name])
-                metadata_series = MVSeries(value, dictionary[units_key_name], slc_mapping.get(key),
-                                           dictionary[product_name_key_name], key)
+                metadata_series = MVSeries(series, ureg.parse_expression(dictionary[units_key_name]),
+                                           slc_mapping.get(key),
+                                           dictionary[product_name_key_name], key, None)
                 series_list.append(metadata_series)
     return series_list
 
@@ -212,7 +222,8 @@ def spatially_average_dataset_and_convert(dataset: xr.Dataset, *vars: str) -> tu
     series_list = []
     for var in vars:
         pandas_dataset = dataset.mean(dim=[lat_name, lon_name]).get(var).to_series()
-        metadata_series = MVSeries(pandas_dataset, dataset.variables[var].attrs['units'], slc_mapping.get(var),
+        metadata_series = MVSeries(pandas_dataset, ureg.parse_expression(dataset.variables[var].attrs['units']).units,
+                                   slc_mapping.get(var),
                                    dataset.attrs['name'], var, dataset[var])
         series_list.append(metadata_series)
     return tuple(series_list)
@@ -252,7 +263,15 @@ def fix_lat_long_names(dataset: xr.Dataset) -> xr.Dataset:
     return dataset
 
 
-def group_dataset_by_month(dataset: xr.Dataset) -> xr.Dataset:
+def group_MVSeries_by_month(list_of_datasets: list[MVSeries]) -> list[MVSeries]:
+    """Groups MVSeries data to monthly values"""
+
+    for mvs in list_of_datasets:
+        mvs.dataset = mvs.dataset.groupby(pd.Grouper(freq='MS')).mean()
+    return list_of_datasets
+
+
+def group_xarray_dataset_by_month(dataset: xr.Dataset) -> xr.Dataset:
     """Groups xarray data to monthly values
 
         Parameters
@@ -322,7 +341,7 @@ def add_descriptive_time_component_to_units(dataset: xr.Dataset, time_denominato
     return dataset
 
 
-def convert_units(dataset: xr.Dataset, output_unit: str, *variable: str) -> xr.Dataset:
+def convert_xarray_units(dataset: xr.Dataset, output_unit: str, *variable: str) -> xr.Dataset:
     """
     Converts the units of the dataset to output_unit, mostly to mm/month or cubic meters/month,
     Parameters
@@ -341,13 +360,59 @@ def convert_units(dataset: xr.Dataset, output_unit: str, *variable: str) -> xr.D
     logger.info(
         "Converted the dataset {}, variable {}, to units {}".format(dataset.attrs["name"], variable, output_unit))
 
-    dataset = dataset.pint.quantify()
+    dataset = dataset.pint.quantify({"lat": None, "lon": None})
     for var in variable:
-        if (dataset[var].pint.units == pint_xarray.unit_registry.parse_units(output_unit)):
+        if dataset[var].pint.units == pint_xarray.unit_registry.parse_units(output_unit):
             continue
         dataset = dataset.pint.to({var: output_unit})
     dataset = dataset.pint.dequantify()
     return dataset
+
+
+def convert_MVSeries_units(list_of_MVSeries, output_unit: Unit) -> list[MVSeries]:
+    """
+    Converts the units of the MVSeries to output_unit, mostly to mm/month or cubic meters/month,
+    Parameters
+    ----------
+    list_of_MVSeries: list[MVSeries]
+        The input list of MVSeries to convert units
+    output_unit: pint.Unit
+        The output unit of the dataset
+    Returns
+    -------
+    list[MVSeries]
+        The list of MVSeries with the units converted
+    """
+    for var in list_of_MVSeries:
+        string_input_units = str(var.unit)
+        string_output_units = str(output_unit)
+        if '/' in string_input_units:
+            if not '/' in string_output_units:
+                raise ValueError(
+                    "The output unit {} is not a rate, but the input unit {} is a rate".format(output_unit, var.unit))
+            else:
+                numer_input_unit, denom_input_unit = str(string_input_units).split('/')
+                numer_output_unit, denom_output_unit = str(string_output_units).split('/')
+                denom_output_unit.replace(' ', '')
+                denom_input_unit.replace(' ', '')
+                numer_output_unit.replace(' ', '')
+                numer_input_unit.replace(' ', '')
+                conversion_factor_numerator = ureg.Quantity(1, numer_input_unit).to(numer_output_unit).magnitude
+                if denom_output_unit == 'month':
+                    for i in range(len(var.dataset)):
+                        days_in_month = monthrange(var.dataset.index[i].year, var.dataset.index[i].month)[1]
+                        conversion_factor_to_days = ureg.Quantity(1, var.unit).to(
+                            ureg(numer_output_unit + '/days')).magnitude
+                        var.dataset[i] *= conversion_factor_to_days * days_in_month
+                else:
+                    conversion_factor = ureg.Quantity(1, var.unit).to(output_unit).magnitude
+                    var.dataset *= conversion_factor
+                var.unit = output_unit
+        else:
+            conversion_factor = ureg.Quantity(1, string_input_units).to(string_output_units).magnitude
+            var.dataset *= conversion_factor
+            var.unit = output_unit
+    return list_of_MVSeries
 
 
 def setup_output_directory(output_directory: str) -> None:
