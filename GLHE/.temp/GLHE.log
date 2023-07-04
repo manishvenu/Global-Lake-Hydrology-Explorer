@@ -12,8 +12,8 @@
 2023-07-03 11:18:03.195 INFO: CRUTS.get_total_precip_evap: Reading in CRUTS data from LocalData folder
 2023-07-03 11:18:19.602 ERROR: CRUTS.product_driver: CRUTS subset Polygon is too small for CRUTS, trying again with larger polygon
 2023-07-03 11:18:19.804 INFO: lake_extraction.subset_box: Subsetted the dataset CRUTS to lake area
-2023-07-03 11:18:52.694 INFO: helpers.convert_xarray_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
-2023-07-03 11:18:52.757 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-07-03 11:18:52.694 INFO: helpers.convert_xarray_dataset_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
+2023-07-03 11:18:52.757 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
 2023-07-03 11:18:52.794 INFO: CRUTS.product_driver: CRUTS Driver Finished
 2023-07-03 11:18:52.795 INFO: driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
 2023-07-03 11:18:52.796 INFO: driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
@@ -32,11 +32,11 @@
 2023-07-03 11:19:10.585 INFO: api.info: Download rate 1.5M/s
 2023-07-03 11:19:10.734 INFO: ERA5_Land.get_total_precip_runoff_evap_in_subset_box_api: Success calling ERA5 Land API
 2023-07-03 11:19:10.801 INFO: lake_extraction.subset_box: Subsetted the dataset ERA5_Land to lake area
-2023-07-03 11:19:10.840 INFO: helpers.fix_weird_units_descriptors: Fixed the weird units descriptors in the dataset ERA5_Land for variable e from m of water equivalent to m
-2023-07-03 11:19:10.841 INFO: helpers.add_descriptive_time_component_to_units: Added the time component (day) to the units of the dataset ERA5_Land
-2023-07-03 11:19:10.841 INFO: helpers.convert_xarray_units: Converted the dataset ERA5_Land, variable ('tp', 'e'), to units mm/month
-2023-07-03 11:19:10.848 INFO: helpers.make_sure_dataset_is_positive: The dataset (ERA5_Land e) has negative values, making it positive
-2023-07-03 11:19:10.850 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-07-03 11:19:10.840 INFO: helpers.fix_weird_units_descriptors_in_xarray_datasets: Fixed the weird units descriptors in the dataset ERA5_Land for variable e from m of water equivalent to m
+2023-07-03 11:19:10.841 INFO: helpers.add_descriptive_time_component_to_units_in_xarray_dataset: Added the time component (day) to the units of the dataset ERA5_Land
+2023-07-03 11:19:10.841 INFO: helpers.convert_xarray_dataset_units: Converted the dataset ERA5_Land, variable ('tp', 'e'), to units mm/month
+2023-07-03 11:19:10.848 INFO: helpers.make_sure_xarray_dataset_is_positive: The dataset (ERA5_Land e) has negative values, making it positive
+2023-07-03 11:19:10.850 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
 2023-07-03 11:19:10.855 INFO: ERA5_Land.product_driver: ERA Driver Finished
 2023-07-03 11:19:10.856 INFO: driver.main: Product: ERA5_Land,Variable Name: tp SLC: p, Unit: millimeter / month
 2023-07-03 11:19:10.856 INFO: driver.main: Product: ERA5_Land,Variable Name: e SLC: e, Unit: millimeter / month
@@ -60,8 +60,8 @@
 2023-07-03 11:27:37.621 INFO: CRUTS.get_total_precip_evap: Reading in CRUTS data from LocalData folder
 2023-07-03 11:27:51.734 ERROR: CRUTS.product_driver: CRUTS subset Polygon is too small for CRUTS, trying again with larger polygon
 2023-07-03 11:27:51.832 INFO: lake_extraction.subset_box: Subsetted the dataset CRUTS to lake area
-2023-07-03 11:28:15.508 INFO: helpers.convert_xarray_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
-2023-07-03 11:28:15.754 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-07-03 11:28:15.508 INFO: helpers.convert_xarray_dataset_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
+2023-07-03 11:28:15.754 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
 2023-07-03 11:28:15.792 INFO: CRUTS.product_driver: CRUTS Driver Finished
 2023-07-03 11:28:15.795 INFO: driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
 2023-07-03 11:28:15.796 INFO: driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
@@ -75,11 +75,11 @@
 2023-07-03 11:28:24.812 INFO: api.info: Download rate 1.7M/s
 2023-07-03 11:28:24.959 INFO: ERA5_Land.get_total_precip_runoff_evap_in_subset_box_api: Success calling ERA5 Land API
 2023-07-03 11:28:25.002 INFO: lake_extraction.subset_box: Subsetted the dataset ERA5_Land to lake area
-2023-07-03 11:28:25.031 INFO: helpers.fix_weird_units_descriptors: Fixed the weird units descriptors in the dataset ERA5_Land for variable e from m of water equivalent to m
-2023-07-03 11:28:25.031 INFO: helpers.add_descriptive_time_component_to_units: Added the time component (day) to the units of the dataset ERA5_Land
-2023-07-03 11:28:25.031 INFO: helpers.convert_xarray_units: Converted the dataset ERA5_Land, variable ('tp', 'e'), to units mm/month
-2023-07-03 11:28:25.037 INFO: helpers.make_sure_dataset_is_positive: The dataset (ERA5_Land e) has negative values, making it positive
-2023-07-03 11:28:25.040 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-07-03 11:28:25.031 INFO: helpers.fix_weird_units_descriptors_in_xarray_datasets: Fixed the weird units descriptors in the dataset ERA5_Land for variable e from m of water equivalent to m
+2023-07-03 11:28:25.031 INFO: helpers.add_descriptive_time_component_to_units_in_xarray_dataset: Added the time component (day) to the units of the dataset ERA5_Land
+2023-07-03 11:28:25.031 INFO: helpers.convert_xarray_dataset_units: Converted the dataset ERA5_Land, variable ('tp', 'e'), to units mm/month
+2023-07-03 11:28:25.037 INFO: helpers.make_sure_xarray_dataset_is_positive: The dataset (ERA5_Land e) has negative values, making it positive
+2023-07-03 11:28:25.040 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
 2023-07-03 11:28:25.043 INFO: ERA5_Land.product_driver: ERA Driver Finished
 2023-07-03 11:29:29.073 INFO: driver.main: ***********************Initializing Driver Function*************************
 2023-07-03 11:29:29.076 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
@@ -95,8 +95,8 @@
 2023-07-03 11:29:30.271 INFO: CRUTS.get_total_precip_evap: Reading in CRUTS data from LocalData folder
 2023-07-03 11:30:04.885 ERROR: CRUTS.product_driver: CRUTS subset Polygon is too small for CRUTS, trying again with larger polygon
 2023-07-03 11:30:05.131 INFO: lake_extraction.subset_box: Subsetted the dataset CRUTS to lake area
-2023-07-03 11:30:27.198 INFO: helpers.convert_xarray_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
-2023-07-03 11:30:27.344 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-07-03 11:30:27.198 INFO: helpers.convert_xarray_dataset_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
+2023-07-03 11:30:27.344 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
 2023-07-03 11:30:27.401 INFO: CRUTS.product_driver: CRUTS Driver Finished
 2023-07-03 11:30:27.405 INFO: driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
 2023-07-03 11:30:27.407 INFO: driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
@@ -110,11 +110,11 @@
 2023-07-03 11:30:44.036 INFO: api.info: Download rate 1.4M/s
 2023-07-03 11:30:44.189 INFO: ERA5_Land.get_total_precip_runoff_evap_in_subset_box_api: Success calling ERA5 Land API
 2023-07-03 11:30:44.292 INFO: lake_extraction.subset_box: Subsetted the dataset ERA5_Land to lake area
-2023-07-03 11:30:44.351 INFO: helpers.fix_weird_units_descriptors: Fixed the weird units descriptors in the dataset ERA5_Land for variable e from m of water equivalent to m
-2023-07-03 11:30:44.351 INFO: helpers.add_descriptive_time_component_to_units: Added the time component (day) to the units of the dataset ERA5_Land
-2023-07-03 11:30:44.352 INFO: helpers.convert_xarray_units: Converted the dataset ERA5_Land, variable ('tp', 'e'), to units mm/month
-2023-07-03 11:30:44.368 INFO: helpers.make_sure_dataset_is_positive: The dataset (ERA5_Land e) has negative values, making it positive
-2023-07-03 11:30:44.371 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-07-03 11:30:44.351 INFO: helpers.fix_weird_units_descriptors_in_xarray_datasets: Fixed the weird units descriptors in the dataset ERA5_Land for variable e from m of water equivalent to m
+2023-07-03 11:30:44.351 INFO: helpers.add_descriptive_time_component_to_units_in_xarray_dataset: Added the time component (day) to the units of the dataset ERA5_Land
+2023-07-03 11:30:44.352 INFO: helpers.convert_xarray_dataset_units: Converted the dataset ERA5_Land, variable ('tp', 'e'), to units mm/month
+2023-07-03 11:30:44.368 INFO: helpers.make_sure_xarray_dataset_is_positive: The dataset (ERA5_Land e) has negative values, making it positive
+2023-07-03 11:30:44.371 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
 2023-07-03 11:30:44.380 INFO: ERA5_Land.product_driver: ERA Driver Finished
 2023-07-03 11:31:25.273 INFO: driver.main: ***********************Initializing Driver Function*************************
 2023-07-03 11:31:25.275 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
@@ -130,8 +130,8 @@
 2023-07-03 11:31:25.879 INFO: CRUTS.get_total_precip_evap: Reading in CRUTS data from LocalData folder
 2023-07-03 11:31:38.329 ERROR: CRUTS.product_driver: CRUTS subset Polygon is too small for CRUTS, trying again with larger polygon
 2023-07-03 11:31:38.454 INFO: lake_extraction.subset_box: Subsetted the dataset CRUTS to lake area
-2023-07-03 11:31:47.036 INFO: helpers.convert_xarray_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
-2023-07-03 11:31:47.075 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-07-03 11:31:47.036 INFO: helpers.convert_xarray_dataset_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
+2023-07-03 11:31:47.075 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
 2023-07-03 11:31:47.096 INFO: CRUTS.product_driver: CRUTS Driver Finished
 2023-07-03 11:31:47.096 INFO: driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
 2023-07-03 11:31:47.097 INFO: driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
@@ -150,7 +150,7 @@
 2023-07-03 11:33:23.407 INFO: NWM.verify_inputs: Verifying inputs: NWM
 2023-07-03 11:33:23.408 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
 2023-07-03 11:33:23.408 INFO: CRUTS.product_driver: Debug mode, using pickled CRUTS Land data
-2023-07-03 11:33:23.423 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-07-03 11:33:23.423 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
 2023-07-03 11:33:23.430 INFO: CRUTS.product_driver: CRUTS Driver Finished
 2023-07-03 11:33:23.430 INFO: driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
 2023-07-03 11:33:23.431 INFO: driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
@@ -164,7 +164,7 @@
 2023-07-03 11:33:32.045 INFO: driver.main: Product: NWM,Variable Name: Outflow SLC: o, Unit: m3/month
 2023-07-03 11:33:32.045 INFO: ERA5_Land.product_driver: ERA Driver Started: Precip & Evap
 2023-07-03 11:33:32.045 INFO: ERA5_Land.product_driver: Debug mode, using pickled ERA5 Land data
-2023-07-03 11:33:32.064 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-07-03 11:33:32.064 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
 2023-07-03 11:33:32.067 INFO: ERA5_Land.product_driver: ERA Driver Finished
 2023-07-03 11:33:32.067 INFO: driver.main: Product: ERA5_Land,Variable Name: tp SLC: p, Unit: millimeter / month
 2023-07-03 11:33:32.068 INFO: driver.main: Product: ERA5_Land,Variable Name: e SLC: e, Unit: millimeter / month
@@ -203,8 +203,8 @@
 2023-07-03 11:34:38.224 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
 2023-07-03 11:34:38.224 INFO: CRUTS.get_total_precip_evap: Reading in CRUTS data from LocalData folder
 2023-07-03 11:34:51.787 INFO: lake_extraction.subset_box: Subsetted the dataset CRUTS to lake area
-2023-07-03 11:35:12.087 INFO: helpers.convert_xarray_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
-2023-07-03 11:35:12.210 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-07-03 11:35:12.087 INFO: helpers.convert_xarray_dataset_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
+2023-07-03 11:35:12.210 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
 2023-07-03 11:35:12.283 INFO: CRUTS.product_driver: CRUTS Driver Finished
 2023-07-03 11:35:12.288 INFO: driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
 2023-07-03 11:35:12.290 INFO: driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
@@ -222,11 +222,11 @@
 2023-07-03 11:35:22.948 INFO: api.info: Download rate 2.1M/s
 2023-07-03 11:35:23.093 INFO: ERA5_Land.get_total_precip_runoff_evap_in_subset_box_api: Success calling ERA5 Land API
 2023-07-03 11:35:23.145 INFO: lake_extraction.subset_box: Subsetted the dataset ERA5_Land to lake area
-2023-07-03 11:35:23.179 INFO: helpers.fix_weird_units_descriptors: Fixed the weird units descriptors in the dataset ERA5_Land for variable e from m of water equivalent to m
-2023-07-03 11:35:23.180 INFO: helpers.add_descriptive_time_component_to_units: Added the time component (day) to the units of the dataset ERA5_Land
-2023-07-03 11:35:23.180 INFO: helpers.convert_xarray_units: Converted the dataset ERA5_Land, variable ('tp', 'e'), to units mm/month
-2023-07-03 11:35:23.186 INFO: helpers.make_sure_dataset_is_positive: The dataset (ERA5_Land e) has negative values, making it positive
-2023-07-03 11:35:23.191 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-07-03 11:35:23.179 INFO: helpers.fix_weird_units_descriptors_in_xarray_datasets: Fixed the weird units descriptors in the dataset ERA5_Land for variable e from m of water equivalent to m
+2023-07-03 11:35:23.180 INFO: helpers.add_descriptive_time_component_to_units_in_xarray_dataset: Added the time component (day) to the units of the dataset ERA5_Land
+2023-07-03 11:35:23.180 INFO: helpers.convert_xarray_dataset_units: Converted the dataset ERA5_Land, variable ('tp', 'e'), to units mm/month
+2023-07-03 11:35:23.186 INFO: helpers.make_sure_xarray_dataset_is_positive: The dataset (ERA5_Land e) has negative values, making it positive
+2023-07-03 11:35:23.191 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
 2023-07-03 11:35:23.198 INFO: ERA5_Land.product_driver: ERA Driver Finished
 2023-07-03 11:38:38.438 INFO: driver.main: ***********************Initializing Driver Function*************************
 2023-07-03 11:38:38.438 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
@@ -242,8 +242,8 @@
 2023-07-03 11:38:39.023 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
 2023-07-03 11:38:39.023 INFO: CRUTS.get_total_precip_evap: Reading in CRUTS data from LocalData folder
 2023-07-03 11:38:55.122 INFO: lake_extraction.subset_box: Subsetted the dataset CRUTS to lake area
-2023-07-03 11:39:13.707 INFO: helpers.convert_xarray_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
-2023-07-03 11:39:13.778 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-07-03 11:39:13.707 INFO: helpers.convert_xarray_dataset_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
+2023-07-03 11:39:13.778 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
 2023-07-03 11:39:13.815 INFO: CRUTS.product_driver: CRUTS Driver Finished
 2023-07-03 11:39:13.818 INFO: driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
 2023-07-03 11:39:13.819 INFO: driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
@@ -272,8 +272,8 @@
 2023-07-03 11:45:07.385 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
 2023-07-03 11:45:07.385 INFO: CRUTS.get_total_precip_evap: Reading in CRUTS data from LocalData folder
 2023-07-03 11:45:23.963 INFO: lake_extraction.subset_box: Subsetted the dataset CRUTS to lake area
-2023-07-03 11:45:36.750 INFO: helpers.convert_xarray_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
-2023-07-03 11:45:36.893 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-07-03 11:45:36.750 INFO: helpers.convert_xarray_dataset_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
+2023-07-03 11:45:36.893 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
 2023-07-03 11:45:36.959 INFO: CRUTS.product_driver: CRUTS Driver Finished
 2023-07-03 11:45:36.968 INFO: driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
 2023-07-03 11:45:36.969 INFO: driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
@@ -303,8 +303,8 @@
 2023-07-03 11:47:24.559 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
 2023-07-03 11:47:24.559 INFO: CRUTS.get_total_precip_evap: Reading in CRUTS data from LocalData folder
 2023-07-03 11:47:55.018 INFO: lake_extraction.subset_box: Subsetted the dataset CRUTS to lake area
-2023-07-03 11:48:22.426 INFO: helpers.convert_xarray_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
-2023-07-03 11:48:22.752 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-07-03 11:48:22.426 INFO: helpers.convert_xarray_dataset_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
+2023-07-03 11:48:22.752 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
 2023-07-03 11:48:22.844 INFO: CRUTS.product_driver: CRUTS Driver Finished
 2023-07-03 11:48:22.856 INFO: driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
 2023-07-03 11:48:22.858 INFO: driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
@@ -325,11 +325,11 @@
 2023-07-03 14:22:24.462 INFO: api.info: Download rate 1.4M/s
 2023-07-03 14:22:24.673 INFO: ERA5_Land.get_total_precip_runoff_evap_in_subset_box_api: Success calling ERA5 Land API
 2023-07-03 14:22:24.977 INFO: lake_extraction.subset_box: Subsetted the dataset ERA5_Land to lake area
-2023-07-03 14:22:25.126 INFO: helpers.fix_weird_units_descriptors: Fixed the weird units descriptors in the dataset ERA5_Land for variable e from m of water equivalent to m
-2023-07-03 14:22:25.126 INFO: helpers.add_descriptive_time_component_to_units: Added the time component (day) to the units of the dataset ERA5_Land
-2023-07-03 14:22:25.128 INFO: helpers.convert_xarray_units: Converted the dataset ERA5_Land, variable ('tp', 'e'), to units mm/month
-2023-07-03 14:22:25.155 INFO: helpers.make_sure_dataset_is_positive: The dataset (ERA5_Land e) has negative values, making it positive
-2023-07-03 14:22:25.161 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-07-03 14:22:25.126 INFO: helpers.fix_weird_units_descriptors_in_xarray_datasets: Fixed the weird units descriptors in the dataset ERA5_Land for variable e from m of water equivalent to m
+2023-07-03 14:22:25.126 INFO: helpers.add_descriptive_time_component_to_units_in_xarray_dataset: Added the time component (day) to the units of the dataset ERA5_Land
+2023-07-03 14:22:25.128 INFO: helpers.convert_xarray_dataset_units: Converted the dataset ERA5_Land, variable ('tp', 'e'), to units mm/month
+2023-07-03 14:22:25.155 INFO: helpers.make_sure_xarray_dataset_is_positive: The dataset (ERA5_Land e) has negative values, making it positive
+2023-07-03 14:22:25.161 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
 2023-07-03 14:22:25.173 INFO: ERA5_Land.product_driver: ERA Driver Finished
 2023-07-03 14:22:25.176 INFO: driver.main: Product: ERA5_Land,Variable Name: tp SLC: p, Unit: millimeter / month
 2023-07-03 14:22:25.178 INFO: driver.main: Product: ERA5_Land,Variable Name: e SLC: e, Unit: millimeter / month
@@ -460,8 +460,8 @@
 2023-07-03 14:40:26.194 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
 2023-07-03 14:40:26.194 INFO: CRUTS.get_total_precip_evap: Reading in CRUTS data from LocalData folder
 2023-07-03 14:40:49.357 INFO: lake_extraction.subset_box: Subsetted the dataset CRUTS to lake area
-2023-07-03 14:41:11.112 INFO: helpers.convert_xarray_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
-2023-07-03 14:41:11.235 INFO: helpers.spatially_average_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-07-03 14:41:11.112 INFO: helpers.convert_xarray_dataset_units: Converted the dataset CRUTS, variable ('pet', 'pre'), to units mm/month
+2023-07-03 14:41:11.235 INFO: helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
 2023-07-03 14:41:11.297 INFO: CRUTS.product_driver: CRUTS Driver Finished
 2023-07-03 14:41:11.299 INFO: driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
 2023-07-03 14:41:11.301 INFO: driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month

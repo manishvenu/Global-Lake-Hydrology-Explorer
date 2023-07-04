@@ -50,7 +50,7 @@ class MyTestCase(BaseTestCase):
         self.assertEqual(self.terra_dataset.attrs['product_name'], "TerraClimateDummyData")
 
     def test_unit_conversion(self):
-        self.terra_dataset = helpers.convert_xarray_units(self.terra_dataset, "in", "ppt")
+        self.terra_dataset = helpers.convert_xarray_dataset_units(self.terra_dataset, "in", "ppt")
         self.assertIsNotNone(self.terra_dataset)
 
     def test_lake_extraction(self):
@@ -65,7 +65,7 @@ class MyTestCase(BaseTestCase):
     def test_spatially_average_dataset(self):
         polygon = lake_extraction.extract_lake(798)
         self.terra_dataset = lake_extraction.subset_box(self.terra_dataset, polygon, 1)
-        self.assertIsNotNone(helpers.spatially_average_dataset_and_convert(self.terra_dataset, "ppt"))
+        self.assertIsNotNone(helpers.spatially_average_xarray_dataset_and_convert(self.terra_dataset, "ppt"))
 
     def test_plotting(self):
         csv_dataset = pd.read_csv(

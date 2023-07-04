@@ -25,7 +25,7 @@ class driver:
         """
         This is the constructor for the driver class.
         """
-        for key in helpers.SLC_MAPPING_REVERSE:
+        for key in GLHE.globals.SLC_MAPPING_REVERSE:
             self.datasets_index["slc"][key] = []
 
     def index_datasets(self, *datasets: helpers.MVSeries):

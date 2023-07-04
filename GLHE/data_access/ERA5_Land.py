@@ -4,7 +4,7 @@ import cdsapi
 import xarray as xr
 from GLHE.data_access import data_access_parent_class
 from GLHE.helpers import MVSeries
-from GLHE import helpers, lake_extraction
+from GLHE import helpers, xarray_helpers, lake_extraction
 
 
 class ERA5_Land(data_access_parent_class.DataAccess):
@@ -113,23 +113,23 @@ class ERA5_Land(data_access_parent_class.DataAccess):
             max_lat = max_lat + 1
 
             dataset = await self.get_total_precip_runoff_evap_in_subset_box_api(min_lon, max_lon, min_lat, max_lat)
-            dataset = helpers.label_xarray_dataset_with_product_name(dataset, "ERA5_Land")
-            dataset = helpers.fix_lat_long_names(dataset)
+            dataset = xarray_helpers.label_xarray_dataset_with_product_name(dataset, "ERA5_Land")
+            dataset = xarray_helpers.fix_lat_long_names_in_xarray_dataset(dataset)
             try:
                 dataset = lake_extraction.subset_box(dataset, polygon, 1)
             except ValueError:
                 self.logger.error(
                     "ERA5 Land subset Failed: Polygon is too small for ERA5 Land, trying again with larger polygon")
                 dataset = lake_extraction.subset_box(dataset, polygon.buffer(0.5), 0)
-            dataset = helpers.fix_weird_units_descriptors(dataset, "e", "m")
-            dataset = helpers.add_descriptive_time_component_to_units(dataset, "day")
-            dataset = helpers.convert_xarray_units(dataset, "mm/month", "tp", "e")
-            dataset = helpers.make_sure_dataset_is_positive(dataset, "e")
+            dataset = xarray_helpers.fix_weird_units_descriptors_in_xarray_datasets(dataset, "e", "m")
+            dataset = xarray_helpers.add_descriptive_time_component_to_units_in_xarray_dataset(dataset, "day")
+            dataset = xarray_helpers.convert_xarray_dataset_units(dataset, "mm/month", "tp", "e")
+            dataset = xarray_helpers.make_sure_xarray_dataset_is_positive(dataset, "e")
             helpers.pickle_var(dataset, dataset.attrs['product_name'])
         else:
             self.logger.info("Debug mode, using pickled ERA5 Land data")
             dataset = helpers.unpickle_var("ERA5_Land")
-        evap_ds, precip_ds = helpers.spatially_average_dataset_and_convert(dataset, "e", "tp")
+        evap_ds, precip_ds = xarray_helpers.spatially_average_xarray_dataset_and_convert(dataset, "e", "tp")
         helpers.clean_up_specific_temporary_files("ERA5Land")
         list_of_MVSeries = [precip_ds, evap_ds]
         self.logger.info("ERA Driver Finished")
