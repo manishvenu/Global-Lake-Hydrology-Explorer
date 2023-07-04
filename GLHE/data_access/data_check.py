@@ -69,7 +69,7 @@ def check_data_and_download_missing_data_or_files() -> None:
             filename = product['local_remote_storage_filename']
             is_folder = False
             if not os.path.exists("LocalData/" + filename):
-                logging.info("Downloading " + name + " data. It will take some time!")
+                logger.info("Downloading " + name + " data. It will take some time!")
                 if filename[-1] == '/':
                     is_folder = True
                     # os.mkdir("LocalData/" + filename[:-1])
@@ -77,16 +77,16 @@ def check_data_and_download_missing_data_or_files() -> None:
                 else:
                     download_data_from_dropbox(product['dropbox_download_link'], filename, is_folder)
             else:
-                logging.info("Found " + name + " data")
+                logger.info("Found " + name + " data")
         elif code == "api":
             if not os.path.exists("data_access/" + product['api_access_script'] + ".py"):
-                logging.warning(
+                logger.warning(
                     "Downloading " + name + "api access script. Why didn't you have this? Definitely reclone the "
                                             "project from github if you can")
                 download_data_from_dropbox(product['api_access_script'], filename, is_folder)
             else:
-                logging.info("Found " + name + " api access script")
-    logging.info("Finished downloading required data & files")
+                logger.info("Found " + name + " api access script")
+    logger.info("Finished checking and/or downloading required data & files")
     return
 
 

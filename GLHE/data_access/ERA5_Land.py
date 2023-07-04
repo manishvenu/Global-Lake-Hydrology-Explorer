@@ -125,9 +125,10 @@ class ERA5_Land(data_access_parent_class.DataAccess):
             dataset = helpers.add_descriptive_time_component_to_units(dataset, "day")
             dataset = helpers.convert_xarray_units(dataset, "mm/month", "tp", "e")
             dataset = helpers.make_sure_dataset_is_positive(dataset, "e")
-            helpers.pickle_xarray_dataset(dataset)
+            helpers.pickle_var(dataset, dataset.attrs['product_name'])
         else:
-            dataset = helpers.load_pickle_dataset("ERA5_Land")
+            self.logger.info("Debug mode, using pickled ERA5 Land data")
+            dataset = helpers.unpickle_var("ERA5_Land")
         evap_ds, precip_ds = helpers.spatially_average_dataset_and_convert(dataset, "e", "tp")
         helpers.clean_up_specific_temporary_files("ERA5Land")
         list_of_MVSeries = [precip_ds, evap_ds]

@@ -5,7 +5,6 @@ from json import loads
 import xarray as xr
 from osgeo.gdal import OpenEx, OF_VECTOR, UseExceptions
 from shapely.geometry import shape, Polygon
-
 import GLHE.globals
 
 logger = logging.getLogger(__name__)
@@ -27,26 +26,50 @@ def extract_lake(hylak_id: int) -> Polygon:
             polygon of specified lake
     """
     UseExceptions()
+
+    # Read in the shapefile and open it with gdal.OpenEx
     hydro_lakes_shapefile_location = r'LocalData\HydroLAKES_polys_v10_shp\HydroLAKES_polys_v10.shp'
     hydro_lakes = OpenEx(hydro_lakes_shapefile_location, OF_VECTOR)
+
+    # Access the data layer and access the lake from the lake ID passed in (It's in SQL)
     layer = hydro_lakes.GetLayer()
     query = "SELECT * FROM {} WHERE hylak_id = \'{}\'".format(layer.GetName(), hylak_id)
     result = hydro_lakes.ExecuteSQL(query)
+
+    # Get the lake polygon and export as a geoJSON
     feature = result.GetNextFeature()
     geojson_format = loads(feature.ExportToJson())
+
+    # Read it again as a shapely polygon (I think because it is simple from a GeoJSON)
     polygon = shape(geojson_format['geometry'])
     feature.Destroy()
     hydro_lakes.ReleaseResultSet(result)
-    GLHE.globals.LAKE_NAME += geojson_format['properties']['Lake_name'].replace(" ", "_")
-    GLHE.globals.OUTPUT_DIRECTORY = os.getcwd() + "/" + GLHE.globals.LAKE_NAME
+
+    # Set Global Variables
+    GLHE.globals.LAKE_NAME = geojson_format['properties']['Lake_name'].replace(" ", "_")
 
     logger.info("Extracted Lake: {}".format(GLHE.globals.LAKE_NAME))
-
     return polygon
 
 
+def extract_watershed_of_lake(polygon: Polygon) -> Polygon:
+    """
+    Extract lake watershed polygon using HydroSheds dataset
+    Parameters
+    ----------
+    polygon : Polygon
+        Polygon of the lake
+    Returns
+    -------
+    Polygon
+        Polygon of the watershed
+    """
+    raise Exception("Not implemented yet")
+    return None
+
+
 def subset_box(da: xr.Dataset, poly: Polygon, pad=1) -> xr.Dataset:
-    """Subset an xarray object to the smallest box including the polygon.
+    """FROM ONLINE SOURCE!!!!! Subset an xarray object to the smallest box including the polygon.
     Assuming the polygon is defined as lon/lat and that those are variables in da.
     A mask if first constructed for all grid centers falling within the bounds of the polygon,
     then a padding of {pad} cells is added around it to be sure all points are included.
@@ -83,7 +106,7 @@ def subset_box(da: xr.Dataset, poly: Polygon, pad=1) -> xr.Dataset:
 
     for dim in dims:
         mask = mask.rolling(**{dim: 2 * pad + 1}, min_periods=1, center=True).max()
-    logger.info("Subsetted the dataset {} to lake area".format(da.attrs["name"]))
+    logger.info("Subsetted the dataset {} to lake area".format(da.attrs["product_name"]))
     return da.where(mask.astype(int), drop=True)
 
 

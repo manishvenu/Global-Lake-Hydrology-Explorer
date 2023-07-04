@@ -50,9 +50,10 @@ class CRUTS(data_access_parent_class.DataAccess):
                 self.logger.error("CRUTS subset Polygon is too small for CRUTS, trying again with larger polygon")
                 dataset = lake_extraction.subset_box(dataset, polygon.buffer(0.5), 0)
             dataset = helpers.convert_xarray_units(dataset, "mm/month", "pet", "pre")
-            helpers.pickle_xarray_dataset(dataset)
+            helpers.pickle_var(dataset, dataset.attrs['product_name'])
         else:
-            dataset = helpers.load_pickle_dataset("CRUTS")
+            self.logger.info("Debug mode, using pickled CRUTS Land data")
+            dataset = helpers.unpickle_var("CRUTS")
         pet_ds, precip_ds = helpers.spatially_average_dataset_and_convert(dataset, "pet", "pre")
         pet_ds, precip_ds = helpers.move_date_index_to_first_of_the_month(pet_ds, precip_ds)
         helpers.clean_up_specific_temporary_files("CRUTS")

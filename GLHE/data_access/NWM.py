@@ -5,7 +5,7 @@ from datetime import datetime as dt
 import boto3
 import pandas as pd
 import xarray as xr
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, Point
 
 import GLHE
 from GLHE import helpers
@@ -72,15 +72,15 @@ class NWM(data_access_parent_class.DataAccess):
             if closest is None or dist < closest[0]:
                 closest = (dist, i, lo_nwm.longitude[i].values, lo_nwm.latitude[i].values)
         feature_id_index = closest[1]
-        if closest[0] > 0.001:
+        self.logger.info("Found Lake ID Verify Correct Placement (Lat, Long): (" + str(
+            lo_nwm.latitude[feature_id_index].item()) + ", " + str(
+            lo_nwm.longitude[feature_id_index].item()) + ")")
+        if closest[0] > 0.001 and not polygon.contains(Point(longitude, latitude)):
             flag_stream_links_used = True
             self.logger.error("The lake is not in the NWM domain")
-            self.logger.error(
-                "Doing it the hard way, accessing direct stream links in the area, if this lake is incorrectly "
-                "placed in the HydroLakes database, this data is bogus, flags will be added here, and a map downloaded. check "
-                "it!")
-            self.logger.error("THIS MODULE HAS NOT BEEN EFFICIENTLY IMPLEMENTED. IT'S NOT CORRECT!")
+            self.logger.error("THIS MODULE HAS NOT BEEN IMPLEMENTED. IT'S NOT CORRECT!")
             # co_nwm = xr.open_dataset(co_file_name)
+            raise Exception("Code has not been implemented yet")
             feature_ids_index = []
             # for count, i in enumerate(co_nwm.feature_id):
             #     print(count)
@@ -105,6 +105,7 @@ class NWM(data_access_parent_class.DataAccess):
         MVSeries
             The monthly runoff data
         """
+        self.logger.info("NWM Driver Started: Inflow & Outflow")
 
         list_of_feature_ids, flag_stream_links_used = self.find_lake_id(polygon)
         if (flag_stream_links_used):
@@ -115,6 +116,7 @@ class NWM(data_access_parent_class.DataAccess):
         list_of_MVSeries_no_units = helpers.convert_dicts_to_MVSeries("Date", "units", "name", self.full_data)
         list_of_MVSeries_grouped_to_month = helpers.group_MVSeries_by_month(list_of_MVSeries_no_units)
         list_of_MVSeries_converted_units = helpers.convert_MVSeries_units(list_of_MVSeries_grouped_to_month, "m3/month")
+        self.logger.info("NWM Driver Finished")
         return list_of_MVSeries_converted_units
 
     def lakeout_file_process(self, list_of_feature_ids):
@@ -131,7 +133,7 @@ class NWM(data_access_parent_class.DataAccess):
         start_date, end_date = self.check_save_file()
         if start_date is None:
             start_date = dt.strptime("1931-02-01", '%Y-%m-%d')
-            end_date = dt.strptime("2300-02-28", '%Y-%m-%d')
+            end_date = dt.strptime("1900-02-28", '%Y-%m-%d')
         if end_date.date() == dt.strptime("2020-12-31", '%Y-%m-%d').date():
             self.logger.info("NWM data is fully updated")
             return
