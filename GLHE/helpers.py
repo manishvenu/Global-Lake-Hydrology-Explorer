@@ -10,33 +10,10 @@ import xarray as xr
 from pint import Unit
 
 import GLHE.globals
+from GLHE.globals import SLC_MAPPING_REVERSE, SLC_MAPPING, SLC_MAPPING_REVERSE_UNITS
 from . import ureg
 
 logger = logging.getLogger(__name__)
-
-# Globals
-slc_mapping_reverse = {
-    "e": "evap",
-    "r": "runoff",
-    "p": "precip",
-    "o": "outflow"
-}
-slc_mapping = {
-    "e": "e",
-    "pet": "e",
-    "evap": "e",
-    "evaow": "e",
-    "p": "p",
-    "tp": "p",
-    "pre": "p",
-    "precip": "p",
-    "precipitation": "p",
-    "r": "r",
-    "runoff": "r",
-    "Inflow": "r",
-    "Outflow": "o"
-    # Add more mappings as needed
-}
 
 
 @dataclass
@@ -92,22 +69,25 @@ class MVSeries:
         self.unit = unit
 
 
-def pickle_xarray_dataset(dataset: xr.Dataset) -> None:
-    """Pickle xarray dataset to disk
-
-    Parameters
-    ----------
-    dataset : xr.Dataset
-        The xarray dataset to pickle
-    Returns
-    -------
-    None
-
+def pickle_var(variable: object, identification_string: str) -> None:
     """
-    pickle_file = GLHE.globals.OUTPUT_DIRECTORY + "/save_files/" + GLHE.globals.LAKE_NAME + "_" + dataset.attrs[
-        'name'] + '.pickle'
-    with open(pickle_file, 'wb') as file:
-        pickle.dump(dataset, file)
+    Pickle a variable to disk
+    """
+    if GLHE.globals.OUTPUT_DIRECTORY is None or GLHE.globals.OUTPUT_DIRECTORY == "":
+        raise Exception("GLHE.globals.OUTPUT_DIRECTORY is not set, need to have a directory to place pickle files")
+    pickle_file_name = GLHE.globals.OUTPUT_DIRECTORY + "/save_files/" + GLHE.globals.LAKE_NAME + "_" + identification_string + '.pickle'
+    with open(pickle_file_name, 'wb') as file:
+        pickle.dump(variable, file)
+
+
+def unpickle_var(identification_string: str) -> object:
+    """
+    Load a variable from disk, used in conjuction with pickle_var
+    """
+    pickle_file_name = GLHE.globals.OUTPUT_DIRECTORY + "/save_files/" + GLHE.globals.LAKE_NAME + "_" + identification_string + '.pickle'
+    with open(pickle_file_name, 'rb') as file:
+        variable = pickle.load(file)
+    return variable
 
 
 def convert_dicts_to_MVSeries(date_column_name: str, units_key_name: str, product_name_key_name: str, *dicts: dict) -> \
@@ -137,28 +117,10 @@ def convert_dicts_to_MVSeries(date_column_name: str, units_key_name: str, produc
             if key != date_column_name and key != units_key_name and key != product_name_key_name:
                 series = pd.Series(value, index=dictionary[date_column_name])
                 metadata_series = MVSeries(series, ureg.parse_expression(dictionary[units_key_name]),
-                                           slc_mapping.get(key),
+                                           SLC_MAPPING.get(key),
                                            dictionary[product_name_key_name], key, None)
                 series_list.append(metadata_series)
     return series_list
-
-
-def load_pickle_dataset(pickle_file: str) -> xr.Dataset:
-    """Load pickled xarray dataset from disk
-
-    Parameters
-    ----------
-    pickle_file : str
-        The xarray dataset to pickle
-    Returns
-    -------
-    xr.Dataset
-
-    """
-    with open(GLHE.globals.OUTPUT_DIRECTORY + "/save_files/" + GLHE.globals.LAKE_NAME + "_" + pickle_file + ".pickle",
-              'rb') as file:
-        dataset = pickle.load(file)
-    return dataset
 
 
 def make_sure_dataset_is_positive(dataset: xr.Dataset, *vars: str) -> xr.Dataset:
@@ -177,8 +139,9 @@ def make_sure_dataset_is_positive(dataset: xr.Dataset, *vars: str) -> xr.Dataset
     """
     for variable_name in vars:
         if dataset[variable_name].values.min() < 0:
-            logger.info("The dataset ({} {}) has negative values, making it positive".format(dataset.attrs['name'],
-                                                                                             variable_name))
+            logger.info(
+                "The dataset ({} {}) has negative values, making it positive".format(dataset.attrs['product_name'],
+                                                                                     variable_name))
             dataset[variable_name].values = abs(dataset[variable_name].values)
     return dataset
 
@@ -218,13 +181,13 @@ def spatially_average_dataset_and_convert(dataset: xr.Dataset, *vars: str) -> tu
         """
     lat_name = 'lat'
     lon_name = 'lon'
-    logger.info("Spatially Averaged the dataset {}".format(dataset.attrs['name']))
+    logger.info("Spatially Averaged the dataset {}".format(dataset.attrs['product_name']))
     series_list = []
     for var in vars:
         pandas_dataset = dataset.mean(dim=[lat_name, lon_name]).get(var).to_series()
         metadata_series = MVSeries(pandas_dataset, ureg.parse_expression(dataset.variables[var].attrs['units']).units,
-                                   slc_mapping.get(var),
-                                   dataset.attrs['name'], var, dataset[var])
+                                   SLC_MAPPING.get(var),
+                                   dataset.attrs['product_name'], var, dataset[var])
         series_list.append(metadata_series)
     return tuple(series_list)
 
@@ -258,7 +221,7 @@ def fix_lat_long_names(dataset: xr.Dataset) -> xr.Dataset:
         print("Latitude or longitude variable name not found.")
     if lat_name != 'lat' or lon_name != 'lon':
         dataset = dataset.rename({lat_name: 'lat', lon_name: 'lon'})
-    logger.debug("Renamed the dataset {} to lat, long standard names".format(dataset.attrs["name"]))
+    logger.debug("Renamed the dataset {} to lat, long standard names".format(dataset.attrs["product_name"]))
 
     return dataset
 
@@ -283,7 +246,7 @@ def group_xarray_dataset_by_month(dataset: xr.Dataset) -> xr.Dataset:
         xarray Dataset
             xarray with index of year,month added
         """
-    logger.debug("Grouped the dataset {} to monthly values".format(dataset.attrs["name"]))
+    logger.debug("Grouped the dataset {} to monthly values".format(dataset.attrs["product_name"]))
 
     return dataset.resample(time='M').sum()
 
@@ -292,7 +255,7 @@ def label_xarray_dataset_with_product_name(dataset: xr.Dataset, name: str) -> xr
     """Adds a label to the dataset describing the product called product_name,
     accessed by dataset.attrs["name"] """
 
-    dataset.attrs["name"] = name
+    dataset.attrs["product_name"] = name
     return dataset
 
 
@@ -313,7 +276,7 @@ def fix_weird_units_descriptors(dataset: xr.Dataset, var: str, correct_unit: str
         the dataset with the fixed units
     """
     logger.info("Fixed the weird units descriptors in the dataset {} for variable {} from {} to {}".format(
-        dataset.attrs["name"], var, dataset[var].attrs["units"], correct_unit))
+        dataset.attrs["product_name"], var, dataset[var].attrs["units"], correct_unit))
     dataset[var].attrs["units"] = correct_unit
     return dataset
 
@@ -334,7 +297,8 @@ def add_descriptive_time_component_to_units(dataset: xr.Dataset, time_denominato
         the dataset with the time component added to the units
     """
     logger.info(
-        "Added the time component ({}) to the units of the dataset {}".format(time_denominator, dataset.attrs["name"]))
+        "Added the time component ({}) to the units of the dataset {}".format(time_denominator,
+                                                                              dataset.attrs["product_name"]))
     for var in dataset.keys():
         if "units" in dataset[var].attrs and '/' not in dataset[var].attrs["units"]:
             dataset[var].attrs["units"] += f'/{time_denominator}'
@@ -358,7 +322,8 @@ def convert_xarray_units(dataset: xr.Dataset, output_unit: str, *variable: str) 
         The dataset with the units converted
     """
     logger.info(
-        "Converted the dataset {}, variable {}, to units {}".format(dataset.attrs["name"], variable, output_unit))
+        "Converted the dataset {}, variable {}, to units {}".format(dataset.attrs["product_name"], variable,
+                                                                    output_unit))
 
     dataset = dataset.pint.quantify({"lat": None, "lon": None})
     for var in variable:
@@ -415,19 +380,24 @@ def convert_MVSeries_units(list_of_MVSeries, output_unit: Unit) -> list[MVSeries
     return list_of_MVSeries
 
 
-def setup_output_directory(output_directory: str) -> None:
+def setup_output_directory(lake_name: str) -> None:
     """Makes the output directory if it doesn't exist
 
     Parameters
     ----------
-    output_directory : str
+    lake_name : str
         The output directory to make
     """
-    if not os.path.exists(output_directory.replace('\\', '')):
-        os.mkdir(output_directory)
-        os.mkdir(output_directory + "/save_files")
-        logger.info("Made the output directory {}".format(output_directory))
-    GLHE.globals.OUTPUT_DIRECTORY = os.getcwd() + "/" + output_directory
+    if not os.path.exists(GLHE.globals.LAKE_OUTPUT_FOLDER):
+        os.mkdir(GLHE.globals.LAKE_OUTPUT_FOLDER)
+    full_filepath = os.path.join(GLHE.globals.LAKE_OUTPUT_FOLDER, lake_name)
+    if not os.path.exists(full_filepath):
+        os.mkdir(full_filepath)
+        os.mkdir(full_filepath + "/save_files")
+        logger.info("Made the output directory {}".format(full_filepath))
+    GLHE.globals.OUTPUT_DIRECTORY = full_filepath
+    if GLHE.globals.LAKE_NAME == None:
+        logger.info("There is no lake name set, so setting the Lake Name to {}".format(lake_name))
 
 
 def clean_up_all_temporary_files() -> list:

@@ -39,12 +39,15 @@ class MyTestCase(BaseTestCase):
             format='%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S', )
         logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+        logging.info("***********************Initializing Driver Function*************************")
+        logger = logging.getLogger(__name__)
 
-        logging.info("***********************Starting Test Functions*************************")
+        logger.info("***********************Starting Test Functions*************************")
+        helpers.setup_output_directory("TestLake")
 
     def test_name(self):
         self.terra_dataset = helpers.label_xarray_dataset_with_product_name(self.terra_dataset, "TerraClimateDummyData")
-        self.assertEqual(self.terra_dataset.attrs['name'], "TerraClimateDummyData")
+        self.assertEqual(self.terra_dataset.attrs['product_name'], "TerraClimateDummyData")
 
     def test_unit_conversion(self):
         self.terra_dataset = helpers.convert_xarray_units(self.terra_dataset, "in", "ppt")
@@ -89,7 +92,7 @@ class MyTestCase(BaseTestCase):
 
     def test_NWM_class(self):
         NWM_object = NWM.NWM()
-        polygon = lake_extraction.extract_lake(61)
+        polygon = lake_extraction.extract_lake(67)
         NWM_object.product_driver(polygon)
         self.assertEqual(1, 1)
 
