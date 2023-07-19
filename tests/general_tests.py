@@ -72,7 +72,7 @@ class MyTestCase(BaseTestCase):
             r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\GLHE\.temp\test.csv')
         csv_dataset['date'] = pd.to_datetime(csv_dataset['date'])
         csv_dataset.set_index('date', inplace=True)
-        combined_data_functions.plot_all_data(csv_dataset)
+        combined_data_functions.output_plot_of_all_data(csv_dataset)
         self.assertEqual(1, 1)
 
     def test_nwm_find_lake_id(self):
