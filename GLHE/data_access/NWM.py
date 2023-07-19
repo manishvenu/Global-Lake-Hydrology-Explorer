@@ -25,10 +25,11 @@ class NWM(data_access_parent_class.DataAccess):
                                aws_access_key_id="AKIA6BHGCVJLQKADHHWY",
                                aws_secret_access_key="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")
         self.nwm_bulk_message_logger = logging.getLogger("NWM_Bulk")
+        self.nwm_bulk_message_logger.propagate = False
         fh = logging.FileHandler(
-            'C:\\Users\\manis\\OneDrive - Umich\\Documents\\Global Lake Hydrology Explorer\\GLHE\\.temp\\GLHE_NWM_Bulk.log')
+            os.path.join(GLHE.globals.LOGGING_DIRECTORY, "NWM_Bulk.log"))
         self.nwm_bulk_message_logger.addHandler(fh)
-        # self.nwm_bulk_message_logger.info("***Starting NWM Object***")
+        self.nwm_bulk_message_logger.info("***Starting NWM Object***")
 
         super().__init__()
 

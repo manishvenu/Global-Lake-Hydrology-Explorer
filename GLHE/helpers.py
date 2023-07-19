@@ -10,7 +10,7 @@ import xarray as xr
 from pint import Unit
 
 import GLHE.globals
-from GLHE.globals import SLC_MAPPING_REVERSE, SLC_MAPPING, SLC_MAPPING_REVERSE_UNITS
+from GLHE.globals import SLC_MAPPING_REVERSE_NAMES, SLC_MAPPING, SLC_MAPPING_REVERSE_UNITS
 from . import ureg
 
 logger = logging.getLogger(__name__)
@@ -214,6 +214,20 @@ def setup_output_directory(lake_name: str) -> None:
     GLHE.globals.OUTPUT_DIRECTORY = full_filepath
     if GLHE.globals.LAKE_NAME == None:
         logger.info("There is no lake name set, so setting the Lake Name to {}".format(lake_name))
+
+
+def setup_logging_directory() -> None:
+    """Makes the logging directory if it doesn't exist
+    """
+    if GLHE.globals.LOGGING_DIRECTORY is not None and os.path.exists(GLHE.globals.LOGGING_DIRECTORY):
+        logger.info("Logging directory already exists")
+    elif not os.path.exists(".temp\\logging"):
+        os.mkdir(".temp\\logging")
+        GLHE.globals.LOGGING_DIRECTORY = ".temp\\logging"
+        logger.info("Created logging directory")
+    elif GLHE.globals.LOGGING_DIRECTORY is None:
+        GLHE.globals.LOGGING_DIRECTORY = ".temp\\logging"
+        logger.info("Filled in logging directory to default folder that already existed")
 
 
 def clean_up_all_temporary_files() -> list:

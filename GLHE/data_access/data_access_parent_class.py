@@ -1,18 +1,31 @@
-from abc import ABC, abstractmethod
-from GLHE.helpers import MVSeries
 import logging
+import os
+from abc import ABC, abstractmethod
+
+import GLHE.globals
+from GLHE.helpers import MVSeries
 
 
 class DataAccess(ABC):
     """Parent class for all data access. This class is an abstract class and should not be instantiated."""
-    logger = logging.getLogger(__name__)
+    logger: logging.Logger
 
     @abstractmethod
     def __init__(self):
         """Initializes the data access class"""
+        self.create_logger()
         if not self.verify_inputs():
             raise ValueError("Invalid inputs")
         pass
+
+    def create_logger(self) -> None:
+        """Creates a logger for the child classes"""
+        self.logger = logging.getLogger(self.__class__.__name__)
+        fh = logging.FileHandler(os.path.join(GLHE.globals.LOGGING_DIRECTORY, self.__class__.__name__ + "_driver.log"))
+        fh.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s')
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
 
     @abstractmethod
     def verify_inputs(self) -> bool:

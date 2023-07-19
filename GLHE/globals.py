@@ -1,9 +1,14 @@
-LAKE_NAME = None
+DEBUG = True
+
 OUTPUT_DIRECTORY = None
+LOGGING_DIRECTORY = None
+UNIT_DEFINITION_FILE_PATH = r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology ' \
+                            r'Explorer\GLHE\config\pint_unit_registry.txt'
+
+LAKE_NAME = None
 LAKE_OUTPUT_FOLDER = r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory'
-DEBUG = False
-UNIT_DEFINITION_FILE_PATH = r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\GLHE\config\pint_unit_registry.txt'
-SLC_MAPPING_REVERSE = {
+
+SLC_MAPPING_REVERSE_NAMES = {
     "p": "precip",
     "e": "evap",
     "i": "inflow",

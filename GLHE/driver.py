@@ -19,13 +19,14 @@ class driver:
         "slc": {}
     }
     pandas_dataset: pd.DataFrame
-    logger: logging.Logger
+    root_logger: logging.Logger
+    outputs = {}
 
     def __init__(self):
         """
         This is the constructor for the driver class.
         """
-        for key in GLHE.globals.SLC_MAPPING_REVERSE:
+        for key in GLHE.globals.SLC_MAPPING_REVERSE_NAMES:
             self.datasets_index["slc"][key] = []
 
     def index_datasets(self, *datasets: helpers.MVSeries):
@@ -50,19 +51,23 @@ class driver:
         Here, we'll run all the code.
         """
 
-        # Set up logging
+        helpers.setup_logging_directory()
         logging.basicConfig(
-            filename='C:\\Users\\manis\\OneDrive - Umich\\Documents\\Global Lake Hydrology Explorer\\GLHE\\.temp\\GLHE.log',
             encoding='utf-8', level=os.environ.get("LOGLEVEL", "INFO"),
             format='%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S', )
-        logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-        logging.info("***********************Initializing Driver Function*************************")
-        self.logger = logging.getLogger(__name__)
+        fh = logging.FileHandler(os.path.join(GLHE.globals.LOGGING_DIRECTORY, "GLHE_driver.log"))
+        fh.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s')
+        fh.setFormatter(formatter)
+        self.root_logger = logging.getLogger()
+        self.root_logger.addHandler(fh)
 
+        self.root_logger.addHandler(logging.StreamHandler(sys.stdout))
+        self.root_logger.info("***********************Initializing Driver Function*************************")
         # Check if Debug Mode is On #
         if GLHE.globals.DEBUG:
-            logging.info("Debug Mode is On")
+            self.root_logger.info("Debug Mode is On")
         # Verify access to data #
         data_check.check_data_and_download_missing_data_or_files()
 
@@ -101,9 +106,11 @@ class driver:
 
         # Plot and Output
         self.pandas_dataset = combined_data_functions.merge_mv_series_into_pandas_dataframe(self.datasets_index["slc"])
-        combined_data_functions.plot_all_data(self.pandas_dataset)
+        combined_data_functions.output_plot_of_all_data(self.pandas_dataset)
         combined_data_functions.output_all_compiled_data_to_csv(GLHE.globals.LAKE_NAME + "_Data.csv",
                                                                 self.pandas_dataset)
+
+        combined_data_functions.write_and_output_README(self.outputs)
         logging.info('Ended driver function')
 
 

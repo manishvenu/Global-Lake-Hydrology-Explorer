@@ -6,7 +6,7 @@ import rasterio
 
 import GLHE.globals
 from GLHE.helpers import *
-from GLHE.globals import SLC_MAPPING, SLC_MAPPING_REVERSE_UNITS, SLC_MAPPING_REVERSE
+from GLHE.globals import SLC_MAPPING, SLC_MAPPING_REVERSE_UNITS, SLC_MAPPING_REVERSE_NAMES
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def merge_mv_series_into_pandas_dataframe(datasets_dict: dict) -> pd.DataFrame:
     evap = []
     runoff = []
     df = pd.DataFrame()
-    for key in SLC_MAPPING_REVERSE:
+    for key in SLC_MAPPING_REVERSE_NAMES:
         for ds in datasets_dict[key]:
             col_name = ds.single_letter_code + "." + ds.product_name
             ds.dataset.name = col_name
@@ -39,7 +39,7 @@ def merge_mv_series_into_pandas_dataframe(datasets_dict: dict) -> pd.DataFrame:
     return df
 
 
-def plot_all_data(dataset: pd.DataFrame) -> None:
+def output_plot_of_all_data(dataset: pd.DataFrame) -> None:
     """Plot Precip, Evap, & Runoff in a three panel plot
 
         Parameters
@@ -52,7 +52,7 @@ def plot_all_data(dataset: pd.DataFrame) -> None:
         """
     logger.info("Plotting Data")
     plotting_dict = {}
-    for key in SLC_MAPPING_REVERSE:
+    for key in SLC_MAPPING_REVERSE_NAMES:
         temp = [col for col in dataset if col.startswith(key)]
         if len(temp) > 0:
             plotting_dict[key] = temp
@@ -63,7 +63,7 @@ def plot_all_data(dataset: pd.DataFrame) -> None:
                      xlim=(
                          dataset[plotting_dict[key]].first_valid_index(),
                          dataset[plotting_dict[key]].last_valid_index()))
-        axs[index].set_ylabel(SLC_MAPPING_REVERSE[key] + " " + SLC_MAPPING_REVERSE_UNITS[key])
+        axs[index].set_ylabel(SLC_MAPPING_REVERSE_NAMES[key] + " " + SLC_MAPPING_REVERSE_UNITS[key])
     plt.tight_layout()
     plt.savefig(GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME + "_products_plot.png")
     plt.show()
@@ -133,6 +133,14 @@ def present_mv_series_as_geospatial_at_date_time(date: pd.Timestamp, *dss: MVSer
 
     logger.info(f"GeoTIFF files zipped successfully: {zip_file}")
     clean_up_specific_temporary_files("GEOTIFF")
+
+
+def write_and_output_README(outputs: dict) -> None:
+    """
+    Create a README file that explains all exported data
+    """
+    raise NotImplementedError()
+    return
 
 
 if __name__ == "__main__":
