@@ -25,6 +25,20 @@
       "description": "Dataset of all lakes in the world",
       "local_remote_storage_filename": "HydroLAKES_polys_v10_shp/",
       "dropbox_download_link": "https://www.dropbox.com/sh/91riy601jr1itet/AABgOkSunThe35mvsM5KhJyQa?dl=1"
+    },
+    {
+      "name": "SAMPLE_NWM_LAKEOUT",
+      "access_code": "local",
+      "local_remote_storage_filename": "SAMPLE_NWM_LAKEOUT.nc",
+      "dropbox_download_link": "https://www.dropbox.com/s/2lqrmi1za8x0rj4/SAMPLE_NWM_LAKEOUT.nc?dl=0",
+      "description": "LAKEOUT file from NWM (sample) used everytime to find lake id"
+    },
+    {
+      "name": "SAMPLE_NWM_CHRTOUT",
+      "access_code": "local",
+      "local_remote_storage_filename": "SAMPLE_NWM_CHRTOUT.nc",
+      "dropbox_download_link": "https://www.dropbox.com/s/4gfdw7vvipjho9b/SAMPLE_NWM_CHRTOUT.nc?dl=0",
+      "description": "CHRTOUT file from NWM (sample) used sometime to find stream ids"
     }
   ],
   "metadata": "This is a list of data products, and they have specific access methods. Right now that is API or Local. MUST HAVE NAME AND ACCESS CODE But eventually all you would need to do here is add the product, but that's far far away. "

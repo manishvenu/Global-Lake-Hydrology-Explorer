@@ -1,6 +1,7 @@
 import logging
 import os
 import pickle
+from shutil import move as shutil_move
 from calendar import monthrange
 from dataclasses import dataclass
 
@@ -123,7 +124,7 @@ def convert_dicts_to_MVSeries(date_column_name: str, units_key_name: str, produc
     return series_list
 
 
-def move_date_index_to_first_of_the_month(*series: MVSeries) -> tuple[MVSeries]:
+def move_date_index_to_first_of_the_month(*series: MVSeries) -> list[MVSeries]:
     """
     This function moves the date index to the first of the month
     Parameters
@@ -136,15 +137,15 @@ def move_date_index_to_first_of_the_month(*series: MVSeries) -> tuple[MVSeries]:
         the modified series
     """
     series_list = []
-    for s in series:
+    for s in list(series):
         s.dataset.index = s.dataset.index - pd.offsets.MonthBegin(1)
         series_list.append(s)
-    return tuple(series_list)
+    return series_list
 
 
 def group_MVSeries_by_month(list_of_datasets: list[MVSeries]) -> list[MVSeries]:
     """Groups MVSeries data to monthly values"""
-
+    logger.info("Grouping MVSeries by month")
     for mvs in list_of_datasets:
         mvs.dataset = mvs.dataset.groupby(pd.Grouper(freq='MS')).mean()
     return list_of_datasets
@@ -212,22 +213,26 @@ def setup_output_directory(lake_name: str) -> None:
         os.mkdir(full_filepath + "/save_files")
         logger.info("Made the output directory {}".format(full_filepath))
     GLHE.globals.OUTPUT_DIRECTORY = full_filepath
+    GLHE.globals.OUTPUT_DIRECTORY_SAVE_FILES = os.path.join(full_filepath, "/save_files")
     if GLHE.globals.LAKE_NAME == None:
-        logger.info("There is no lake name set, so setting the Lake Name to {}".format(lake_name))
+        logger.warn("There is no lake name set! Don't forget to set that!")
 
 
-def setup_logging_directory() -> None:
+def setup_logging_directory(folder: str) -> None:
     """Makes the logging directory if it doesn't exist
     """
-    if GLHE.globals.LOGGING_DIRECTORY is not None and os.path.exists(GLHE.globals.LOGGING_DIRECTORY):
-        logger.info("Logging directory already exists")
-    elif not os.path.exists(".temp\\logging"):
-        os.mkdir(".temp\\logging")
-        GLHE.globals.LOGGING_DIRECTORY = ".temp\\logging"
-        logger.info("Created logging directory")
-    elif GLHE.globals.LOGGING_DIRECTORY is None:
-        GLHE.globals.LOGGING_DIRECTORY = ".temp\\logging"
-        logger.info("Filled in logging directory to default folder that already existed")
+    lake_folder_logging_directory = os.path.join(folder, "logging")
+    if GLHE.globals.LOGGING_DIRECTORY is not None and os.path.exists(lake_folder_logging_directory):
+        logger.warning("A logging directory already exists")
+    if not os.path.exists(lake_folder_logging_directory):
+        os.mkdir(lake_folder_logging_directory)
+        GLHE.globals.LOGGING_DIRECTORY = lake_folder_logging_directory
+        logger.info(
+            "Created logging directory of the new folder requested, and repointed the logging directory. "
+            "Newly created log file handlers will point here instead.")
+    elif GLHE.globals.LOGGING_DIRECTORY != lake_folder_logging_directory:
+        GLHE.globals.LOGGING_DIRECTORY = lake_folder_logging_directory
+        logger.info("Filled in logging directory pointer to folder that already existed")
 
 
 def clean_up_all_temporary_files() -> list:
@@ -251,7 +256,7 @@ def clean_up_all_temporary_files() -> list:
 
 
 def clean_up_specific_temporary_files(key: str) -> list:
-    """removes files that start with TEMPORARY
+    """removes files that start with TEMPORARY_[key]
         Parameters
         ----------
         key:str
@@ -269,5 +274,5 @@ def clean_up_specific_temporary_files(key: str) -> list:
         if file.split("_")[0] == "TEMPORARY" and file.split("_")[1] == key:
             os.remove(".temp/" + file)
             deleted_files.append(file)
-    logger.debug("Cleared temporary  with key {} in their filename after the understore".format(key))
+    logger.debug("Cleared temporary  with key {} in their filename after the underscore".format(key))
     return deleted_files

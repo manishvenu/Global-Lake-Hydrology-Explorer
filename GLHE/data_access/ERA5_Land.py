@@ -1,5 +1,4 @@
 import logging
-import asyncio
 import cdsapi
 import xarray as xr
 from GLHE.data_access import data_access_parent_class
@@ -23,8 +22,12 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         self.logger.info("Verifying inputs: " + self.__class__.__name__)
         return True
 
-    async def get_total_precip_runoff_evap_in_subset_box_api(self, west: float, east: float, south: float,
-                                                             north: float) -> xr.Dataset:
+    def attach_geodata(self) -> str:
+        self.logger.info("Attaching Geo Data inputs: " + self.__class__.__name__)
+        return "grid"
+
+    def get_total_precip_runoff_evap_in_subset_box_api(self, west: float, east: float, south: float,
+                                                       north: float) -> xr.Dataset:
         """Gets ERA5 Land precip, evap, & runoff data in a known subregion by lat-long
 
         Parameters
@@ -43,7 +46,7 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         xarray Dataset
             xarray Dataset format of the evap, precip, & runoff in a grid
         """
-
+        self.logger.info("Calling ERA5 Land API")
         try:
             self.api_client.retrieve(
                 'reanalysis-era5-land-monthly-means',
@@ -100,40 +103,51 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         xarray_dataset = xr.open_dataset(".temp/TEMPORARY_ERA5Land_DONOTOPEN_ERA5LAND.nc")
         return xarray_dataset
 
-    async def product_driver(self, polygon, debug=False) -> list[MVSeries]:
+    def product_driver(self, polygon, debug=False, run_cleanly=False) -> list[MVSeries]:
         """See parent function for details"""
         self.logger.info("ERA Driver Started: Precip & Evap")
-        if not debug:
-            min_lon, min_lat, max_lon, max_lat = polygon.bounds
 
-            # Need to add more padding to lat, longs ##
-            min_lon = min_lon - 1
-            max_lon = max_lon + 1
-            min_lat = min_lat - 1
-            max_lat = max_lat + 1
-
-            dataset = await self.get_total_precip_runoff_evap_in_subset_box_api(min_lon, max_lon, min_lat, max_lat)
-            dataset = xarray_helpers.label_xarray_dataset_with_product_name(dataset, "ERA5_Land")
-            dataset = xarray_helpers.fix_lat_long_names_in_xarray_dataset(dataset)
+        if not run_cleanly and not debug:
             try:
-                dataset = lake_extraction.subset_box(dataset, polygon, 1)
-            except ValueError:
-                self.logger.error(
-                    "ERA5 Land subset Failed: Polygon is too small for ERA5 Land, trying again with larger polygon")
-                dataset = lake_extraction.subset_box(dataset, polygon.buffer(0.5), 0)
-            dataset = xarray_helpers.fix_weird_units_descriptors_in_xarray_datasets(dataset, "e", "m")
-            dataset = xarray_helpers.add_descriptive_time_component_to_units_in_xarray_dataset(dataset, "day")
-            dataset = xarray_helpers.convert_xarray_dataset_units(dataset, "mm/month", "tp", "e")
-            dataset = xarray_helpers.make_sure_xarray_dataset_is_positive(dataset, "e")
-            helpers.pickle_var(dataset, dataset.attrs['product_name'])
+                self.logger.info("Attempting to find and read saved ERA5 Land data")
+                dataset = helpers.unpickle_var("ERA5_Land")
+            except FileNotFoundError:
+                self.logger.info("No saved ERA5 Land data found, calling API")
+                dataset = self.call_ERA5_Land_API_and_process(polygon)
         else:
-            self.logger.info("Debug mode, using pickled ERA5 Land data")
-            dataset = helpers.unpickle_var("ERA5_Land")
+            dataset = self.call_ERA5_Land_API_and_process(polygon)
+
         evap_ds, precip_ds = xarray_helpers.spatially_average_xarray_dataset_and_convert(dataset, "e", "tp")
         helpers.clean_up_specific_temporary_files("ERA5Land")
         list_of_MVSeries = [precip_ds, evap_ds]
         self.logger.info("ERA Driver Finished")
         return list_of_MVSeries
+
+    def call_ERA5_Land_API_and_process(self, polygon) -> xr.Dataset:
+        """Calls the ERA5 Land API and processes the data"""
+        min_lon, min_lat, max_lon, max_lat = polygon.bounds
+
+        # Need to add more padding to lat, longs ##
+        min_lon = min_lon - 1
+        max_lon = max_lon + 1
+        min_lat = min_lat - 1
+        max_lat = max_lat + 1
+
+        dataset = self.get_total_precip_runoff_evap_in_subset_box_api(min_lon, max_lon, min_lat, max_lat)
+        dataset = xarray_helpers.label_xarray_dataset_with_product_name(dataset, "ERA5_Land")
+        dataset = xarray_helpers.fix_lat_long_names_in_xarray_dataset(dataset)
+        try:
+            dataset = lake_extraction.subset_box(dataset, polygon, 1)
+        except ValueError:
+            self.logger.error(
+                "ERA5 Land subset Failed: Polygon is too small for ERA5 Land, trying again with larger polygon")
+            dataset = lake_extraction.subset_box(dataset, polygon.buffer(0.5), 0)
+        dataset = xarray_helpers.fix_weird_units_descriptors_in_xarray_datasets(dataset, "e", "m")
+        dataset = xarray_helpers.add_descriptive_time_component_to_units_in_xarray_dataset(dataset, "day")
+        dataset = xarray_helpers.convert_xarray_dataset_units(dataset, "mm/month", "tp", "e")
+        dataset = xarray_helpers.make_sure_xarray_dataset_is_positive(dataset, "e")
+        helpers.pickle_var(dataset, dataset.attrs['product_name'])
+        return dataset
 
 
 if __name__ == "__main__":

@@ -1,10 +1,11 @@
-DEBUG = True
-
+DEBUG = False
+RUN_CLEANLY = False
+TEMP_DIRECTORY = ".temp"
 OUTPUT_DIRECTORY = None
+OUTPUT_DIRECTORY_SAVE_FILES = None
 LOGGING_DIRECTORY = None
 UNIT_DEFINITION_FILE_PATH = r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology ' \
                             r'Explorer\GLHE\config\pint_unit_registry.txt'
-
 LAKE_NAME = None
 LAKE_OUTPUT_FOLDER = r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory'
 
@@ -32,7 +33,7 @@ SLC_MAPPING = {
     "precipitation": "p",
     "r": "i",
     "runoff": "i",
-    "Inflow": "i",
-    "Outflow": "o"
+    "inflow": "i",
+    "outflow": "o"
     # Add more mappings as needed
 }
