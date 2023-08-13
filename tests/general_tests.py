@@ -1,12 +1,16 @@
 import os
 import unittest
 import sys
+from pint import UnitRegistry
+import GLHE.globals
 
 import numpy as np
 import pandas as pd
 import xarray as xr
+import fsspec
 import logging
-from GLHE import helpers, lake_extraction, combined_data_functions
+import GLHE
+from GLHE import helpers, lake_extraction, combined_data_functions, xarray_helpers
 from GLHE.data_access import ERA5_Land, CRUTS, NWM, data_check
 
 
@@ -18,7 +22,8 @@ class BaseTestCase(unittest.TestCase):
         self.terra_dataset = xr.load_dataset(
             r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology '
             r'Explorer\tests\DummyData\agg_terraclimate_ppt_1958_CurrentYear_GLOBE.nc')
-        self.terra_dataset = helpers.label_xarray_dataset_with_product_name(self.terra_dataset, "TerraClimateDummyData")
+        self.terra_dataset = xarray_helpers.label_xarray_dataset_with_product_name(self.terra_dataset,
+                                                                                   "TerraClimateDummyData")
         dims = ('time', 'lat', 'lon')
         time = pd.date_range("2021-01-01T00", "2023-12-31T23", freq="H")
         lat = [0, 1]
@@ -33,25 +38,37 @@ class MyTestCase(BaseTestCase):
 
     @classmethod
     def setUpClass(cls):
+        helpers.setup_logging_directory(
+            r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\GLHE\.temp')
         logging.basicConfig(
-            filename='C:\\Users\\manis\\OneDrive - Umich\\Documents\\Global Lake Hydrology Explorer\\GLHE\\.temp\\GLHE.log',
             encoding='utf-8', level=os.environ.get("LOGLEVEL", "INFO"),
             format='%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S', )
         logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-        logging.info("***********************Initializing Driver Function*************************")
         logger = logging.getLogger(__name__)
-
-        logger.info("***********************Starting Test Functions*************************")
+        fh = logging.FileHandler(os.path.join(GLHE.globals.LOGGING_DIRECTORY, "GLHE_root_test.log"))
+        fh.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s')
+        fh.setFormatter(formatter)
+        logging.getLogger().addHandler(fh)
+        logger.info("***********************Initializing Test Functions*************************")
         helpers.setup_output_directory("TestLake")
+        GLHE.globals.LAKE_NAME = "TestLake"
 
     def test_name(self):
-        self.terra_dataset = helpers.label_xarray_dataset_with_product_name(self.terra_dataset, "TerraClimateDummyData")
+        self.terra_dataset = xarray_helpers.label_xarray_dataset_with_product_name(self.terra_dataset,
+                                                                                   "TerraClimateDummyData")
         self.assertEqual(self.terra_dataset.attrs['product_name'], "TerraClimateDummyData")
 
     def test_unit_conversion(self):
-        self.terra_dataset = helpers.convert_xarray_dataset_units(self.terra_dataset, "in", "ppt")
+        self.terra_dataset = xarray_helpers.convert_xarray_dataset_units(self.terra_dataset, "in", "ppt")
         self.assertIsNotNone(self.terra_dataset)
+
+    def test_xarray_untis_conversion_stuff(self):
+        dataset = helpers.unpickle_var("NWM")
+        dataset = xarray_helpers.rename_xarray_units(dataset, "m3/s", "inflow", "outflow")
+        dataset = xarray_helpers.convert_xarray_dataset_units(dataset, "m3/month", "inflow",
+                                                              "outflow")
 
     def test_lake_extraction(self):
         polygon = lake_extraction.extract_lake(798)
@@ -65,7 +82,7 @@ class MyTestCase(BaseTestCase):
     def test_spatially_average_dataset(self):
         polygon = lake_extraction.extract_lake(798)
         self.terra_dataset = lake_extraction.subset_box(self.terra_dataset, polygon, 1)
-        self.assertIsNotNone(helpers.spatially_average_xarray_dataset_and_convert(self.terra_dataset, "ppt"))
+        self.assertIsNotNone(xarray_helpers.spatially_average_xarray_dataset_and_convert(self.terra_dataset, "ppt"))
 
     def test_plotting(self):
         csv_dataset = pd.read_csv(
@@ -91,9 +108,20 @@ class MyTestCase(BaseTestCase):
         self.assertEqual(1, 1)
 
     def test_NWM_class(self):
+        lake_extraction_object = lake_extraction.LakeExtraction()
+        lake_extraction_object.extract_lake_information(67)
+        polygon = lake_extraction_object.get_lake_polygon()
+        print(lake_extraction_object.get_lake_name())
         NWM_object = NWM.NWM()
-        polygon = lake_extraction.extract_lake(67)
-        NWM_object.product_driver(polygon)
+        NWM_object.product_driver(polygon, True, True)
+        self.assertEqual(1, 1)
+
+    def test_NWM_zarr(self):
+        lake_extraction_object = lake_extraction.LakeExtraction()
+        lake_extraction_object.extract_lake_information(67)
+        polygon = lake_extraction_object.get_lake_polygon()
+        NWM_object = NWM.NWM()
+        NWM_object.zarr_test_work(polygon, 1204)
         self.assertEqual(1, 1)
 
     def test_NWM_unit_converter(self):

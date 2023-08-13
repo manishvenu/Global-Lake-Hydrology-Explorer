@@ -11,6 +11,8 @@
 # Manish Stuff
 GLHE/LocalData/
 GLHE/.temp/
+LakeOutputDirectory/
+
 # AWS User-specific
 .idea/**/aws.xml
 

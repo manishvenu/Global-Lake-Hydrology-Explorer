@@ -66,7 +66,6 @@ def output_plot_of_all_data(dataset: pd.DataFrame) -> None:
         axs[index].set_ylabel(SLC_MAPPING_REVERSE_NAMES[key] + " " + SLC_MAPPING_REVERSE_UNITS[key])
     plt.tight_layout()
     plt.savefig(GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME + "_products_plot.png")
-    plt.show()
     return
 
 
@@ -135,11 +134,17 @@ def present_mv_series_as_geospatial_at_date_time(date: pd.Timestamp, *dss: MVSer
     clean_up_specific_temporary_files("GEOTIFF")
 
 
-def write_and_output_README(outputs: dict) -> None:
+def write_and_output_README(data_products: dict) -> None:
     """
     Create a README file that explains all exported data
     """
-    raise NotImplementedError()
+    READ_ME_Name = GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME + "_README" + ".txt"
+    with open(READ_ME_Name, "w") as f:
+        f.write("This is a README file for the data exported from the GLHE\n")
+        f.write("The following files are exported and have the following important information:\n")
+        for key in data_products:
+            f.write(key + ":")
+            f.write("\t" + data_products[key]["README"] + "\n")
     return
 
 

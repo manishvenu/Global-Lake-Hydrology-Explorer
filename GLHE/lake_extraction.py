@@ -10,46 +10,84 @@ import GLHE.globals
 logger = logging.getLogger(__name__)
 
 
-def extract_lake(hylak_id: int) -> Polygon:
-    """Extracts lake from shapefile
+class LakeExtraction:
+    """Lake extraction class, mainly to hold the geojson file."""
+    logger: logging.Logger
+    lake_information: str  # As a GeoJSON
+    polygon: Polygon
+    lake_name: str
 
-     Parameters
-     __________
+    def __init__(self):
+        """Initializes the data access class"""
+        self.create_logger()
+        if not self.verify_inputs():
+            raise ValueError("Invalid inputs")
+        lake_information = None
 
-     hyset_id : int
-            ID of the lake (Mono is 798)
+    def verify_inputs(self) -> bool:
+        """Not Implemented Yet"""
+        return True
 
-    Returns
-    _______
+    def create_logger(self) -> None:
+        """Creates a logger"""
+        self.logger = logging.getLogger(self.__class__.__name__)
+        fh = logging.FileHandler(
+            os.path.join(GLHE.globals.TEMP_DIRECTORY, "logging", self.__class__.__name__ + "_driver.log"))
+        fh.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s')
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
 
-    shapely Polygon
-            polygon of specified lake
-    """
-    UseExceptions()
+    def extract_lake_information(self, hylak_id: int) -> Polygon:
+        """Extracts lake from shapefile
 
-    # Read in the shapefile and open it with gdal.OpenEx
-    hydro_lakes_shapefile_location = r'LocalData\HydroLAKES_polys_v10_shp\HydroLAKES_polys_v10.shp'
-    hydro_lakes = OpenEx(hydro_lakes_shapefile_location, OF_VECTOR)
+             Parameters
+             __________
 
-    # Access the data layer and access the lake from the lake ID passed in (It's in SQL)
-    layer = hydro_lakes.GetLayer()
-    query = "SELECT * FROM {} WHERE hylak_id = \'{}\'".format(layer.GetName(), hylak_id)
-    result = hydro_lakes.ExecuteSQL(query)
+             hyset_id : int
+                    ID of the lake (Mono is 798)
 
-    # Get the lake polygon and export as a geoJSON
-    feature = result.GetNextFeature()
-    geojson_format = loads(feature.ExportToJson())
+            Returns
+            _______
 
-    # Read it again as a shapely polygon (I think because it is simple from a GeoJSON)
-    polygon = shape(geojson_format['geometry'])
-    feature.Destroy()
-    hydro_lakes.ReleaseResultSet(result)
+            shapely Polygon
+                    polygon of specified lake
+            """
+        UseExceptions()
 
-    # Set Global Variables
-    GLHE.globals.LAKE_NAME = geojson_format['properties']['Lake_name'].replace(" ", "_")
+        # Read in the shapefile and open it with gdal.OpenEx
+        hydro_lakes_shapefile_location = r'LocalData\HydroLAKES_polys_v10_shp\HydroLAKES_polys_v10.shp'
+        hydro_lakes = OpenEx(hydro_lakes_shapefile_location, OF_VECTOR)
 
-    logger.info("Extracted Lake: {}".format(GLHE.globals.LAKE_NAME))
-    return polygon
+        # Access the data layer and access the lake from the lake ID passed in (It's in SQL)
+        layer = hydro_lakes.GetLayer()
+        query = "SELECT * FROM {} WHERE hylak_id = \'{}\'".format(layer.GetName(), hylak_id)
+        result = hydro_lakes.ExecuteSQL(query)
+
+        # Get the lake polygon and export as a geoJSON
+        feature = result.GetNextFeature()
+        self.lake_information = loads(feature.ExportToJson())
+        self.lake_name = self.lake_information['properties']['Lake_name'].replace(" ", "_")
+        logger.info("Extracted Lake: {}".format(self.lake_name))
+        self.polygon = shape(self.lake_information['geometry'])
+        self.logger.info("Extracted Polygon")
+        feature.Destroy()
+        hydro_lakes.ReleaseResultSet(result)
+
+    def get_lake_polygon(self) -> Polygon:
+        """Reads in the geojson and gets the lake polygon"""
+        # Read it again as a shapely polygon (I think because it is simple from a GeoJSON)
+        if self.lake_information is None:
+            raise ValueError("Lake information not extracted, call extract_lake_information() first")
+
+        return self.polygon
+
+    def get_lake_name(self) -> str:
+        """Extracts the lake name"""
+        if self.lake_information is None:
+            raise ValueError("Lake information not extracted, call extract_lake_information() first")
+
+        return self.lake_name
 
 
 def extract_watershed_of_lake(polygon: Polygon) -> Polygon:

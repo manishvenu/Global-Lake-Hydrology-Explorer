@@ -1,6 +1,7 @@
 import logging
 
 import pint_xarray
+
 import xarray as xr
 
 from GLHE.globals import SLC_MAPPING
@@ -31,6 +32,31 @@ def make_sure_xarray_dataset_is_positive(dataset: xr.Dataset, *vars: str) -> xr.
                                                                                      variable_name))
             dataset[variable_name].values = abs(dataset[variable_name].values)
     return dataset
+
+
+def convert_xarray_dataset_to_mvseries(dataset: xr.Dataset, *vars: str) -> list[MVSeries]:
+    """Convert Xarray Dataset
+
+        Parameters
+        ----------
+        dataset : xr.Dataset
+            The daily xarray dataset to group
+        vars: str
+            The variable names to average over
+        Returns
+        -------
+        tuple of MVSeries
+            MVSeries with time & variables
+        """
+    logger.info("Converted the dataset {} to MVSeries".format(dataset.attrs['product_name']))
+    series_list = []
+    for var in vars:
+        pandas_dataset = dataset.get(var).to_series()
+        metadata_series = MVSeries(pandas_dataset, ureg.parse_expression(dataset.variables[var].attrs['units']).units,
+                                   SLC_MAPPING.get(var),
+                                   dataset.attrs['product_name'], var, dataset[var])
+        series_list.append(metadata_series)
+    return series_list
 
 
 def spatially_average_xarray_dataset_and_convert(dataset: xr.Dataset, *vars: str) -> tuple[MVSeries]:
@@ -89,8 +115,19 @@ def fix_lat_long_names_in_xarray_dataset(dataset: xr.Dataset) -> xr.Dataset:
         print("Latitude or longitude variable name not found.")
     if lat_name != 'lat' or lon_name != 'lon':
         dataset = dataset.rename({lat_name: 'lat', lon_name: 'lon'})
-    logger.debug("Renamed the dataset {} to lat, long standard names".format(dataset.attrs["product_name"]))
+    logger.info("Renamed the dataset {} to lat, long standard names".format(dataset.attrs["product_name"]))
 
+    return dataset
+
+
+def rename_xarray_units(dataset: xr.Dataset, new_unit: str, *variables: str) -> xr.Dataset:
+    """
+    This function renames the units of the dataset, specifically for the pint converter. DONT USE THIS UNLESS YOU REALLY REALLY NEED TO.
+    """
+
+    logger.warn("Dont use this unless you understand the function!!")
+    for var in variables:
+        dataset[var].attrs["units"] = new_unit
     return dataset
 
 
@@ -106,7 +143,7 @@ def group_xarray_dataset_by_month(dataset: xr.Dataset) -> xr.Dataset:
         xarray Dataset
             xarray with index of year,month added
         """
-    logger.debug("Grouped the dataset {} to monthly values".format(dataset.attrs["product_name"]))
+    logger.info("Grouped the dataset {} to monthly values".format(dataset.attrs["product_name"]))
 
     return dataset.resample(time='M').sum()
 
@@ -114,7 +151,7 @@ def group_xarray_dataset_by_month(dataset: xr.Dataset) -> xr.Dataset:
 def label_xarray_dataset_with_product_name(dataset: xr.Dataset, name: str) -> xr.Dataset:
     """Adds a label to the dataset describing the product called product_name,
     accessed by dataset.attrs["name"] """
-
+    logger.info("Adding/Changing Product Name to Dataset to {}".format(name))
     dataset.attrs["product_name"] = name
     return dataset
 
@@ -182,12 +219,12 @@ def convert_xarray_dataset_units(dataset: xr.Dataset, output_unit: str, *variabl
         The dataset with the units converted
     """
     logger.info(
-        "Converted the dataset {}, variable {}, to units {}".format(dataset.attrs["product_name"], variable,
-                                                                    output_unit))
+        "Converting the dataset {}, variable {}, to units {}".format(dataset.attrs["product_name"], variable,
+                                                                     output_unit))
 
-    dataset = dataset.pint.quantify({"lat": None, "lon": None})
+    dataset = dataset.pint.quantify({"lat": None, "lon": None, "time": None}, unit_registry=ureg)
     for var in variable:
-        if dataset[var].pint.units == pint_xarray.unit_registry.parse_units(output_unit):
+        if dataset[var].pint.units == ureg.parse_units(output_unit):
             continue
         dataset = dataset.pint.to({var: output_unit})
     dataset = dataset.pint.dequantify()
