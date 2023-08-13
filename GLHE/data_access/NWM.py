@@ -21,7 +21,7 @@ class NWM(data_access_parent_class.DataAccess):
     s3: boto3.client
     nwm_bulk_message_logger: logging.Logger
     full_data = {"Date": [], "Inflow": [], "Outflow": [], "units": "m3/s", "name": "NWM"}
-    verification_lat_long = {"lat": 0, "long": 0}
+    verification_lat_long = {"lat": 0, "lon": 0}
 
     def __init__(self):
         self.s3 = boto3.client("s3", region_name='us-east-1',
@@ -49,7 +49,11 @@ class NWM(data_access_parent_class.DataAccess):
         # Create a GeoDataFrame with a single point feature
         data = {'geometry': [Point(lon, lat)]}
         gdf = gpd.GeoDataFrame(data, geometry='geometry', crs=self.xarray_dataset.attrs['proj4'])
-        output_file = os.path.join(GLHE.globals.OUTPUT_DIRECTORY, GLHE.globals.LAKE_NAME + "_NWM_lake_point" + ".shp")
+        point_shape_file_dir = os.path.join(GLHE.globals.OUTPUT_DIRECTORY,
+                                            GLHE.globals.LAKE_NAME + "_NWM_Verification_Point_Shapefile")
+        if not os.path.exists(point_shape_file_dir):
+            os.mkdir(point_shape_file_dir)
+        output_file = os.path.join(point_shape_file_dir, GLHE.globals.LAKE_NAME + "_NWM_lake_point" + ".shp")
         gdf.to_file(output_file)
         return "complete"
 

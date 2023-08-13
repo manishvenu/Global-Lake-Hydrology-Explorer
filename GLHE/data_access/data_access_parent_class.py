@@ -16,6 +16,7 @@ class DataAccess(ABC):
         self.create_logger()
         if not self.verify_inputs():
             raise ValueError("Invalid inputs")
+        self.logger.info("***Initialized: " + self.__class__.__name__ + "***")
         pass
 
     def create_logger(self) -> None:
