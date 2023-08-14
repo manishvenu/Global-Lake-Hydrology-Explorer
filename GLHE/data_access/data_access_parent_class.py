@@ -1,14 +1,18 @@
+import dataclasses
 import logging
 import os
 from abc import ABC, abstractmethod
-
+from pubsub import pub
 import GLHE.globals
 from GLHE.helpers import MVSeries
+from GLHE import events
+from dataclasses import dataclass
 
 
 class DataAccess(ABC):
     """Parent class for all data access. This class is an abstract class and should not be instantiated."""
     logger: logging.Logger
+    README_default_information: str
 
     @abstractmethod
     def __init__(self):
@@ -40,6 +44,12 @@ class DataAccess(ABC):
         self.logger.info("Verifying inputs: " + self.__class__.__name__)
         pass
 
+    def send_data_product_event(self, msg) -> None:
+        """
+        Sends data product event to event bus
+        """
+        pub.sendMessage(events.topics["data_product_run_event"], message=msg)
+
     @abstractmethod
     def attach_geodata(self) -> str:
         """
@@ -70,4 +80,5 @@ class DataAccess(ABC):
         list[MVSeries]
             List of MVSeries objects containing the data
         """
+        pub.sendMessage(events.topics["data_product_run_event"], msg=None)
         pass

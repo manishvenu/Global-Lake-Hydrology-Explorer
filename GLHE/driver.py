@@ -2,9 +2,12 @@ import logging
 import os
 import sys
 import pandas as pd
+import json
+from pubsub import pub
 
 import GLHE.globals
-from GLHE import lake_extraction, combined_data_functions, helpers
+
+from GLHE import lake_extraction, combined_data_functions, helpers, events
 from GLHE.data_access import ERA5_Land, CRUTS, NWM, data_check
 
 
@@ -20,6 +23,7 @@ class driver:
     pandas_dataset: pd.DataFrame
     root_logger: logging.Logger
     data_products = {}
+    read_me_information = {"Data_Product": {}, "Output_File": {}}
 
     def __init__(self):
         """
@@ -27,6 +31,8 @@ class driver:
         """
         for key in GLHE.globals.SLC_MAPPING_REVERSE_NAMES:
             self.datasets_index["slc"][key] = []
+        pub.subscribe(self.read_me_output_file_listener, events.topics["output_file_event"])
+        pub.subscribe(self.read_me_data_product_run_listener, events.topics["data_product_run_event"])
 
     def index_datasets(self, *datasets: helpers.MVSeries):
         """
@@ -51,6 +57,20 @@ class driver:
         self.root_logger.addHandler(fh)
         self.root_logger.addHandler(logging.StreamHandler(sys.stdout))
 
+    def read_me_data_product_run_listener(self, message: events.DataProductRunEvent) -> None:
+        """
+        This function is a listener for the data product run event.
+        """
+        print("Data Product Message: " + str(message))
+        self.read_me_information["Data_Product"][message.product_name] = message.product_description
+
+    def read_me_output_file_listener(self, message: events.OutputFileEvent) -> None:
+        """
+        This function is a listener for the output file event.
+        """
+        print("Output File Message: " + str(message))
+        self.read_me_information["Output_File"][message.file_name] = message.file_description
+
     def main(self) -> None:
         """
         This is the driver function.
@@ -60,12 +80,12 @@ class driver:
         # Set up logging #
         self.set_up_logging()
         self.root_logger.info("***********************Initializing Driver Function*************************")
-        # Check if Debug Mode is On #
+
         if GLHE.globals.DEBUG:
             self.root_logger.info("Debug Mode is On")
+
         # Verify access to data #
         data_check.check_data_and_download_missing_data_or_files()
-
         # Access lake information#
         HYLAK_ID = 67
         lake_extraction_object = lake_extraction.LakeExtraction()
@@ -80,37 +100,19 @@ class driver:
         # Get lake polygon #
         lake_polygon = lake_extraction_object.get_lake_polygon()
 
-        # Set up data accessers #
-        self.data_products = {
-            "ERA5_Land": {
-                "object": ERA5_Land.ERA5_Land(),
-                "output_datasets": [],
-                "README": "Validate this data with the gridded geodata in the zip file"
-            },
-            "CRUTS": {
-                "object": CRUTS.CRUTS(),
-                "output_datasets": [],
-                "README": "Validate this data with the gridded geodata in the zip file",
-            },
-            "NWM": {
-                "object": NWM.NWM(),
-                "output_datasets": [],
-                "README": "Validate this data with the point file labeled 'NWM' in the output folder",
-            }
-        }
-
         # Collect the data #
+        self.data_products = self.load_data_product_list()
+
         for key in self.data_products:
             try:
                 self.data_products[key]["output_datasets"] = (
                     self.data_products[key]["object"].product_driver(lake_polygon, GLHE.globals.DEBUG,
                                                                      GLHE.globals.RUN_CLEANLY))
-
                 for ds in self.data_products[key]["output_datasets"]:
                     self.root_logger.info(ds)
                 self.datasets_index["all"].extend(self.data_products[key]["output_datasets"])
             except Exception as e:
-                print("Data Product: {} not available for this lake with Exception: {}".format(key, e))
+                self.root_logger.error("Data Product: {} not available for this lake with Exception: {}".format(key, e))
 
         # Attach Geodata
         for key in self.data_products:
@@ -131,8 +133,21 @@ class driver:
         combined_data_functions.output_plot_of_all_data(self.pandas_dataset)
         combined_data_functions.output_all_compiled_data_to_csv(GLHE.globals.LAKE_NAME + "_Data.csv",
                                                                 self.pandas_dataset)
-        combined_data_functions.write_and_output_README(self.data_products)
+        combined_data_functions.write_and_output_README(self.read_me_information)
         logging.info('Ended driver function')
+
+    def load_data_product_list(self) -> dict:
+        """
+        This function loads the data product list, and adds required fields.
+        """
+        with open(os.path.join("config", "data_products.json"), 'r') as f:
+            self.data_products = json.load(f)
+        for key in self.data_products:
+            self.data_products[key]["object"] = getattr(globals()[self.data_products[key]["module_name"]],
+                                                        self.data_products[key]["class_name"])()
+            self.data_products[key]["output_datasets"] = []
+
+        return self.data_products
 
 
 if __name__ == "__main__":

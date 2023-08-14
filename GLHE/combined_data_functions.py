@@ -3,7 +3,8 @@ import zipfile
 import matplotlib.pyplot as plt
 import pandas as pd
 import rasterio
-
+from pubsub import pub
+from GLHE import events
 import GLHE.globals
 from GLHE.helpers import *
 from GLHE.globals import SLC_MAPPING, SLC_MAPPING_REVERSE_UNITS, SLC_MAPPING_REVERSE_NAMES
@@ -67,6 +68,12 @@ def output_plot_of_all_data(dataset: pd.DataFrame) -> None:
         axs[index].set_ylabel(SLC_MAPPING_REVERSE_NAMES[key] + " " + SLC_MAPPING_REVERSE_UNITS[key])
     plt.tight_layout()
     plt.savefig(GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME + "_products_plot.png")
+    pub.sendMessage(events.topics["output_file_event"],
+                    message=events.OutputFileEvent(GLHE.globals.LAKE_NAME + "_products_plot.png",
+                                                   GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME + "_products_plot.png",
+                                                   ".png",
+                                                   "A plot of all data, a simple initial visualization of the data"))
+
     return
 
 
@@ -84,6 +91,10 @@ def output_all_compiled_data_to_csv(filename: str, dataset: pd.DataFrame) -> Non
         a csv file in the location specified
         """
     logger.info("Output CSV written here: " + GLHE.globals.OUTPUT_DIRECTORY + "/" + filename)
+    pub.sendMessage(events.topics["output_file_event"],
+                    message=events.OutputFileEvent(filename, GLHE.globals.OUTPUT_DIRECTORY + "/" + filename, ".csv",
+                                                   "A csv file of all data, the main product"))
+
     dataset.to_csv(GLHE.globals.OUTPUT_DIRECTORY + "/" + filename)
 
 
@@ -124,7 +135,8 @@ def present_mv_series_as_geospatial_at_date_time(date: pd.Timestamp, *dss: MVSer
 
     zip_file = GLHE.globals.OUTPUT_DIRECTORY + "/" + GLHE.globals.LAKE_NAME + "_gridded_data_layers_on_" + date.strftime(
         '%Y%m%d') + ".zip"
-
+    pub.sendMessage(events.topics["output_file_event"], message=events.OutputFileEvent(zip_file, zipfile, ".zip",
+                                                                                       "A zip file of GIS information on gridded products"))
     # Create a new ZIP file
     with zipfile.ZipFile(zip_file, 'w') as zf:
         # Add each GeoTIFF file to the ZIP archive
@@ -135,7 +147,7 @@ def present_mv_series_as_geospatial_at_date_time(date: pd.Timestamp, *dss: MVSer
     clean_up_specific_temporary_files("GEOTIFF")
 
 
-def write_and_output_README(data_products: dict) -> None:
+def write_and_output_README(read_me_information: dict) -> None:
     """
     Create a README file that explains all exported data.
     It's hardcoded!! How do we figure out a way to send an information out from functions...frick. I hate that this is a full circle movement. (Event Bus/Observer)
@@ -146,22 +158,13 @@ def write_and_output_README(data_products: dict) -> None:
     doc.add_paragraph("The following data products have been used and have the following important information:")
 
     list_of_data_products_readme = []
-    for key in data_products:
-        list_of_data_products_readme.append(key + ": " + data_products[key]["README"])
+    for key in read_me_information["Data_Product"]:
+        list_of_data_products_readme.append(key + ": " + read_me_information["Data_Product"][key])
     doc.add_unordered_list(list_of_data_products_readme)
     doc.add_paragraph("There are severeal files in this repo, here is the list of files:")
-    Items = [
-        snakemd.Inline("**" + "save_files/" + "**: " + "Files used by the program to save you time on reruns!"),
-        snakemd.Inline("**" + "logging/" + "**: " + "Logging files stating what the program did!"),
-        snakemd.Inline("**" + GLHE.globals.LAKE_NAME + "_README.md" + "**: " + "This file!"),
-        snakemd.Inline("**" +
-                       GLHE.globals.LAKE_NAME + "_Data.csv" + "**: " + "The main output of this program holding a time series of all data!"),
-        snakemd.Inline("**" + GLHE.globals.LAKE_NAME + "_products_plot.png" + "**: " + "A plot of the data!"),
-        snakemd.Inline("**" +
-                       GLHE.globals.LAKE_NAME + "_gridded_Data_layers_on_yyymmdd.zip" + "**: " + "A zip file with files openable in a GIS software telling you what grids were taken for this lake. This is useful when you want to validate what data was taken to create estimates for the gridded products  (ERA5, CRUTS...)."),
-        snakemd.Inline("**" +
-                       GLHE.globals.LAKE_NAME + "_NWM_Verification_Point_Shapefile/" + "**: " + "A center point chosen by the program and the NWM as the lake in queston. It's worth checking out to make sure the NWM took the right lake."),
-    ]
+    Items = []
+    for key in read_me_information["Output_File"]:
+        Items.append(snakemd.Inline("**" + key + "**: " + read_me_information["Output_File"][key]))
     doc.add_ordered_list(Items)
     doc.dump(READ_ME_Name)
     logger.info("Wrote README file to: " + READ_ME_Name)

@@ -1,6 +1,7 @@
 import logging
 import cdsapi
 import xarray as xr
+from GLHE import events
 from GLHE.data_access import data_access_parent_class
 from GLHE.helpers import MVSeries
 from GLHE import helpers, xarray_helpers, lake_extraction
@@ -15,6 +16,7 @@ class ERA5_Land(data_access_parent_class.DataAccess):
 
         self.api_client = cdsapi.Client()
         self.xarray_dataset = None
+        self.README_default_information = "Validate this data with the gridded geodata in the zip file"
         super().__init__()
 
     def verify_inputs(self) -> bool:
@@ -120,6 +122,7 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         evap_ds, precip_ds = xarray_helpers.spatially_average_xarray_dataset_and_convert(dataset, "e", "tp")
         helpers.clean_up_specific_temporary_files("ERA5Land")
         list_of_MVSeries = [precip_ds, evap_ds]
+        self.send_data_product_event(events.DataProductRunEvent("ERA5_Land", self.README_default_information))
         self.logger.info("ERA Driver Finished")
         return list_of_MVSeries
 
