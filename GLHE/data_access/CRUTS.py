@@ -3,7 +3,8 @@ import logging
 import xarray as xr
 from GLHE.data_access import data_access_parent_class
 from GLHE.helpers import MVSeries
-from GLHE import xarray_helpers, helpers, lake_extraction
+from GLHE import xarray_helpers, helpers, lake_extraction, events
+from pubsub import pub
 
 
 class CRUTS(data_access_parent_class.DataAccess):
@@ -14,6 +15,7 @@ class CRUTS(data_access_parent_class.DataAccess):
 
         self.xarray_dataset = None
         super().__init__()
+        self.README_default_information = "Validate this data with the gridded geodata in the zip file"
 
     def verify_inputs(self) -> bool:
         """See parent class for description"""
@@ -59,6 +61,7 @@ class CRUTS(data_access_parent_class.DataAccess):
         pet_ds, precip_ds = helpers.move_date_index_to_first_of_the_month(pet_ds, precip_ds)
         helpers.clean_up_specific_temporary_files("CRUTS")
         list_of_MVSeries = [pet_ds, precip_ds]
+        self.send_data_product_event(events.DataProductRunEvent("CRUTS", self.README_default_information))
         self.logger.info("CRUTS Driver Finished")
         return list_of_MVSeries
 

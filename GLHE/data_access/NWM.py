@@ -11,7 +11,8 @@ import geopandas as gpd
 import GLHE
 from GLHE.data_access import data_access_parent_class
 from GLHE.helpers import MVSeries
-from GLHE import helpers, xarray_helpers
+from GLHE import helpers, xarray_helpers, events
+from pubsub import pub
 from pyproj import CRS, Transformer
 
 
@@ -33,7 +34,7 @@ class NWM(data_access_parent_class.DataAccess):
             os.path.join(str(GLHE.globals.LOGGING_DIRECTORY), "NWM_Bulk.log"))
         self.nwm_bulk_message_logger.addHandler(fh)
         self.nwm_bulk_message_logger.info("***Starting NWM Object***")
-
+        self.README_default_information = "Validate this data with the point file labeled 'NWM' in the output folder"
         super().__init__()
 
     def verify_inputs(self) -> bool:
@@ -55,6 +56,10 @@ class NWM(data_access_parent_class.DataAccess):
             os.mkdir(point_shape_file_dir)
         output_file = os.path.join(point_shape_file_dir, GLHE.globals.LAKE_NAME + "_NWM_lake_point" + ".shp")
         gdf.to_file(output_file)
+        pub.sendMessage(events.topics["output_file_event"],
+                        message=events.OutputFileEvent(output_file, output_file, ".shp",
+                                                       "A sahpefile file of the center point of the lake that the program chose."))
+
         return "complete"
 
     def find_lake_id(self, polygon: Polygon) -> tuple[list[int], bool]:
@@ -135,6 +140,7 @@ class NWM(data_access_parent_class.DataAccess):
             self.xarray_dataset = self.call_NWM_s3_access_and_process(polygon)
         list_of_MVSeries = xarray_helpers.convert_xarray_dataset_to_mvseries(self.xarray_dataset, "inflow", "outflow")
         list_of_MVSeries = helpers.move_date_index_to_first_of_the_month(*list_of_MVSeries)
+        self.send_data_product_event(events.DataProductRunEvent("NWM", self.README_default_information))
         self.logger.info("NWM Driver Finished")
         return list_of_MVSeries
 

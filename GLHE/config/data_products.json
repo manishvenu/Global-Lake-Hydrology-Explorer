@@ -1,0 +1,17 @@
+{
+  "ERA5_Land": {
+    "module_name": "ERA5_Land",
+    "class_name": "ERA5_Land",
+    "Product_README": "Validate this data with the gridded geodata in the zip file"
+  },
+  "CRUTS": {
+    "module_name": "CRUTS",
+    "class_name": "CRUTS",
+    "Product_README": "Validate this data with the gridded geodata in the zip file"
+  },
+  "NWM": {
+    "module_name": "NWM",
+    "class_name": "NWM",
+    "Product_README": "Validate this data with the point file labeled 'NWM' in the output folder"
+  }
+}
