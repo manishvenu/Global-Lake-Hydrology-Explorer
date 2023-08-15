@@ -1,12 +1,12 @@
-import dataclasses
 import logging
 import os
 from abc import ABC, abstractmethod
+
 from pubsub import pub
+
 import GLHE.globals
-from GLHE.helpers import MVSeries
 from GLHE import events
-from dataclasses import dataclass
+from GLHE.helpers import MVSeries
 
 
 class DataAccess(ABC):

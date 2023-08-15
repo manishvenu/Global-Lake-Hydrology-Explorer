@@ -3,12 +3,13 @@ import zipfile
 import matplotlib.pyplot as plt
 import pandas as pd
 import rasterio
-from pubsub import pub
-from GLHE import events
-import GLHE.globals
-from GLHE.helpers import *
-from GLHE.globals import SLC_MAPPING, SLC_MAPPING_REVERSE_UNITS, SLC_MAPPING_REVERSE_NAMES
 import snakemd
+from pubsub import pub
+
+import GLHE.globals
+from GLHE import events
+from GLHE.globals import SLC_MAPPING_REVERSE_UNITS, SLC_MAPPING_REVERSE_NAMES
+from GLHE.helpers import *
 
 logger = logging.getLogger(__name__)
 

@@ -12,7 +12,7 @@ It is not intended to be used for any serious research. Please use it at your ow
 
 - Set Precision Levels
 - Uncertainty
-- Runoff (Global) - Dependent on getting Lake Catchement Basin
+- Runoff (Global) - Dependent on getting Lake Catchment Basin
 - UI
 - Map
 
@@ -40,7 +40,8 @@ here: https://hub.arcgis.com/maps/0abb136c398942e080f736c8eb09f5c4/explore
 Write that into the 'GLHE/driver.py' file, and run the code. It takes about a minute to run after the first time, or
 30-45 min
 minutes the first time. (Ten minutes for ERA5 API, and ~15k files need to be processed for the NWM)
-You can find the output data under the lake name folder and you should see a zip file of a sample month of gridded data,
+You can find the output data under the lake name folder, and you should see a zip file of a sample month of gridded
+data,
 a csv of all the output data, and a plot of the all of it as well.
 See the logging file 'GLHE.log' to see current progress.
 
