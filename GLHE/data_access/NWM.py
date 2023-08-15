@@ -1,16 +1,12 @@
-import logging
 import os
-from datetime import datetime as dt
 
-import boto3
 import fsspec
 import geopandas as gpd
-import pandas as pd
 import xarray as xr
 from pubsub import pub
 from pyproj import CRS
 from shapely.geometry import Polygon, Point
-
+import boto3
 import GLHE
 from GLHE import helpers, xarray_helpers, events
 from GLHE.data_access import data_access_parent_class
@@ -19,22 +15,15 @@ from GLHE.helpers import MVSeries
 
 class NWM(data_access_parent_class.DataAccess):
     xarray_dataset: xr.Dataset
-    BUCKET_NAME = 'noaa-nwm-retrospective-2-1-pds'
-    s3: boto3.client
-    nwm_bulk_message_logger: logging.Logger
-    full_data = {"Date": [], "Inflow": [], "Outflow": [], "units": "m3/s", "name": "NWM"}
+    BUCKET_URL = 's3://noaa-nwm-retrospective-2-1-zarr-pds/lakeout.zarr'
+    BUCKET_NAME_NETCDF = 'noaa-nwm-retrospective-2-1-pds'
     verification_lat_long = {"lat": 0, "lon": 0}
+    s3: boto3.client
 
     def __init__(self):
         self.s3 = boto3.client("s3", region_name='us-east-1',
                                aws_access_key_id="AKIA6BHGCVJLQKADHHWY",
                                aws_secret_access_key="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")
-        self.nwm_bulk_message_logger = logging.getLogger("NWM_Bulk")
-        self.nwm_bulk_message_logger.propagate = False
-        fh = logging.FileHandler(
-            os.path.join(str(GLHE.globals.LOGGING_DIRECTORY), "NWM_Bulk.log"))
-        self.nwm_bulk_message_logger.addHandler(fh)
-        self.nwm_bulk_message_logger.info("***Starting NWM Object***")
         self.README_default_information = "Validate this data with the point file labeled 'NWM' in the output folder"
         super().__init__()
 
@@ -45,7 +34,7 @@ class NWM(data_access_parent_class.DataAccess):
 
     def attach_geodata(self) -> str:
         self.logger.info("Attaching Geo Data inputs: " + self.__class__.__name__)
-        self.logger.warn("Unverified Output")
+        self.logger.warning("Unverified Output")
         lat = self.verification_lat_long["lat"]
         lon = self.verification_lat_long["lon"]
 
@@ -85,9 +74,11 @@ class NWM(data_access_parent_class.DataAccess):
         co_file_name = "LocalData/SAMPLE_NWM_CHRTOUT.nc"
         if not os.path.exists(lo_file_name) or not os.path.exists(co_file_name):
             with open(lo_file_name, 'wb') as f:
-                self.s3.download_fileobj(self.BUCKET_NAME, "model_output/1979/197902010100.LAKEOUT_DOMAIN1.comp", f)
+                self.s3.download_fileobj(self.BUCKET_NAME_NETCDF, "model_output/1979/197902010100.LAKEOUT_DOMAIN1.comp",
+                                         f)
             with open(co_file_name, 'wb') as f:
-                self.s3.download_fileobj(self.BUCKET_NAME, "model_output/1979/197902010100.CHRTOUT_DOMAIN1.comp", f)
+                self.s3.download_fileobj(self.BUCKET_NAME_NETCDF, "model_output/1979/197902010100.CHRTOUT_DOMAIN1.comp",
+                                         f)
 
         lo_nwm = xr.open_dataset(lo_file_name)
         # Select the data corresponding to a specific value
@@ -154,100 +145,10 @@ class NWM(data_access_parent_class.DataAccess):
         helpers.pickle_var(self.xarray_dataset, "NWM")
         return self.xarray_dataset
 
-    def lakeout_file_process(self, list_of_feature_ids):
-        """If we are using lake files: DEPRECATED, USING ZARR INSTEAD OF NETCDF
-        Parameters
-        ----------
-        list_of_feature_ids : list
-            List of feature ids
-        Returns
-        -------
-        None
-        """
-
-        start_date, end_date = self.check_save_file()
-        if start_date is None:
-            start_date = dt.strptime("1931-02-01", '%Y-%m-%d')
-            end_date = dt.strptime("1900-02-28", '%Y-%m-%d')
-        if end_date.date() == dt.strptime("2020-12-31", '%Y-%m-%d').date():
-            self.logger.info("NWM data is fully updated")
-            return
-        # Create Iterator
-        paginator = self.s3.get_paginator('list_objects_v2')
-        pages = paginator.paginate(Bucket=self.BUCKET_NAME, Prefix='model_output/')
-        self.logger.info("Iterating through NWM files")
-        for page in pages:
-            if int(page['Contents'][-1]['Key'].split("/")[1]) < end_date.year:
-                self.nwm_bulk_message_logger.info(
-                    "Skipping this page of data...." + str(page['Contents'][-1]['Key'].split("/")[1]))
-                continue
-            for obj in page['Contents']:
-
-                # Accessing only netcdf files with Lake Information #
-                if obj['Key'].endswith("comp") and obj["Key"].split("/")[2].split(".")[1].split("_")[0] == "LAKEOUT":
-                    filename = obj["Key"].split("/")[2] + ".nc"
-                    date = dt.strptime(filename.split(".")[0], '%Y%m%d%H%M')
-                    filepath = ".temp/TEMPORARY_NWM_" + filename
-
-                    ## Access only the file at 1200 time (We don't need hourly files) ##
-                    if date.hour != 12:
-                        continue
-                    if date <= end_date:
-                        self.nwm_bulk_message_logger.info("NWM File Skipped: " + str(date))
-                        continue
-                    if date.day == 1:
-                        self.save_interim()
-                    # Download File ##
-                    with open(filepath, 'wb') as f:
-                        self.s3.download_fileobj(self.BUCKET_NAME, obj["Key"], f)
-                    dict_data = self.extract_data(filepath, list_of_feature_ids, date)
-                    self.full_data["Date"].append(dict_data['date'])
-                    self.full_data["Outflow"].append(dict_data['outflow'])
-                    self.full_data["Inflow"].append(dict_data['inflow'])
-                    self.nwm_bulk_message_logger.info("NWM File Processed: " + str(date))
-                    os.remove(filepath)
-
-    def extract_data(self, nwm_file: xr.Dataset, feature_id: int, date: dt):
-
-        ## Open File ##
-        ds_nwm = xr.open_dataset(nwm_file)
-
-        ## Find the streams we want ##
-        ds_nwm_wanted = ds_nwm.sel(feature_id=ds_nwm.feature_id[feature_id].values[0])
-
-        ## Access inflow values ##
-        inflow = ds_nwm_wanted['inflow'].item()
-        outflow = ds_nwm_wanted['outflow'].item()
-        ## Add streamflows to output by ID ##
-        data_aa = {'inflow': inflow, "date": date, "outflow": outflow}
-
-        ## Return data ##
-        return data_aa
-
-    def save_interim(self) -> None:
-        """Saves the interim data"""
-        filepath = GLHE.globals.OUTPUT_DIRECTORY + "/save_files/" + GLHE.globals.LAKE_NAME + "_" + "NWM.csv"
-        df = pd.DataFrame(self.full_data)
-        df.to_csv(filepath)
-
-    def check_save_file(self) -> tuple[str]:
-        """Checks if the file is already saved and returns the first and last date of the file"""
-        filepath = GLHE.globals.OUTPUT_DIRECTORY + "/save_files/" + GLHE.globals.LAKE_NAME + "_" + "NWM.csv"
-        if os.path.exists(filepath):
-            saved_NWM_data = pd.read_csv(filepath, skipinitialspace=True)
-            self.full_data["Date"] = pd.to_datetime(saved_NWM_data["Date"]).tolist()
-            self.full_data["Inflow"] = saved_NWM_data["Inflow"].tolist()
-            self.full_data["Outflow"] = saved_NWM_data["Outflow"].tolist()
-            if len(self.full_data["Date"]) < 2:
-                return None, None
-            return self.full_data["Date"][0], self.full_data["Date"][-1]
-        else:
-            return None, None
-
     def zarr_lakeout_process(self, feature_id_index) -> xr.Dataset:
         """If we are using zarr files, this code can quickly and efficiently give us the """
         self.logger.info("Accessing NWM Retrospective Data")
-        s3_path = 's3://noaa-nwm-retrospective-2-1-zarr-pds/lakeout.zarr'
+        s3_path = self.BUCKET_URL
         ds = xr.open_zarr(fsspec.get_mapper(s3_path, anon=True), consolidated=True)
         dataset = ds.sel(feature_id=ds.feature_id[feature_id_index].item())
         dataset = dataset.drop_vars(["crs", "water_sfc_elev"])
