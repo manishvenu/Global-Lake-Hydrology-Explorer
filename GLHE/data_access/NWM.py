@@ -4,16 +4,17 @@ from datetime import datetime as dt
 
 import boto3
 import fsspec
+import geopandas as gpd
 import pandas as pd
 import xarray as xr
+from pubsub import pub
+from pyproj import CRS
 from shapely.geometry import Polygon, Point
-import geopandas as gpd
+
 import GLHE
+from GLHE import helpers, xarray_helpers, events
 from GLHE.data_access import data_access_parent_class
 from GLHE.helpers import MVSeries
-from GLHE import helpers, xarray_helpers, events
-from pubsub import pub
-from pyproj import CRS, Transformer
 
 
 class NWM(data_access_parent_class.DataAccess):
@@ -44,6 +45,7 @@ class NWM(data_access_parent_class.DataAccess):
 
     def attach_geodata(self) -> str:
         self.logger.info("Attaching Geo Data inputs: " + self.__class__.__name__)
+        self.logger.warn("Unverified Output")
         lat = self.verification_lat_long["lat"]
         lon = self.verification_lat_long["lon"]
 
@@ -58,11 +60,11 @@ class NWM(data_access_parent_class.DataAccess):
         gdf.to_file(output_file)
         pub.sendMessage(events.topics["output_file_event"],
                         message=events.OutputFileEvent(output_file, output_file, ".shp",
-                                                       "A sahpefile file of the center point of the lake that the program chose."))
+                                                       "A shapefile of the center point of the lake that the program chose."))
 
         return "complete"
 
-    def find_lake_id(self, polygon: Polygon) -> tuple[list[int], bool]:
+    def find_lake_id(self, polygon: Polygon) -> list[int]:
         """
         Finds the lake ID for a given polygon
 
@@ -79,7 +81,6 @@ class NWM(data_access_parent_class.DataAccess):
         self.logger.info("Starting Lake ID Searcher")
         latitude = polygon.centroid.y
         longitude = polygon.centroid.x
-        flag_stream_links_used = False
         lo_file_name = "LocalData/SAMPLE_NWM_LAKEOUT.nc"
         co_file_name = "LocalData/SAMPLE_NWM_CHRTOUT.nc"
         if not os.path.exists(lo_file_name) or not os.path.exists(co_file_name):
@@ -105,15 +106,11 @@ class NWM(data_access_parent_class.DataAccess):
         self.verification_lat_long["lat"] = lo_nwm.latitude[feature_id_index].item()
         self.verification_lat_long["lon"] = lo_nwm.longitude[feature_id_index].item()
         if closest[0] > 0.001 and not polygon.contains(Point(longitude, latitude)):
-            flag_stream_links_used = True
             self.logger.error("The lake is not in the NWM domain")
-            self.logger.error("THIS MODULE HAS NOT BEEN IMPLEMENTED. IT'S NOT CORRECT!")
-            raise Exception("Code has not been implemented yet")
-            feature_ids_index = []
-            return feature_ids_index, flag_stream_links_used
+            raise Exception("NWM Lake not found, and no alternate NWM source exists")
         else:
             self.logger.info("Found Lake ID")
-            return [feature_id_index], flag_stream_links_used
+            return [feature_id_index]
 
     def product_driver(self, polygon, debug=False, run_cleanly=False) -> list[MVSeries]:
         """
@@ -146,11 +143,8 @@ class NWM(data_access_parent_class.DataAccess):
 
     def call_NWM_s3_access_and_process(self, polygon) -> xr.Dataset:
         """Just moving some product driver functions here"""
-        list_of_feature_ids, flag_stream_links_used = self.find_lake_id(polygon)
-        if (flag_stream_links_used):
-            self.chrtout_file_process(list_of_feature_ids)
-        else:
-            self.xarray_dataset = self.zarr_lakeout_process(list_of_feature_ids)
+        list_of_feature_ids = self.find_lake_id(polygon)
+        self.xarray_dataset = self.zarr_lakeout_process(list_of_feature_ids)
         self.xarray_dataset = xarray_helpers.label_xarray_dataset_with_product_name(self.xarray_dataset, "NWM")
         self.xarray_dataset = xarray_helpers.fix_lat_long_names_in_xarray_dataset(self.xarray_dataset)
         self.xarray_dataset = xarray_helpers.group_xarray_dataset_by_month(self.xarray_dataset)
@@ -161,7 +155,7 @@ class NWM(data_access_parent_class.DataAccess):
         return self.xarray_dataset
 
     def lakeout_file_process(self, list_of_feature_ids):
-        """If we are using lake files
+        """If we are using lake files: DEPRECATED, USING ZARR INSTEAD OF NETCDF
         Parameters
         ----------
         list_of_feature_ids : list
@@ -212,23 +206,6 @@ class NWM(data_access_parent_class.DataAccess):
                     self.full_data["Inflow"].append(dict_data['inflow'])
                     self.nwm_bulk_message_logger.info("NWM File Processed: " + str(date))
                     os.remove(filepath)
-
-    def chrtout_file_process(self, list_of_feature_ids):
-        """If we are using stream files"""
-        paginator = self.s3.get_paginator('list_objects_v2')
-        pages = paginator.paginate(Bucket=self.BUCKET_NAME, Prefix='model_output/')
-        self.logger.info("Iterating through NWM files")
-        full_data = {"Date": [], "Inflow": [], "Outflow": []}
-        for page in pages:
-            for obj in page['Contents']:
-                if obj['Key'].endswith("comp") and obj["Key"].split("/")[2].split(".")[1].split("_")[0] == "CHRTOUT":
-                    filename = obj["Key"].split("/")[2] + ".nc"
-                    date = dt.strptime(filename.split(".")[0], '%Y%m%d%H%M')
-                    co_filepath = ".temp/TEMPORARY_NWM_" + filename
-                    with open(co_filepath, 'wb') as f:
-                        self.s3.download_fileobj(self.BUCKET_NAME, obj["Key"], f)
-                        self.logger.info("Succesfully Downloaded", filename)
-                        f.close()
 
     def extract_data(self, nwm_file: xr.Dataset, feature_id: int, date: dt):
 

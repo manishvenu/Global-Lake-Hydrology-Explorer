@@ -34,7 +34,7 @@ Documentation (Data Characteristics, Usage Instructions)
 
 ## Intermediary Products:
 
-### Uncertainity and Cautionary Flags:
+### Uncertainty and Cautionary Flags:
 
 API or Indicator for identifying areas with potential data weaknesses or limitations.
 Information on data quality, gaps, and ESPECIALLY uncertainties.
