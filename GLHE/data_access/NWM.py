@@ -41,12 +41,12 @@ class NWM(data_access_parent_class.DataAccess):
         # Create a GeoDataFrame with a single point feature
         data = {'geometry': [Point(lon, lat)]}
         gdf = gpd.GeoDataFrame(data, geometry='geometry', crs=self.xarray_dataset.attrs['proj4'])
-        point_shape_file_dir = os.path.join(GLHE.globals.OUTPUT_DIRECTORY,
-                                            GLHE.globals.LAKE_NAME + "_NWM_Verification_Point_Shapefile")
-        if not os.path.exists(point_shape_file_dir):
-            os.mkdir(point_shape_file_dir)
-        output_file = os.path.join(point_shape_file_dir, GLHE.globals.LAKE_NAME + "_NWM_lake_point" + ".shp")
-        gdf.to_file(output_file)
+        # point_shape_file_dir = os.path.join(GLHE.globals.OUTPUT_DIRECTORY,
+        #                                    GLHE.globals.LAKE_NAME + "_NWM_Verification_Point_Shapefile")
+        # if not os.path.exists(point_shape_file_dir):
+        #    os.mkdir(point_shape_file_dir)
+        output_file = os.path.join(GLHE.globals.OUTPUT_DIRECTORY, GLHE.globals.LAKE_NAME + "_NWM_lake_point")
+        gdf.to_file(output_file, compression='zip')
         pub.sendMessage(events.topics["output_file_event"],
                         message=events.OutputFileEvent(output_file, output_file, ".shp",
                                                        "A shapefile of the center point of the lake that the program chose."))
@@ -126,6 +126,8 @@ class NWM(data_access_parent_class.DataAccess):
                 self.xarray_dataset = self.call_NWM_s3_access_and_process(polygon)
         else:
             self.xarray_dataset = self.call_NWM_s3_access_and_process(polygon)
+        self.verification_lat_long["lat"] = self.xarray_dataset.lat.item()
+        self.verification_lat_long["lon"] = self.xarray_dataset.lon.item()
         list_of_MVSeries = xarray_helpers.convert_xarray_dataset_to_mvseries(self.xarray_dataset, "inflow", "outflow")
         list_of_MVSeries = helpers.move_date_index_to_first_of_the_month(*list_of_MVSeries)
         self.send_data_product_event(events.DataProductRunEvent("NWM", self.README_default_information))
