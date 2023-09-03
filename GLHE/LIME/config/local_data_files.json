@@ -1,0 +1,10 @@
+{
+  "files": {
+    "name": ".mapbox_token",
+    "access_code": "local",
+    "local_remote_storage_filename": ".mapbox_token",
+    "dropbox_download_link": "https://www.dropbox.com/s/96h35atuu2k7kal/.mapbox_token?dl=0",
+    "description": "MAPBOX TOKEN for LIME"
+  },
+  "metadata": "This is all the files for LIME"
+}

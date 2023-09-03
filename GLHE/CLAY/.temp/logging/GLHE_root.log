@@ -1,0 +1,556 @@
+2023-09-01 08:08:00,556.556 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:08:23,956.956 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:08:23,957.957 INFO: data_check.check_data_and_download_missing_data_or_files: Downloading CRUTS data. It will take some time!
+2023-09-01 08:08:23,957.957 INFO: data_check.download_data_from_dropbox: ** Checking Data **
+2023-09-01 08:08:47,805.805 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:10:26,767.767 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:12:25,445.445 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:12:25,446.446 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:12:25,446.446 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:12:25,446.446 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:12:25,447.447 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:12:25,447.447 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:12:25,448.448 INFO: data_check.check_data_and_download_missing_data_or_files: Downloading .mapbox_token data. It will take some time!
+2023-09-01 08:12:25,448.448 INFO: data_check.download_data_from_dropbox: ** Checking Data **
+2023-09-01 08:14:53,578.578 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:14:56,800.800 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:14:56,800.800 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:14:56,801.801 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:14:56,801.801 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:14:56,801.801 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:14:56,801.801 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:14:56,801.801 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:15:46,054.054 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:15:46,063.063 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:16:37,345.345 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:16:47,039.039 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:18:18,322.322 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:18:18,323.323 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:18:18,323.323 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:18:18,324.324 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:18:18,324.324 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:18:18,324.324 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:18:18,325.325 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:18:18,325.325 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:18:22,314.314 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:18:22,319.319 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:18:22,320.320 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:18:22,321.321 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:19:15,913.913 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:19:15,914.914 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:19:15,914.914 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:19:15,914.914 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:19:15,914.914 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:19:15,914.914 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:19:15,915.915 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:19:15,915.915 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:19:16,033.033 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:19:16,038.038 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:19:16,040.040 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:19:16,041.041 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:30:47,873.873 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:30:47,873.873 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:30:47,874.874 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:30:47,874.874 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:30:47,874.874 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:30:47,874.874 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:30:47,874.874 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:30:47,874.874 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:30:47,982.982 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:30:47,986.986 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:30:47,988.988 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:30:47,988.988 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:30:48,008.008 INFO: ERA5_Land.verify_inputs: Verifying inputs: ERA5_Land
+2023-09-01 08:30:48,009.009 INFO: data_access_parent_class.__init__: ***Initialized: ERA5_Land***
+2023-09-01 08:30:48,010.010 INFO: CRUTS.verify_inputs: Verifying inputs: CRUTS
+2023-09-01 08:30:48,010.010 INFO: data_access_parent_class.__init__: ***Initialized: CRUTS***
+2023-09-01 08:30:48,560.560 INFO: NWM.verify_inputs: Verifying inputs: NWM
+2023-09-01 08:30:48,561.561 INFO: data_access_parent_class.__init__: ***Initialized: NWM***
+2023-09-01 08:30:48,562.562 INFO: ERA5_Land.product_driver: ERA Driver Started: Precip & Evap
+2023-09-01 08:30:48,562.562 INFO: ERA5_Land.product_driver: Attempting to find and read saved ERA5 Land data
+2023-09-01 08:30:48,567.567 INFO: xarray_helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-09-01 08:30:48,575.575 INFO: ERA5_Land.product_driver: ERA Driver Finished
+2023-09-01 08:30:48,575.575 INFO: CLAY_driver.main: Product: ERA5_Land,Variable Name: tp SLC: p, Unit: millimeter / month
+2023-09-01 08:30:48,576.576 INFO: CLAY_driver.main: Product: ERA5_Land,Variable Name: e SLC: e, Unit: millimeter / month
+2023-09-01 08:30:48,576.576 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
+2023-09-01 08:30:48,576.576 INFO: CRUTS.product_driver: Using pickled CRUTS Land data
+2023-09-01 08:30:48,580.580 INFO: xarray_helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-09-01 08:30:48,586.586 INFO: CRUTS.product_driver: CRUTS Driver Finished
+2023-09-01 08:30:48,586.586 INFO: CLAY_driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
+2023-09-01 08:30:48,586.586 INFO: CLAY_driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
+2023-09-01 08:30:48,587.587 INFO: NWM.product_driver: NWM Driver Started: Inflow & Outflow
+2023-09-01 08:30:48,587.587 INFO: NWM.product_driver: Attempting to find and read saved NWM Land data
+2023-09-01 08:30:48,715.715 INFO: xarray_helpers.convert_xarray_dataset_to_mvseries: Converted the dataset NWM to MVSeries
+2023-09-01 08:30:48,719.719 INFO: NWM.product_driver: NWM Driver Finished
+2023-09-01 08:30:48,719.719 INFO: CLAY_driver.main: Product: NWM,Variable Name: inflow SLC: i, Unit: m3 / month
+2023-09-01 08:30:48,720.720 INFO: CLAY_driver.main: Product: NWM,Variable Name: outflow SLC: o, Unit: m3 / month
+2023-09-01 08:31:38,202.202 INFO: ERA5_Land.attach_geodata: Attaching Geo Data inputs: ERA5_Land
+2023-09-01 08:31:42,742.742 INFO: CRUTS.attach_geodata: Attaching Geo Data inputs: CRUTS
+2023-09-01 08:31:42,744.744 INFO: NWM.attach_geodata: Attaching Geo Data inputs: NWM
+2023-09-01 08:31:42,744.744 WARNING: NWM.attach_geodata: Unverified Output
+2023-09-01 08:32:11,951.951 INFO: combined_data_functions.present_mv_series_as_geospatial_at_date_time: Outputting datasets on 20020501 to GeoTIFF
+2023-09-01 08:33:25,735.735 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:33:25,808.808 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:33:25,809.809 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:33:25,810.810 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:33:25,810.810 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:33:25,811.811 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:33:25,811.811 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:33:25,812.812 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:33:25,929.929 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:33:25,933.933 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:33:25,935.935 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:33:25,935.935 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:33:44,927.927 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:33:44,927.927 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:33:44,927.927 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:33:44,928.928 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:33:44,928.928 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:33:44,928.928 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:33:44,928.928 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:33:44,928.928 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:33:45,045.045 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:33:45,051.051 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:33:45,052.052 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:33:45,053.053 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:34:35,459.459 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:34:35,459.459 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:34:35,459.459 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:34:35,459.459 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:34:35,460.460 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:34:35,460.460 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:34:35,460.460 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:34:35,460.460 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:34:35,568.568 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:34:35,572.572 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:34:35,675.675 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:34:35,676.676 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:35:44,127.127 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:35:44,128.128 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:35:44,128.128 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:35:44,128.128 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:35:44,129.129 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:35:44,129.129 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:35:44,129.129 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:35:44,129.129 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:35:44,250.250 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:35:44,255.255 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:35:44,257.257 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:35:44,257.257 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:36:59,462.462 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:36:59,463.463 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:36:59,463.463 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:36:59,463.463 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:36:59,464.464 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:36:59,464.464 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:36:59,464.464 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:36:59,464.464 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:36:59,579.579 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:36:59,584.584 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:36:59,587.587 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:36:59,587.587 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:37:09,345.345 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:37:09,346.346 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:37:09,347.347 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:37:09,347.347 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:37:09,348.348 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:37:09,348.348 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:37:09,348.348 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:37:09,348.348 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:37:09,457.457 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:37:09,461.461 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:37:09,463.463 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:37:09,463.463 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:39:11,454.454 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:39:11,455.455 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:39:11,455.455 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:39:11,455.455 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:39:11,456.456 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:39:11,456.456 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:39:11,457.457 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:39:11,457.457 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:39:11,570.570 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:39:11,574.574 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:39:11,577.577 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:39:11,577.577 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:39:56,622.622 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:39:56,622.622 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:39:56,623.623 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:39:56,623.623 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:39:56,624.624 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:39:56,624.624 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:39:56,624.624 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:39:56,624.624 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:39:56,738.738 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:39:56,742.742 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:39:56,744.744 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:39:56,744.744 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:40:35,350.350 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:40:35,351.351 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:40:35,351.351 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:40:35,352.352 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:40:35,352.352 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:40:35,352.352 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:40:35,352.352 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:40:35,352.352 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:40:35,460.460 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:40:35,464.464 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:40:35,466.466 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:40:35,466.466 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:41:23,753.753 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:41:23,753.753 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:41:23,754.754 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:41:23,754.754 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:41:23,754.754 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:41:23,754.754 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:41:23,755.755 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:41:23,755.755 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:41:23,863.863 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:41:23,868.868 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:41:23,870.870 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:41:23,870.870 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:42:14,412.412 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:42:14,414.414 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:42:14,414.414 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:42:14,415.415 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:42:14,415.415 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:42:14,415.415 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:42:14,416.416 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:42:14,416.416 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:42:14,537.537 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:42:14,542.542 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:42:14,544.544 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:42:14,544.544 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:42:42,957.957 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:42:42,957.957 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:42:42,958.958 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:42:42,958.958 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:42:42,958.958 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:42:42,959.959 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:42:42,959.959 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:42:42,959.959 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:42:43,077.077 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:42:43,081.081 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:42:43,085.085 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:42:43,085.085 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:44:07,105.105 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:44:07,106.106 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:44:07,107.107 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:44:07,107.107 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:44:07,107.107 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:44:07,108.108 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:44:07,108.108 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:44:07,108.108 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:44:07,237.237 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:44:07,241.241 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:44:07,249.249 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:44:07,250.250 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:45:48,830.830 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:45:48,830.830 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:45:48,830.830 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:45:48,830.830 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:45:48,830.830 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:45:48,830.830 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:45:48,832.832 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:45:48,832.832 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:45:48,947.947 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:45:48,953.953 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:45:48,955.955 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:45:48,955.955 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:47:05,885.885 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:47:05,887.887 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:47:05,887.887 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:47:05,888.888 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:47:05,888.888 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:47:05,888.888 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:47:05,888.888 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:47:05,888.888 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:47:05,995.995 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:47:06,000.000 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:47:06,002.002 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:47:06,002.002 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:48:34,338.338 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:48:34,339.339 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:48:34,339.339 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:48:34,339.339 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:48:34,340.340 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:48:34,340.340 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:48:34,340.340 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:48:34,340.340 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:48:34,451.451 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:48:34,455.455 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:48:34,458.458 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:48:34,458.458 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:49:08,868.868 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:49:08,869.869 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:49:08,869.869 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:49:08,869.869 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:49:08,870.870 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:49:08,870.870 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:49:08,870.870 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:49:08,870.870 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:49:08,991.991 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:49:08,995.995 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:49:08,996.996 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:49:08,997.997 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:52:10,649.649 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:52:10,650.650 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:52:10,650.650 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:52:10,650.650 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:52:10,651.651 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:52:10,651.651 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:52:10,651.651 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:52:10,651.651 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:52:10,762.762 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:52:10,846.846 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:52:10,850.850 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:52:10,851.851 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 08:59:48,190.190 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 08:59:48,191.191 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 08:59:48,191.191 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 08:59:48,191.191 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 08:59:48,192.192 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 08:59:48,192.192 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 08:59:48,192.192 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 08:59:48,192.192 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 08:59:48,305.305 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 08:59:48,309.309 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 08:59:48,312.312 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 08:59:48,312.312 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 09:00:33,383.383 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 09:00:33,384.384 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 09:00:33,384.384 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 09:00:33,384.384 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 09:00:33,385.385 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 09:00:33,385.385 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 09:00:33,385.385 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 09:00:33,385.385 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 09:00:33,501.501 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 09:00:33,509.509 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 09:00:33,512.512 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 09:00:33,513.513 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 09:06:16,747.747 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 09:06:16,748.748 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 09:06:16,748.748 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 09:06:16,748.748 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 09:06:16,749.749 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 09:06:16,749.749 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 09:06:16,749.749 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 09:06:16,750.750 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 09:06:16,858.858 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 09:06:16,862.862 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 09:06:16,891.891 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 09:06:16,891.891 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 09:07:15,962.962 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 09:07:15,962.962 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 09:07:15,963.963 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 09:07:15,963.963 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 09:07:15,964.964 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 09:07:15,964.964 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 09:07:15,964.964 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 09:07:15,964.964 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 09:07:16,070.070 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 09:07:16,075.075 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 09:07:16,077.077 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 09:07:16,077.077 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 09:08:25,461.461 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 09:08:25,461.461 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 09:08:25,462.462 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 09:08:25,462.462 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 09:08:25,462.462 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 09:08:25,462.462 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 09:08:25,463.463 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 09:08:25,463.463 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 09:08:25,575.575 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 09:08:25,580.580 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 09:08:25,582.582 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 09:08:25,582.582 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 09:26:05,039.039 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 09:26:05,040.040 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 09:26:05,040.040 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 09:26:05,040.040 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 09:26:05,041.041 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 09:26:05,041.041 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 09:26:05,041.041 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 09:26:05,041.041 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 09:26:28,979.979 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 09:26:28,979.979 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 09:26:28,980.980 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 09:26:28,980.980 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 09:26:28,980.980 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 09:26:28,981.981 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 09:26:28,981.981 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 09:26:28,981.981 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 09:26:29,087.087 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 09:26:29,091.091 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 09:26:29,093.093 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 09:26:29,094.094 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 12:57:27,984.984 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 12:57:27,985.985 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 12:57:27,985.985 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 12:57:27,985.985 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 12:57:27,986.986 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 12:57:27,986.986 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 12:57:27,986.986 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 12:57:27,986.986 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 12:57:28,103.103 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 12:57:28,109.109 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 12:57:28,112.112 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 12:57:28,113.113 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 13:09:33,869.869 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 13:09:33,869.869 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 13:09:33,870.870 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 13:09:33,870.870 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 13:09:33,871.871 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 13:09:33,871.871 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 13:09:33,871.871 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 13:09:33,871.871 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 13:09:33,990.990 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 13:09:33,997.997 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 13:09:33,999.999 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 13:09:34,000.000 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 13:13:21,239.239 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 13:13:21,240.240 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 13:13:21,240.240 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 13:13:21,241.241 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 13:13:21,241.241 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 13:13:21,241.241 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 13:13:21,242.242 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 13:13:21,242.242 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 13:13:21,373.373 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 13:13:21,382.382 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 13:13:21,385.385 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 13:13:21,386.386 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 13:13:53,958.958 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 13:13:53,959.959 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 13:13:53,959.959 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 13:13:53,959.959 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 13:13:53,959.959 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 13:13:53,960.960 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 13:13:53,960.960 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 13:13:53,960.960 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 13:13:54,107.107 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 13:13:54,115.115 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 13:13:54,119.119 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 13:13:54,119.119 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 13:13:54,130.130 INFO: ERA5_Land.verify_inputs: Verifying inputs: ERA5_Land
+2023-09-01 13:13:54,130.130 INFO: data_access_parent_class.__init__: ***Initialized: ERA5_Land***
+2023-09-01 13:13:54,131.131 INFO: CRUTS.verify_inputs: Verifying inputs: CRUTS
+2023-09-01 13:13:54,132.132 INFO: data_access_parent_class.__init__: ***Initialized: CRUTS***
+2023-09-01 13:13:54,445.445 INFO: NWM.verify_inputs: Verifying inputs: NWM
+2023-09-01 13:13:54,446.446 INFO: data_access_parent_class.__init__: ***Initialized: NWM***
+2023-09-01 13:13:54,446.446 INFO: ERA5_Land.product_driver: ERA Driver Started: Precip & Evap
+2023-09-01 13:13:54,447.447 INFO: ERA5_Land.product_driver: Attempting to find and read saved ERA5 Land data
+2023-09-01 13:13:54,549.549 INFO: xarray_helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-09-01 13:13:54,573.573 INFO: ERA5_Land.product_driver: ERA Driver Finished
+2023-09-01 13:13:54,573.573 INFO: CLAY_driver.main: Product: ERA5_Land,Variable Name: tp SLC: p, Unit: millimeter / month
+2023-09-01 13:13:54,574.574 INFO: CLAY_driver.main: Product: ERA5_Land,Variable Name: e SLC: e, Unit: millimeter / month
+2023-09-01 13:13:54,574.574 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
+2023-09-01 13:13:54,575.575 INFO: CRUTS.product_driver: Using pickled CRUTS Land data
+2023-09-01 13:13:54,576.576 INFO: xarray_helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-09-01 13:13:54,581.581 INFO: CRUTS.product_driver: CRUTS Driver Finished
+2023-09-01 13:13:54,582.582 INFO: CLAY_driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
+2023-09-01 13:13:54,582.582 INFO: CLAY_driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
+2023-09-01 13:13:54,582.582 INFO: NWM.product_driver: NWM Driver Started: Inflow & Outflow
+2023-09-01 13:13:54,583.583 INFO: NWM.product_driver: Attempting to find and read saved NWM Land data
+2023-09-01 13:13:54,701.701 INFO: xarray_helpers.convert_xarray_dataset_to_mvseries: Converted the dataset NWM to MVSeries
+2023-09-01 13:13:54,704.704 INFO: NWM.product_driver: NWM Driver Finished
+2023-09-01 13:13:54,705.705 INFO: CLAY_driver.main: Product: NWM,Variable Name: inflow SLC: i, Unit: m3 / month
+2023-09-01 13:13:54,705.705 INFO: CLAY_driver.main: Product: NWM,Variable Name: outflow SLC: o, Unit: m3 / month
+2023-09-01 13:13:54,705.705 INFO: ERA5_Land.attach_geodata: Attaching Geo Data inputs: ERA5_Land
+2023-09-01 13:13:54,705.705 INFO: CRUTS.attach_geodata: Attaching Geo Data inputs: CRUTS
+2023-09-01 13:13:54,706.706 INFO: NWM.attach_geodata: Attaching Geo Data inputs: NWM
+2023-09-01 13:13:54,706.706 WARNING: NWM.attach_geodata: Unverified Output
+2023-09-01 13:14:45,472.472 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 13:14:45,472.472 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 13:14:45,473.473 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 13:14:45,473.473 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 13:14:45,473.473 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 13:14:45,474.474 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 13:14:45,474.474 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 13:14:45,474.474 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 13:14:45,591.591 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 13:14:45,596.596 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 13:14:45,598.598 WARNING: helpers.setup_logging_directory: A logging directory already exists
+2023-09-01 13:14:45,598.598 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-01 13:14:45,604.604 INFO: ERA5_Land.verify_inputs: Verifying inputs: ERA5_Land
+2023-09-01 13:14:45,604.604 INFO: data_access_parent_class.__init__: ***Initialized: ERA5_Land***
+2023-09-01 13:14:45,605.605 INFO: CRUTS.verify_inputs: Verifying inputs: CRUTS
+2023-09-01 13:14:45,605.605 INFO: data_access_parent_class.__init__: ***Initialized: CRUTS***
+2023-09-01 13:14:45,908.908 INFO: NWM.verify_inputs: Verifying inputs: NWM
+2023-09-01 13:14:45,909.909 INFO: data_access_parent_class.__init__: ***Initialized: NWM***
+2023-09-01 13:14:45,909.909 INFO: ERA5_Land.product_driver: ERA Driver Started: Precip & Evap
+2023-09-01 13:14:45,910.910 INFO: ERA5_Land.product_driver: Attempting to find and read saved ERA5 Land data
+2023-09-01 13:14:45,913.913 INFO: xarray_helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-09-01 13:14:45,924.924 INFO: ERA5_Land.product_driver: ERA Driver Finished
+2023-09-01 13:14:45,925.925 INFO: CLAY_driver.main: Product: ERA5_Land,Variable Name: tp SLC: p, Unit: millimeter / month
+2023-09-01 13:14:45,925.925 INFO: CLAY_driver.main: Product: ERA5_Land,Variable Name: e SLC: e, Unit: millimeter / month
+2023-09-01 13:14:45,926.926 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
+2023-09-01 13:14:45,926.926 INFO: CRUTS.product_driver: Using pickled CRUTS Land data
+2023-09-01 13:14:45,928.928 INFO: xarray_helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-09-01 13:14:45,936.936 INFO: CRUTS.product_driver: CRUTS Driver Finished
+2023-09-01 13:14:45,936.936 INFO: CLAY_driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
+2023-09-01 13:14:45,937.937 INFO: CLAY_driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
+2023-09-01 13:14:45,937.937 INFO: NWM.product_driver: NWM Driver Started: Inflow & Outflow
+2023-09-01 13:14:45,938.938 INFO: NWM.product_driver: Attempting to find and read saved NWM Land data
+2023-09-01 13:14:46,042.042 INFO: xarray_helpers.convert_xarray_dataset_to_mvseries: Converted the dataset NWM to MVSeries
+2023-09-01 13:14:46,045.045 INFO: NWM.product_driver: NWM Driver Finished
+2023-09-01 13:14:46,045.045 INFO: CLAY_driver.main: Product: NWM,Variable Name: inflow SLC: i, Unit: m3 / month
+2023-09-01 13:14:46,045.045 INFO: CLAY_driver.main: Product: NWM,Variable Name: outflow SLC: o, Unit: m3 / month
+2023-09-01 13:14:46,046.046 INFO: ERA5_Land.attach_geodata: Attaching Geo Data inputs: ERA5_Land
+2023-09-01 13:14:46,046.046 INFO: CRUTS.attach_geodata: Attaching Geo Data inputs: CRUTS
+2023-09-01 13:14:46,046.046 INFO: NWM.attach_geodata: Attaching Geo Data inputs: NWM
+2023-09-01 13:14:46,047.047 WARNING: NWM.attach_geodata: Unverified Output
+2023-09-01 13:14:46,210.210 INFO: combined_data_functions.present_mv_series_as_geospatial_at_date_time: Outputting datasets on 20020501 to GeoTIFF
+2023-09-01 13:14:50,438.438 INFO: combined_data_functions.present_mv_series_as_geospatial_at_date_time: GeoTIFF files zipped successfully: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_gridded_data_layers_on_20020501.zip
+2023-09-01 13:14:50,454.454 INFO: combined_data_functions.merge_mv_series_into_pandas_dataframe: Merged datasets into pandas dataframe
+2023-09-01 13:14:50,454.454 INFO: combined_data_functions.output_plot_of_all_data: Plotting Data
+2023-09-01 13:14:52,637.637 INFO: combined_data_functions.output_all_compiled_data_to_csv: Output CSV written here: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_Data.csv
+2023-09-01 13:14:52,752.752 INFO: combined_data_functions.write_and_output_README: Wrote README file to: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_README
+2023-09-01 13:14:52,752.752 INFO: CLAY_driver.main: Ended driver function
+2023-09-01 15:35:56,737.737 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-01 15:35:56,738.738 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-01 15:35:56,739.739 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-01 15:35:56,739.739 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-01 15:35:56,739.739 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-01 15:35:56,740.740 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-01 15:35:56,740.740 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-01 15:35:56,740.740 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-01 15:35:56,901.901 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-01 15:35:56,905.905 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-01 15:35:56,909.909 INFO: helpers.setup_logging_directory: Created logging directory of the new folder requested, and repointed the logging directory. Newly created log file handlers will point here instead.
+2023-09-01 15:35:56,911.911 INFO: ERA5_Land.verify_inputs: Verifying inputs: ERA5_Land
+2023-09-01 15:35:56,911.911 INFO: data_access_parent_class.__init__: ***Initialized: ERA5_Land***
+2023-09-01 15:35:56,912.912 INFO: CRUTS.verify_inputs: Verifying inputs: CRUTS
+2023-09-01 15:35:56,912.912 INFO: data_access_parent_class.__init__: ***Initialized: CRUTS***
+2023-09-01 15:35:57,529.529 INFO: NWM.verify_inputs: Verifying inputs: NWM
+2023-09-01 15:35:57,529.529 INFO: data_access_parent_class.__init__: ***Initialized: NWM***
+2023-09-01 15:35:57,529.529 INFO: ERA5_Land.product_driver: ERA Driver Started: Precip & Evap
+2023-09-01 15:35:57,529.529 INFO: ERA5_Land.product_driver: Attempting to find and read saved ERA5 Land data
+2023-09-01 15:35:57,537.537 INFO: xarray_helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-09-01 15:35:57,543.543 INFO: ERA5_Land.product_driver: ERA Driver Finished
+2023-09-01 15:35:57,543.543 INFO: CLAY_driver.main: Product: ERA5_Land,Variable Name: tp SLC: p, Unit: millimeter / month
+2023-09-01 15:35:57,543.543 INFO: CLAY_driver.main: Product: ERA5_Land,Variable Name: e SLC: e, Unit: millimeter / month
+2023-09-01 15:35:57,543.543 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
+2023-09-01 15:35:57,543.543 INFO: CRUTS.product_driver: Using pickled CRUTS Land data
+2023-09-01 15:35:57,548.548 INFO: xarray_helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-09-01 15:35:57,552.552 INFO: CRUTS.product_driver: CRUTS Driver Finished
+2023-09-01 15:35:57,553.553 INFO: CLAY_driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
+2023-09-01 15:35:57,553.553 INFO: CLAY_driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
+2023-09-01 15:35:57,553.553 INFO: NWM.product_driver: NWM Driver Started: Inflow & Outflow
+2023-09-01 15:35:57,553.553 INFO: NWM.product_driver: Attempting to find and read saved NWM Land data
+2023-09-01 15:35:57,649.649 INFO: xarray_helpers.convert_xarray_dataset_to_mvseries: Converted the dataset NWM to MVSeries
+2023-09-01 15:35:57,650.650 INFO: NWM.product_driver: NWM Driver Finished
+2023-09-01 15:35:57,650.650 INFO: CLAY_driver.main: Product: NWM,Variable Name: inflow SLC: i, Unit: m3 / month
+2023-09-01 15:35:57,650.650 INFO: CLAY_driver.main: Product: NWM,Variable Name: outflow SLC: o, Unit: m3 / month
+2023-09-01 15:35:57,651.651 INFO: ERA5_Land.attach_geodata: Attaching Geo Data inputs: ERA5_Land
+2023-09-01 15:35:57,651.651 INFO: CRUTS.attach_geodata: Attaching Geo Data inputs: CRUTS
+2023-09-01 15:35:57,651.651 INFO: NWM.attach_geodata: Attaching Geo Data inputs: NWM
+2023-09-01 15:35:57,651.651 WARNING: NWM.attach_geodata: Unverified Output
+2023-09-01 15:35:57,805.805 INFO: combined_data_functions.present_mv_series_as_geospatial_at_date_time: Outputting datasets on 20020501 to GeoTIFF
+2023-09-01 15:35:59,554.554 INFO: combined_data_functions.present_mv_series_as_geospatial_at_date_time: GeoTIFF files zipped successfully: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_gridded_data_layers_on_20020501.zip
+2023-09-01 15:35:59,562.562 INFO: combined_data_functions.merge_mv_series_into_pandas_dataframe: Merged datasets into pandas dataframe
+2023-09-01 15:35:59,562.562 INFO: combined_data_functions.output_plot_of_all_data: Plotting Data
+2023-09-01 15:36:00,897.897 INFO: combined_data_functions.output_all_compiled_data_to_csv: Output CSV written here: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_Data.csv
+2023-09-01 15:36:00,917.917 INFO: combined_data_functions.write_and_output_README: Wrote README file to: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_README
+2023-09-01 15:36:00,917.917 INFO: CLAY_driver.main: Ended driver function
