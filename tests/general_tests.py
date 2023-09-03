@@ -1,17 +1,15 @@
 import os
 import unittest
 import sys
-from pint import UnitRegistry
-import GLHE.globals
+import GLHE.CLAY.globals
 
 import numpy as np
 import pandas as pd
 import xarray as xr
-import fsspec
 import logging
 import GLHE
-from GLHE import helpers, lake_extraction, combined_data_functions, xarray_helpers
-from GLHE.data_access import ERA5_Land, CRUTS, NWM, data_check
+from GLHE.CLAY import combined_data_functions, lake_extraction, helpers, xarray_helpers
+from GLHE import ERA5_Land, NWM, data_check
 
 
 class BaseTestCase(unittest.TestCase):
@@ -46,14 +44,14 @@ class MyTestCase(BaseTestCase):
             datefmt='%Y-%m-%d %H:%M:%S', )
         logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
         logger = logging.getLogger(__name__)
-        fh = logging.FileHandler(os.path.join(GLHE.globals.LOGGING_DIRECTORY, "GLHE_root_test.log"))
+        fh = logging.FileHandler(os.path.join(GLHE.CLAY.globals.LOGGING_DIRECTORY, "GLHE_root_test.log"))
         fh.setLevel(logging.INFO)
         formatter = logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s')
         fh.setFormatter(formatter)
         logging.getLogger().addHandler(fh)
         logger.info("***********************Initializing Test Functions*************************")
         helpers.setup_output_directory("TestLake")
-        GLHE.globals.LAKE_NAME = "TestLake"
+        GLHE.CLAY.globals.LAKE_NAME = "TestLake"
 
     def test_name(self):
         self.terra_dataset = xarray_helpers.label_xarray_dataset_with_product_name(self.terra_dataset,
@@ -113,7 +111,7 @@ class MyTestCase(BaseTestCase):
         polygon = lake_extraction_object.get_lake_polygon()
         print(lake_extraction_object.get_lake_name())
         NWM_object = NWM.NWM()
-        NWM_object.product_driver(polygon, True, True)
+        NWM_object.product_driver(polygon, True, True)  # NWM Great Salt Lake ID: 4603518
         self.assertEqual(1, 1)
 
     def test_NWM_zarr(self):

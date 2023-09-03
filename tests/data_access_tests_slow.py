@@ -1,5 +1,6 @@
 import unittest
-from GLHE.data_access import ERA5_Land
+from GLHE import ERA5_Land
+
 
 class MyTestCase(unittest.TestCase):
     def test_era5_api(self):
