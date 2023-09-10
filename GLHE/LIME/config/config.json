@@ -1,0 +1,7 @@
+{
+  "CLAY_OUTPUT_FOLDER_LOCATION": "C:\\Users\\manis\\OneDrive - Umich\\Documents\\Global Lake Hydrology Explorer\\LakeOutputDirectory\\Great_Salt",
+  "SERIES_DATA_FILENAME": "Great_Salt_Data.csv",
+  "GRIDDED_DATA_FOLDER": "Great_Salt_gridded_data_layers_on_20020501.zip",
+  "READ_ME": "Great_Salt_README.md",
+  "NWM_LAKE_POINT_SHAPEFILENAME": "Great_Salt_NWM_lake_point/Great_Salt_NWM_lake_point.shp"
+}

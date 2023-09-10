@@ -554,3 +554,50 @@
 2023-09-01 15:36:00,897.897 INFO: combined_data_functions.output_all_compiled_data_to_csv: Output CSV written here: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_Data.csv
 2023-09-01 15:36:00,917.917 INFO: combined_data_functions.write_and_output_README: Wrote README file to: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_README
 2023-09-01 15:36:00,917.917 INFO: CLAY_driver.main: Ended driver function
+2023-09-03 15:57:49,517.517 INFO: CLAY_driver.main: ***********************Initializing Driver Function*************************
+2023-09-03 15:57:49,519.519 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2023-09-03 15:57:49,519.519 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2023-09-03 15:57:49,519.519 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2023-09-03 15:57:49,520.520 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2023-09-03 15:57:49,520.520 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2023-09-03 15:57:49,520.520 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2023-09-03 15:57:49,521.521 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2023-09-03 15:57:49,656.656 INFO: lake_extraction.extract_lake_information: Extracted Lake: Great_Salt
+2023-09-03 15:57:49,662.662 INFO: lake_extraction.extract_lake_information: Extracted Polygon
+2023-09-03 15:57:49,665.665 INFO: helpers.setup_logging_directory: A logging directory already exists
+2023-09-03 15:57:49,665.665 INFO: helpers.setup_logging_directory: Filled in logging directory pointer to folder that already existed
+2023-09-03 15:57:49,676.676 INFO: ERA5_Land.verify_inputs: Verifying inputs: ERA5_Land
+2023-09-03 15:57:49,677.677 INFO: data_access_parent_class.__init__: ***Initialized: ERA5_Land***
+2023-09-03 15:57:49,677.677 INFO: CRUTS.verify_inputs: Verifying inputs: CRUTS
+2023-09-03 15:57:49,678.678 INFO: data_access_parent_class.__init__: ***Initialized: CRUTS***
+2023-09-03 15:57:50,175.175 INFO: NWM.verify_inputs: Verifying inputs: NWM
+2023-09-03 15:57:50,176.176 INFO: data_access_parent_class.__init__: ***Initialized: NWM***
+2023-09-03 15:57:50,177.177 INFO: ERA5_Land.product_driver: ERA Driver Started: Precip & Evap
+2023-09-03 15:57:50,177.177 INFO: ERA5_Land.product_driver: Attempting to find and read saved ERA5 Land data
+2023-09-03 15:57:50,183.183 INFO: xarray_helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset ERA5_Land
+2023-09-03 15:57:50,191.191 INFO: ERA5_Land.product_driver: ERA Driver Finished
+2023-09-03 15:57:50,192.192 INFO: CLAY_driver.main: Product: ERA5-Land,Variable Name: tp SLC: p, Unit: millimeter / month
+2023-09-03 15:57:50,192.192 INFO: CLAY_driver.main: Product: ERA5-Land,Variable Name: e SLC: e, Unit: millimeter / month
+2023-09-03 15:57:50,192.192 INFO: CRUTS.product_driver: CRUTS Driver Started: Precip & PET
+2023-09-03 15:57:50,193.193 INFO: CRUTS.product_driver: Using pickled CRUTS Land data
+2023-09-03 15:57:50,196.196 INFO: xarray_helpers.spatially_average_xarray_dataset_and_convert: Spatially Averaged the dataset CRUTS
+2023-09-03 15:57:50,202.202 INFO: CRUTS.product_driver: CRUTS Driver Finished
+2023-09-03 15:57:50,202.202 INFO: CLAY_driver.main: Product: CRUTS,Variable Name: pet SLC: e, Unit: millimeter / month
+2023-09-03 15:57:50,203.203 INFO: CLAY_driver.main: Product: CRUTS,Variable Name: pre SLC: p, Unit: millimeter / month
+2023-09-03 15:57:50,203.203 INFO: NWM.product_driver: NWM Driver Started: Inflow & Outflow
+2023-09-03 15:57:50,203.203 INFO: NWM.product_driver: Attempting to find and read saved NWM Land data
+2023-09-03 15:57:50,323.323 INFO: xarray_helpers.convert_xarray_dataset_to_mvseries: Converted the dataset NWM to MVSeries
+2023-09-03 15:57:50,325.325 INFO: NWM.product_driver: NWM Driver Finished
+2023-09-03 15:57:50,325.325 INFO: CLAY_driver.main: Product: NWM,Variable Name: inflow SLC: i, Unit: m3 / month
+2023-09-03 15:57:50,326.326 INFO: CLAY_driver.main: Product: NWM,Variable Name: outflow SLC: o, Unit: m3 / month
+2023-09-03 15:57:50,326.326 INFO: ERA5_Land.attach_geodata: Attaching Geo Data inputs: ERA5_Land
+2023-09-03 15:57:50,326.326 INFO: CRUTS.attach_geodata: Attaching Geo Data inputs: CRUTS
+2023-09-03 15:57:50,327.327 INFO: NWM.attach_geodata: Attaching Geo Data inputs: NWM
+2023-09-03 15:57:50,327.327 WARNING: NWM.attach_geodata: Unverified Output
+2023-09-03 15:57:50,517.517 INFO: combined_data_functions.present_mv_series_as_geospatial_at_date_time: Outputting datasets on 20020501 to GeoTIFF
+2023-09-03 15:57:52,378.378 INFO: combined_data_functions.present_mv_series_as_geospatial_at_date_time: GeoTIFF files zipped successfully: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_gridded_data_layers_on_20020501.zip
+2023-09-03 15:57:52,394.394 INFO: combined_data_functions.merge_mv_series_into_pandas_dataframe: Merged datasets into pandas dataframe
+2023-09-03 15:57:52,394.394 INFO: combined_data_functions.output_plot_of_all_data: Plotting Data
+2023-09-03 15:57:53,490.490 INFO: combined_data_functions.output_all_compiled_data_to_csv: Output CSV written here: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_Data.csv
+2023-09-03 15:57:53,602.602 INFO: combined_data_functions.write_and_output_README: Wrote README file to: C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory\Great_Salt/Great_Salt_README
+2023-09-03 15:57:53,602.602 INFO: CLAY_driver.main: Ended driver function

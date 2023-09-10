@@ -8,6 +8,7 @@ from pubsub import pub
 import GLHE.CLAY.globals
 from GLHE.CLAY import combined_data_functions, events, lake_extraction, helpers
 from GLHE.CLAY.data_access import data_check, ERA5_Land, CRUTS, NWM
+from pathlib import Path
 
 
 class CLAY_driver:
@@ -71,10 +72,11 @@ class CLAY_driver:
         # print("Output File Message: " + str(message))
         self.read_me_information["Output_File"][message.file_name] = message.file_description
 
-    def main(self) -> None:
+    def main(self, HYLAK_ID: int) -> str:
         """
         This is the driver function.
         Here, we'll run all the code.
+        Returns path to output directory!
         """
 
         # Set up logging #
@@ -87,7 +89,6 @@ class CLAY_driver:
         # Verify access to data #
         data_check.check_data_and_download_missing_data_or_files()
         # Access lake information#
-        HYLAK_ID = 67
         lake_extraction_object = lake_extraction.LakeExtraction()
         lake_extraction_object.extract_lake_information(HYLAK_ID)
         GLHE.CLAY.globals.config["LAKE_NAME"] = lake_extraction_object.get_lake_name()
@@ -137,12 +138,13 @@ class CLAY_driver:
                                                                 self.pandas_dataset)
         combined_data_functions.write_and_output_README(self.read_me_information)
         logging.info('Ended driver function')
+        return GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
 
     def load_data_product_list(self) -> dict:
         """
         This function loads the data product list, and adds required fields.
         """
-        with open(os.path.join("config", "data_products.json"), 'r') as f:
+        with open(os.path.join(Path(__file__).parent, "config", "data_products.json"), 'r') as f:
             self.data_products = json.load(f)
         for key in self.data_products:
             self.data_products[key]["object"] = getattr(globals()[self.data_products[key]["module_name"]],
@@ -154,4 +156,5 @@ class CLAY_driver:
 
 if __name__ == "__main__":
     CLAY_driver_obj = CLAY_driver()
-    CLAY_driver_obj.main()
+    HYLAK_ID = 67
+    CLAY_driver_obj.main(HYLAK_ID)

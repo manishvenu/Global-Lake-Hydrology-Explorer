@@ -1,99 +1,99 @@
-import os
-import zipfile
-
 import dash_bootstrap_components as dbc
-import geopandas as gpd
 import holoviews as hv
-from holoviews import opts
-import pandas as pd
 import plotly.express as px
-from dash import Dash, html, dash_table, dcc, Input, Output
+from dash import Dash, html, dcc, Input, Output
+from holoviews import opts
 from holoviews.plotting.plotly.dash import to_dash
-from raster2xyz.raster2xyz import Raster2xyz
 
+import GLHE.LIME.gridded_data_validation as gridded_data_validation
+import GLHE.LIME.lake_point_validation as lake_point_validation
+import GLHE.LIME.series_data_display as series_data_display
+import warnings
 
-def check_or_create_directory(dir: str) -> None:
-    if not os.path.exists(dir):
-        os.mkdir(dir)
-    return
+warnings.filterwarnings("ignore", category=FutureWarning)
 
-
-df = pd.read_csv(
-    os.path.join(os.path.normpath(os.getcwd() + os.sep + os.pardir + os.sep + os.pardir), "LakeOutputDirectory",
-                 "Great_Salt",
-                 "Great_Salt_Data.csv"))
-nwm_point_df = gpd.read_file(
-    os.path.join(os.path.normpath(os.getcwd() + os.sep + os.pardir + os.sep + os.pardir),
-                 "LakeOutputDirectory",
-                 "Great_Salt",
-                 "Great_Salt_NWM_lake_point", "Great_Salt_NWM_lake_point.shp"))
-fig = px.scatter_mapbox(nwm_point_df, lat=nwm_point_df.geometry.y,
-                        lon=nwm_point_df.geometry.x,
-                        zoom=7, title="NWM Lake Validation", mapbox_style='open-street-map')
-df = df.rename(columns={'time': 'Date'})
-
-tif_file_paths = []
-check_or_create_directory(".temp")
-check_or_create_directory(".temp/tifs")
-with zipfile.ZipFile(os.path.join(os.path.normpath(os.getcwd() + os.sep + os.pardir + os.sep + os.pardir),
-                                  "LakeOutputDirectory",
-                                  "Great_Salt",
-                                  "Great_Salt_gridded_data_layers_on_20020501.zip"), 'r') as zip_ref:
-    for filename in zip_ref.namelist():
-        split_list = filename.split("_")
-        metadata = {"var": split_list[0], "product": split_list[1], "date": split_list[-1].split(".")[0]}
-
-        dest_dir = os.path.join(".temp", "tifs")
-        file_path = os.path.join(dest_dir)
-        zip_ref.extract(filename, file_path)
-        tif_file_paths.append(os.path.join(file_path, filename))
-
-# 1 Sample Set
-input_raster = tif_file_paths[0]
-out_csv = os.path.join(dest_dir, tif_file_paths[0].split("\\")[-1].split(".")[0] + ".csv")
-rtxyz = Raster2xyz()
-rtxyz.translate(input_raster, out_csv)
-grid_df = pd.read_csv(out_csv)
-grid_df["easting"], grid_df["northing"] = hv.Tiles.lon_lat_to_easting_northing(
-    grid_df["x"], grid_df["y"]
-)
-points = hv.Points(grid_df, ["easting", "northing"])
+Series_Data_Obj = series_data_display.SeriesDataDisplay()
+series_data_table = Series_Data_Obj.generate_series_data_table()
+series_data_df = Series_Data_Obj.get_df()
+LakePointDisplay_Obj = lake_point_validation.LakePointDisplay()
+NWM_fig = LakePointDisplay_Obj.generate_nwm_point_figure()
 tiles = hv.element.tiles.CartoLight()
-overlay = tiles * points
-overlay.opts(opts.Overlay(title='Gridded Data Validation'))
+Gridded_Data_Obj = gridded_data_validation.GriddedDataDisplay()
+points = Gridded_Data_Obj.get_points("p.CRUTS")
+points2 = Gridded_Data_Obj.get_points("p.ERA5-Land")
+
+overlay = tiles * points * points2
+overlay.opts(title='Gridded Data Validation')
 app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], )
 
 components = to_dash(app, [overlay])
 app.layout = html.Div([
     dbc.Row(dbc.Col(html.H1('Great Salt Lake, Utah, USA', style={'textAlign': 'center'}))),
-    dbc.Row(dbc.Col(dcc.Graph(id="precip_graph"))),
-    dbc.Row(dbc.Col(
-        dcc.Checklist(
-            id="precip_checklist",
-            options=[
-                {'label': 'CRUTS Precipitation', 'value': 'p.CRUTS'},
-                {'label': 'ERA5 Land Precipitation', 'value': 'p.ERA5_Land'},
-            ],
-            value=['p.CRUTS'],
-            inline=True
-        ))),
-    dbc.Row(children=[dbc.Col(
-        dash_table.DataTable(data=df.to_dict('records'), page_size=10)),
-        dbc.Col(components.children),
-        dbc.Col(dcc.Graph(id="nwm_point_graph", figure=fig))
-    ])
+    dbc.Row([
+        dbc.Col(dcc.Graph(id="p_graph"), width=11),
+        dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("p"), width=1, align="center")]),
+    dbc.Row([dbc.Col(dcc.Graph(id="e_graph"), width=11),
+             dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("e"), width=1, align="center")]),
+    dbc.Row([dbc.Col(dcc.Graph(id="i_graph"), width=11),
+             dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("i"), width=1, align="center")]),
+    dbc.Row([dbc.Col(dcc.Graph(id="o_graph"), width=11),
+             dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("o"), width=1, align="center")]),
+    dbc.Row([dbc.Col(series_data_table)]),
+    dbc.Row([dbc.Col(components.children), dbc.Col(NWM_fig)])
 ])
 
 
 @app.callback(
-    Output("precip_graph", "figure"),
-    Input("precip_checklist", "value"))
+    Output("p_graph", "figure"),
+    Input("p_checklist", "value"))
 def update_line_chart(plot_columns):
     y_cols = plot_columns
-    fig = px.line(df, x="Date", y=y_cols,
+    fig = px.line(series_data_df, x="Date", y=y_cols,
                   labels={
                       "Date": "Date",
                       "value": "Precipitation (mm/month)",
+                      "variable": "Dataset"
+                  }, )
+    return fig
+
+
+@app.callback(
+    Output("e_graph", "figure"),
+    Input("e_checklist", "value"))
+def update_line_chart(plot_columns):
+    y_cols = plot_columns
+    fig = px.line(series_data_df, x="Date", y=y_cols,
+                  labels={
+                      "Date": "Date",
+                      "value": "Evaporation (mm/month)",
+                      "variable": "Dataset"
+                  }, )
+    return fig
+
+
+@app.callback(
+    Output("i_graph", "figure"),
+    Input("i_checklist", "value"))
+def update_line_chart(plot_columns):
+    y_cols = plot_columns
+    fig = px.line(series_data_df, x="Date", y=y_cols,
+                  labels={
+                      "Date": "Date",
+                      "value": "Inflow (m^3/month)",
+                      "variable": "Dataset"
+                  }, )
+    return fig
+
+
+@app.callback(
+    Output("o_graph", "figure"),
+    Input("o_checklist", "value"))
+def update_line_chart(plot_columns):
+    y_cols = plot_columns
+    fig = px.line(series_data_df, x="Date", y=y_cols,
+                  labels={
+                      "Date": "Date",
+                      "value": "Outflow (m^3/month)",
                       "variable": "Dataset"
                   }, )
     return fig
