@@ -4,8 +4,6 @@ import os
 import json
 import requests
 from zipfile import ZipFile
-import pkgutil
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +27,7 @@ def download_data_from_dropbox(dropbox_link: str, filename: str, is_folder: bool
     logger.info("** Checking Data **")
     headers = {'user-agent': 'Wget/1.16 (linux-gnu)'}
     r = requests.get(dropbox_link, stream=True, headers=headers)
-    filepath = os.path.join(Path(__file__).parents[1], "LocalData", filename)
+    filepath = "LocalData/" + filename
     if is_folder:
         filepath += ".zip"
     with open(filepath, 'wb') as f:
@@ -55,11 +53,11 @@ def check_data_and_download_missing_data_or_files() -> None:
     """
 
     # Check if Local Data Folder Exists #
-    if not os.path.exists("LocalData"):
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), "LocalData")):
         os.mkdir("LocalData")
 
     # Read in local data files list #
-    with open(os.path.join(Path(__file__).parent, "data_access_config\input_data.json")) as f:
+    with open("data_access\data_access_config\input_data.json") as f:
         input_data_config = json.load(f)
 
     data_products = input_data_config['data_products']
@@ -70,7 +68,7 @@ def check_data_and_download_missing_data_or_files() -> None:
         if code == "local":
             filename = product['local_remote_storage_filename']
             is_folder = False
-            if not os.path.exists(os.path.join(Path(__file__).parents[1], "LocalData", filename)):
+            if not os.path.exists(os.path.join(os.path.dirname(__file__), "LocalData/" + filename)):
                 logger.info("Downloading " + name + " data. It will take some time!")
                 if filename[-1] == '/':
                     is_folder = True
@@ -81,7 +79,8 @@ def check_data_and_download_missing_data_or_files() -> None:
             else:
                 logger.info("Found " + name + " data")
         elif code == "api":
-            if not os.path.exists(os.path.join(Path(__file__).parent, product['api_access_script'] + ".py")):
+            if not os.path.exists(
+                    os.path.join(os.path.dirname(__file__), "data_access/" + product['api_access_script'] + ".py")):
                 logger.warning(
                     "Downloading " + name + "api access script. Why didn't you have this? Definitely reclone the "
                                             "project from github if you can")

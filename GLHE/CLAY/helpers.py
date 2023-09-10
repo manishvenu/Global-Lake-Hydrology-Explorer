@@ -53,7 +53,10 @@ class MVSeries:
         self.dataset = dataset
         self.unit = unit
         self.single_letter_code = single_letter_code
+        if "_" in product_name:
+            product_name = str.replace(product_name, "_", "-")
         self.product_name = product_name
+
         self.variable_name = variable_name
         self.xarray_dataarray = xarr_dataset
 
@@ -249,10 +252,10 @@ def clean_up_all_temporary_files() -> list:
             list of filenames of deleted files
         """
 
-    if not os.path.exists("../.temp"):
+    if not os.path.exists(".temp"):
         return []
     deleted_files = []
-    for file in os.listdir("../.temp"):
+    for file in os.listdir(".temp"):
         if file.split("_")[0] == "TEMPORARY":
             os.remove(".temp/" + file)
             deleted_files.append(file)
@@ -272,10 +275,10 @@ def clean_up_specific_temporary_files(key: str) -> list:
             list of filenames of deleted files
         """
 
-    if not os.path.exists("../.temp"):
+    if not os.path.exists(".temp"):
         return []
     deleted_files = []
-    for file in os.listdir("../.temp"):
+    for file in os.listdir(".temp"):
         if file.split("_")[0] == "TEMPORARY" and file.split("_")[1] == key:
             os.remove(".temp/" + file)
             deleted_files.append(file)

@@ -6,6 +6,7 @@ import xarray as xr
 from osgeo.gdal import OpenEx, OF_VECTOR, UseExceptions
 from shapely.geometry import shape, Polygon
 import GLHE.CLAY.globals
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,8 @@ class LakeExtraction:
         UseExceptions()
 
         # Read in the shapefile and open it with gdal.OpenEx
-        hydro_lakes_shapefile_location = r'LocalData\HydroLAKES_polys_v10_shp\HydroLAKES_polys_v10.shp'
+        hydro_lakes_shapefile_location = os.path.join(Path(__file__).parent,
+                                                      r'LocalData\HydroLAKES_polys_v10_shp\HydroLAKES_polys_v10.shp')
         hydro_lakes = OpenEx(hydro_lakes_shapefile_location, OF_VECTOR)
 
         # Access the data layer and access the lake from the lake ID passed in (It's in SQL)

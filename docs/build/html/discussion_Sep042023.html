@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Discussion: Aug 13, 2023 &mdash; Global Lake Hydrology Explorer 0.1 documentation</title>
+  <title>Discussion: Sep 04, 2023 &mdash; Global Lake Hydrology Explorer 0.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Discussion: Aug 15, 2023" href="discussion_Aug152023.html" />
-    <link rel="prev" title="Discussion: July 2, 2023" href="discussion_July022023.html" /> 
+    <link rel="next" title="Discussion: Sep 9, 2023" href="discussion_Sep092023.html" />
+    <link rel="prev" title="Discussion: Aug 15, 2023" href="discussion_Aug152023.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,13 +49,13 @@
 <li class="toctree-l1 current"><a class="reference internal" href="discussions.html">Discussion Pages</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="discussion_June282023.html">Discussion: June 28, 2023</a></li>
 <li class="toctree-l2"><a class="reference internal" href="discussion_July022023.html">Discussion: July 2, 2023</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Discussion: Aug 13, 2023</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#status-updates">Status &amp; Updates</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#planned-products">Planned Products</a></li>
+<li class="toctree-l2"><a class="reference internal" href="discussion_Aug132023.html">Discussion: Aug 13, 2023</a></li>
+<li class="toctree-l2"><a class="reference internal" href="discussion_Aug152023.html">Discussion: Aug 15, 2023</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Discussion: Sep 04, 2023</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#long-description">Long Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#status-plans">Status &amp; Plans</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="discussion_Aug152023.html">Discussion: Aug 15, 2023</a></li>
-<li class="toctree-l2"><a class="reference internal" href="discussion_Sep042023.html">Discussion: Sep 04, 2023</a></li>
 <li class="toctree-l2"><a class="reference internal" href="discussion_Sep092023.html">Discussion: Sep 9, 2023</a></li>
 </ul>
 </li>
@@ -76,9 +76,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="discussions.html">Discussion Pages</a></li>
-      <li class="breadcrumb-item active">Discussion: Aug 13, 2023</li>
+      <li class="breadcrumb-item active">Discussion: Sep 04, 2023</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/discussion_Aug132023.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/discussion_Sep042023.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -86,25 +86,26 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="discussion-aug-13-2023">
-<span id="aug132023"></span><h1>Discussion: Aug 13, 2023<a class="headerlink" href="#discussion-aug-13-2023" title="Permalink to this heading"></a></h1>
-<section id="status-updates">
-<h2>Status &amp; Updates<a class="headerlink" href="#status-updates" title="Permalink to this heading"></a></h2>
-<blockquote>
-<div><ul class="simple">
-<li><p>The NWM with the Zarr files was successful, still need to figure out the CHRTOUT files for unrecognized lakes</p></li>
-<li><p>We’re at the point of taking first crack at UI, unfortunately it looks like Event Bus might be a useful thing to have before</p></li>
-<li><p>NWM is much faster</p></li>
-<li><p>Rebuilt data products to prefer saved copies of files by default, can set a debug bool or a run_cleanly bool to rebuild</p></li>
-</ul>
-</div></blockquote>
+  <section id="discussion-sep-04-2023">
+<span id="sep042023"></span><h1>Discussion: Sep 04, 2023<a class="headerlink" href="#discussion-sep-04-2023" title="Permalink to this heading"></a></h1>
+<section id="long-description">
+<h2>Long Description<a class="headerlink" href="#long-description" title="Permalink to this heading"></a></h2>
+<p>The Global Lake Hydrology Explorer is a project that I’m working on as an undergraduate student, and I’m still very much figuring things out. But here’s the goal: I wanted to create a tool that helps people like me, who might not be hydrology experts, make sense of complex hydrology data.</p>
+<p>This tool is all about bridging that gap. Visualizing how water flows in and out of lakes, using global datasets on rainfall, evaporation, and runoff from all around the world. You select any lake in the world (above like 10 ha, which is pretty small!), and this tool will give you a snapshot of what’s going on with the mass balance of the lake.</p>
+<p>I am doing this because I believe there is a growing gap between the complexity of data that hydrologists use and the kind of stuff that people who manage water resources need and can understand. It’s like two different languages. I’m hoping that this tool can help translate between those languages a bit.</p>
+<p>As part of that process, this tool is all about <em>understanding</em>. So, this tool takes you through the whole process, showing you step by step how the data turns into those graphs and charts. It’s a reality check for the data.</p>
+<p>Now, I say this tool will be ‘open’ because I’d love for this tool to be available to everyone, but that’s still a work in progress. So, stay tuned! Thanks for listening to me!</p>
 </section>
-<section id="planned-products">
-<h2>Planned Products<a class="headerlink" href="#planned-products" title="Permalink to this heading"></a></h2>
-<ol class="arabic simple">
-<li><p>Event Bus/Observer Pattern -&gt; It’ll help manage everything instead of forcing too much information being reutrned from functions</p></li>
-<li><p>UI -&gt; Start Looking at Designs.</p></li>
+<section id="status-plans">
+<h2>Status &amp; Plans<a class="headerlink" href="#status-plans" title="Permalink to this heading"></a></h2>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Got CLAY and LIME fully seperated</p></li>
+<li><p>Now they need to talk to each other, is that also PUBSUB?!? Who knows!!!</p></li>
+<li><p>But first, I’ll do the lake selector part in google earth engine!</p></li>
+<li><p>Get Sphinx Documentation working for the code…?</p></li>
 </ol>
+</div></blockquote>
 </section>
 </section>
 
@@ -112,8 +113,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="discussion_July022023.html" class="btn btn-neutral float-left" title="Discussion: July 2, 2023" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="discussion_Aug152023.html" class="btn btn-neutral float-right" title="Discussion: Aug 15, 2023" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="discussion_Aug152023.html" class="btn btn-neutral float-left" title="Discussion: Aug 15, 2023" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="discussion_Sep092023.html" class="btn btn-neutral float-right" title="Discussion: Sep 9, 2023" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

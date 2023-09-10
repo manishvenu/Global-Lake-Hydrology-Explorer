@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Discussion: Aug 13, 2023 &mdash; Global Lake Hydrology Explorer 0.1 documentation</title>
+  <title>Discussion: Aug 15, 2023 &mdash; Global Lake Hydrology Explorer 0.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Discussion: Aug 15, 2023" href="discussion_Aug152023.html" />
-    <link rel="prev" title="Discussion: July 2, 2023" href="discussion_July022023.html" /> 
+    <link rel="next" title="Discussion: Sep 04, 2023" href="discussion_Sep042023.html" />
+    <link rel="prev" title="Discussion: Aug 13, 2023" href="discussion_Aug132023.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,12 +49,12 @@
 <li class="toctree-l1 current"><a class="reference internal" href="discussions.html">Discussion Pages</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="discussion_June282023.html">Discussion: June 28, 2023</a></li>
 <li class="toctree-l2"><a class="reference internal" href="discussion_July022023.html">Discussion: July 2, 2023</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Discussion: Aug 13, 2023</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="discussion_Aug132023.html">Discussion: Aug 13, 2023</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Discussion: Aug 15, 2023</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#status-updates">Status &amp; Updates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#planned-products">Planned Products</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="discussion_Aug152023.html">Discussion: Aug 15, 2023</a></li>
 <li class="toctree-l2"><a class="reference internal" href="discussion_Sep042023.html">Discussion: Sep 04, 2023</a></li>
 <li class="toctree-l2"><a class="reference internal" href="discussion_Sep092023.html">Discussion: Sep 9, 2023</a></li>
 </ul>
@@ -76,9 +76,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="discussions.html">Discussion Pages</a></li>
-      <li class="breadcrumb-item active">Discussion: Aug 13, 2023</li>
+      <li class="breadcrumb-item active">Discussion: Aug 15, 2023</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/discussion_Aug132023.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/discussion_Aug152023.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -86,24 +86,22 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="discussion-aug-13-2023">
-<span id="aug132023"></span><h1>Discussion: Aug 13, 2023<a class="headerlink" href="#discussion-aug-13-2023" title="Permalink to this heading"></a></h1>
+  <section id="discussion-aug-15-2023">
+<span id="aug152023"></span><h1>Discussion: Aug 15, 2023<a class="headerlink" href="#discussion-aug-15-2023" title="Permalink to this heading"></a></h1>
 <section id="status-updates">
 <h2>Status &amp; Updates<a class="headerlink" href="#status-updates" title="Permalink to this heading"></a></h2>
 <blockquote>
 <div><ul class="simple">
-<li><p>The NWM with the Zarr files was successful, still need to figure out the CHRTOUT files for unrecognized lakes</p></li>
-<li><p>We’re at the point of taking first crack at UI, unfortunately it looks like Event Bus might be a useful thing to have before</p></li>
-<li><p>NWM is much faster</p></li>
-<li><p>Rebuilt data products to prefer saved copies of files by default, can set a debug bool or a run_cleanly bool to rebuild</p></li>
+<li><p>Cleaned up NWM</p></li>
+<li><p>Added PubSub for README Information, hopefully there will be more use for it later on.</p></li>
+<li><p>Also “LIME” - Lake Interface for Monitoring and Exploration and “CLAY” - Centralized Lake Data Acquisition and Yield</p></li>
 </ul>
 </div></blockquote>
 </section>
 <section id="planned-products">
 <h2>Planned Products<a class="headerlink" href="#planned-products" title="Permalink to this heading"></a></h2>
 <ol class="arabic simple">
-<li><p>Event Bus/Observer Pattern -&gt; It’ll help manage everything instead of forcing too much information being reutrned from functions</p></li>
-<li><p>UI -&gt; Start Looking at Designs.</p></li>
+<li><p>UI -&gt; It’s need to be seperate from all of this stuff (Maybe directly from LakeOutputDirectory). So I think I’ll make it only take like a generic csv for the main plots, and maybe like the validation grids only take in like netcdf or smthng. For the point product, like the NWM that should be pretty easy.</p></li>
 </ol>
 </section>
 </section>
@@ -112,8 +110,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="discussion_July022023.html" class="btn btn-neutral float-left" title="Discussion: July 2, 2023" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="discussion_Aug152023.html" class="btn btn-neutral float-right" title="Discussion: Aug 15, 2023" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="discussion_Aug132023.html" class="btn btn-neutral float-left" title="Discussion: Aug 13, 2023" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="discussion_Sep042023.html" class="btn btn-neutral float-right" title="Discussion: Sep 04, 2023" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
