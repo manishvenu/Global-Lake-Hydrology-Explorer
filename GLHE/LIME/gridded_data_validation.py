@@ -18,13 +18,11 @@ class GriddedDataDisplay:
     tif_file_paths = {}
     dest_dir = os.path.join(".temp", "tifs")
 
-    def __init__(self):
+    def __init__(self, config: dict):
         """Initializes the data access class"""
-        with open(os.path.join(Path(__file__).parent, 'config', 'config.json'), 'r') as f:
-            config = json.load(f)
         check_or_create_directory(".temp")
         check_or_create_directory(".temp/tifs")
-        with zipfile.ZipFile(os.path.join(config["CLAY_OUTPUT_FOLDER_LOCATION"], config["GRIDDED_DATA_FOLDER"]),
+        with zipfile.ZipFile(os.path.join(config["GRIDDED_DATA_FOLDER"]),
                              'r') as zip_ref:
             for filename in zip_ref.namelist():
                 split_list = filename.split("_")

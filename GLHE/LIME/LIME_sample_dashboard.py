@@ -2,45 +2,60 @@ import dash_bootstrap_components as dbc
 import holoviews as hv
 import plotly.express as px
 from dash import Dash, html, dcc, Input, Output
+from flask import Flask
 from holoviews import opts
 from holoviews.plotting.plotly.dash import to_dash
-
+import os
+from pathlib import Path
+import json
 import GLHE.LIME.gridded_data_validation as gridded_data_validation
 import GLHE.LIME.lake_point_validation as lake_point_validation
 import GLHE.LIME.series_data_display as series_data_display
 import warnings
+import reverse_geocode
+import threading
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-Series_Data_Obj = series_data_display.SeriesDataDisplay()
-series_data_table = Series_Data_Obj.generate_series_data_table()
-series_data_df = Series_Data_Obj.get_df()
-LakePointDisplay_Obj = lake_point_validation.LakePointDisplay()
-NWM_fig = LakePointDisplay_Obj.generate_nwm_point_figure()
-tiles = hv.element.tiles.CartoLight()
-Gridded_Data_Obj = gridded_data_validation.GriddedDataDisplay()
-points = Gridded_Data_Obj.get_points("p.CRUTS")
-points2 = Gridded_Data_Obj.get_points("p.ERA5-Land")
-
-overlay = tiles * points * points2
-overlay.opts(title='Gridded Data Validation')
 app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], )
 
-components = to_dash(app, [overlay])
-app.layout = html.Div([
-    dbc.Row(dbc.Col(html.H1('Great Salt Lake, Utah, USA', style={'textAlign': 'center'}))),
-    dbc.Row([
-        dbc.Col(dcc.Graph(id="p_graph"), width=11),
-        dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("p"), width=1, align="center")]),
-    dbc.Row([dbc.Col(dcc.Graph(id="e_graph"), width=11),
-             dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("e"), width=1, align="center")]),
-    dbc.Row([dbc.Col(dcc.Graph(id="i_graph"), width=11),
-             dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("i"), width=1, align="center")]),
-    dbc.Row([dbc.Col(dcc.Graph(id="o_graph"), width=11),
-             dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("o"), width=1, align="center")]),
-    dbc.Row([dbc.Col(series_data_table)]),
-    dbc.Row([dbc.Col(components.children), dbc.Col(NWM_fig)])
-])
+
+def prep_work():
+    with open(os.path.join(Path(__file__).parent, 'config', 'config.json'), 'r') as f:
+        config_pointer = json.load(f)
+    with open(os.path.join(config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"], 'config.json'), 'r') as f:
+        config = json.load(f)
+
+    Series_Data_Obj = series_data_display.SeriesDataDisplay(config)
+    series_data_table = Series_Data_Obj.generate_series_data_table()
+    global series_data_df
+    series_data_df = Series_Data_Obj.get_df()
+    LakePointDisplay_Obj = lake_point_validation.LakePointDisplay(config)
+    NWM_fig = LakePointDisplay_Obj.generate_nwm_point_figure()
+    tiles = hv.element.tiles.CartoLight()
+    Gridded_Data_Obj = gridded_data_validation.GriddedDataDisplay(config)
+
+    address = reverse_geocode.search(LakePointDisplay_Obj.center_point)
+    points = Gridded_Data_Obj.get_points("p.CRUTS")
+    points2 = Gridded_Data_Obj.get_points("p.ERA5-Land")
+    overlay = tiles * points * points2
+    overlay.opts(title='Gridded Data Validation')
+    components = to_dash(app, [overlay])
+    app.layout = html.Div([
+        dbc.Row(dbc.Col(html.H1("Lake " + config["LAKE_NAME"].replace("_", " ") + ", " + address[0]["country"],
+                                style={'textAlign': 'center'}))),
+        dbc.Row([
+            dbc.Col(dcc.Graph(id="p_graph"), width=11),
+            dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("p"), width=1, align="center")]),
+        dbc.Row([dbc.Col(dcc.Graph(id="e_graph"), width=11),
+                 dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("e"), width=1, align="center")]),
+        dbc.Row([dbc.Col(dcc.Graph(id="i_graph"), width=11),
+                 dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("i"), width=1, align="center")]),
+        dbc.Row([dbc.Col(dcc.Graph(id="o_graph"), width=11),
+                 dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("o"), width=1, align="center")]),
+        dbc.Row([dbc.Col(series_data_table)]),
+        dbc.Row([dbc.Col(components.children), dbc.Col(NWM_fig)])
+    ])
 
 
 @app.callback(
@@ -100,4 +115,5 @@ def update_line_chart(plot_columns):
 
 
 if __name__ == '__main__':
+    prep_work()
     app.run(debug=True)

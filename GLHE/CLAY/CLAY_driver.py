@@ -24,14 +24,25 @@ class CLAY_driver:
     root_logger: logging.Logger
     data_products = {}
     read_me_information = {"Data_Product": {}, "Output_File": {}}
+    output_file_config = {}
 
     def __init__(self):
         """
         This is the constructor for the driver class.
         """
+        self.datasets_index = {
+            "all": [],
+            "grid": [],
+            "slc": {}
+        }
         for key in GLHE.CLAY.globals.SLC_MAPPING_REVERSE_NAMES:
             self.datasets_index["slc"][key] = []
-        pub.subscribe(self.read_me_output_file_listener, events.topics["output_file_event"])
+        self.pandas_dataset = None
+        self.root_logger = None
+        self.data_products = {}
+        self.read_me_information = {"Data_Product": {}, "Output_File": {}}
+        self.output_file_config = {}
+        pub.subscribe(self.output_file_listener, events.topics["output_file_event"])
         pub.subscribe(self.read_me_data_product_run_listener, events.topics["data_product_run_event"])
 
     def index_datasets(self, *datasets: helpers.MVSeries):
@@ -65,12 +76,13 @@ class CLAY_driver:
         # print("Data Product Message: " + str(message))
         self.read_me_information["Data_Product"][message.product_name] = message.product_description
 
-    def read_me_output_file_listener(self, message: events.OutputFileEvent) -> None:
+    def output_file_listener(self, message: events.OutputFileEvent) -> None:
         """
         This function is a listener for the output file event.
         """
         # print("Output File Message: " + str(message))
         self.read_me_information["Output_File"][message.file_name] = message.file_description
+        self.output_file_config[message.LIME_file_type] = message.file_path
 
     def main(self, HYLAK_ID: int) -> str:
         """
@@ -137,7 +149,9 @@ class CLAY_driver:
         combined_data_functions.output_all_compiled_data_to_csv(GLHE.CLAY.globals.config["LAKE_NAME"] + "_Data.csv",
                                                                 self.pandas_dataset)
         combined_data_functions.write_and_output_README(self.read_me_information)
-        logging.info('Ended driver function')
+        combined_data_functions.write_and_output_LIME_CONFIG(self.output_file_config)
+
+        logging.info('"***********************Finished Driver Function*************************"')
         return GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
 
     def load_data_product_list(self) -> dict:
@@ -156,5 +170,5 @@ class CLAY_driver:
 
 if __name__ == "__main__":
     CLAY_driver_obj = CLAY_driver()
-    HYLAK_ID = 67
+    HYLAK_ID = 9
     CLAY_driver_obj.main(HYLAK_ID)
