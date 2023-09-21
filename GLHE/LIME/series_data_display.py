@@ -9,11 +9,9 @@ from pathlib import Path
 class SeriesDataDisplay:
     df: pd.DataFrame
 
-    def __init__(self):
-        """Initializes the data access class"""
-        with open(os.path.join(Path(__file__).parent, 'config', 'config.json'), 'r') as f:
-            config = json.load(f)
-        self.df = pd.read_csv(os.path.join(config["CLAY_OUTPUT_FOLDER_LOCATION"], config["SERIES_DATA_FILENAME"]))
+    def __init__(self, config: dict):
+
+        self.df = pd.read_csv(config["SERIES_DATA"])
         self.df = self.df.rename(columns={'time': 'Date'})
 
     def generate_series_data_table(self) -> dash_table.DataTable:

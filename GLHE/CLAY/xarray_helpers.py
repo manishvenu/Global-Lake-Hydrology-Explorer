@@ -1,7 +1,7 @@
 import logging
 
 import xarray as xr
-
+import pint_xarray
 from GLHE.CLAY.globals import SLC_MAPPING
 from GLHE.CLAY.helpers import MVSeries
 from . import ureg

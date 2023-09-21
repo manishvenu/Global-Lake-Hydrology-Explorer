@@ -5,7 +5,7 @@ import pandas as pd
 import rasterio
 import snakemd
 from pubsub import pub
-
+import json
 from GLHE.CLAY.globals import SLC_MAPPING_REVERSE_UNITS, SLC_MAPPING_REVERSE_NAMES
 from GLHE.CLAY import events
 from GLHE.CLAY.helpers import *
@@ -58,7 +58,9 @@ def output_plot_of_all_data(dataset: pd.DataFrame) -> None:
         temp = [col for col in dataset if col.startswith(key)]
         if len(temp) > 0:
             plotting_dict[key] = temp
-
+    if len(plotting_dict) == 0:
+        logger.info("No data to plot")
+        return
     fig, axs = plt.subplots(len(plotting_dict), 1, figsize=(10, 10))
     for index, key in enumerate(plotting_dict):
         dataset.plot(y=plotting_dict[key], ax=axs[index],
@@ -75,7 +77,8 @@ def output_plot_of_all_data(dataset: pd.DataFrame) -> None:
                                                    GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/" +
                                                    GLHE.CLAY.globals.config["LAKE_NAME"] + "_products_plot.png",
                                                    ".png",
-                                                   "A plot of all data, a simple initial visualization of the data"))
+                                                   "A plot of all data, a simple initial visualization of the data",
+                                                   events.TypeOfFileLIME.OTHER))
 
     return
 
@@ -100,7 +103,8 @@ def output_all_compiled_data_to_csv(filename: str, dataset: pd.DataFrame) -> Non
                                                    GLHE.CLAY.globals.config["DIRECTORIES"][
                                                        "OUTPUT_DIRECTORY"] + "/" + filename,
                                                    ".csv",
-                                                   "A csv file of all data, the main product"))
+                                                   "A csv file of all data, the main product",
+                                                   events.TypeOfFileLIME.SERIES_DATA))
 
     dataset.to_csv(GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/" + filename)
 
@@ -144,8 +148,9 @@ def present_mv_series_as_geospatial_at_date_time(date: pd.Timestamp, *dss: MVSer
     zip_file = GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/" + GLHE.CLAY.globals.config[
         "LAKE_NAME"] + "_gridded_data_layers_on_" + date.strftime(
         '%Y%m%d') + ".zip"
-    pub.sendMessage(events.topics["output_file_event"], message=events.OutputFileEvent(zip_file, zipfile, ".zip",
-                                                                                       "A zip file of GIS information on gridded products"))
+    pub.sendMessage(events.topics["output_file_event"], message=events.OutputFileEvent(zip_file, zip_file, ".zip",
+                                                                                       "A zip file of GIS information on gridded products",
+                                                                                       events.TypeOfFileLIME.GRIDDED_DATA_FOLDER))
     # Create a new ZIP file
     with zipfile.ZipFile(zip_file, 'w') as zf:
         # Add each GeoTIFF file to the ZIP archive
@@ -158,7 +163,7 @@ def present_mv_series_as_geospatial_at_date_time(date: pd.Timestamp, *dss: MVSer
 
 def write_and_output_README(read_me_information: dict) -> None:
     """
-    Create a README file that explains all exported data.
+    Create a README file that explains all exported data in human-readable format
     It's hardcoded!! How do we figure out a way to send an information out from functions...frick. I hate that this is a full circle movement. (Event Bus/Observer)
     """
     READ_ME_Name = GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/" + GLHE.CLAY.globals.config[
@@ -178,6 +183,38 @@ def write_and_output_README(read_me_information: dict) -> None:
     doc.add_ordered_list(Items)
     doc.dump(READ_ME_Name)
     logger.info("Wrote README file to: " + READ_ME_Name)
+    pub.sendMessage(events.topics["output_file_event"],
+                    message=events.OutputFileEvent(READ_ME_Name,
+                                                   GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/" +
+                                                   READ_ME_Name,
+                                                   ".md",
+                                                   "README FIle", events.TypeOfFileLIME.READ_ME))
+    return
+
+
+def write_and_output_LIME_CONFIG(config_information: dict) -> None:
+    """
+    Create a CONFIG file that points to all exported data in LIME-readable format
+    It's hardcoded!! How do we figure out a way to send an information out from functions...frick. I hate that this is a full circle movement. (Event Bus/Observer)
+    """
+    CONFIG_Name = GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/CONFIG.json"
+    ribbit = {"README": config_information[events.TypeOfFileLIME.READ_ME],
+              "OTHER": config_information[events.TypeOfFileLIME.OTHER],
+              "SERIES_DATA": config_information[events.TypeOfFileLIME.SERIES_DATA],
+              "GRIDDED_DATA_FOLDER": config_information[events.TypeOfFileLIME.GRIDDED_DATA_FOLDER],
+              "NWM_LAKE_POINT_SHAPEFILENAME": config_information[events.TypeOfFileLIME.NWM_LAKE_POINT_SHAPEFILENAME],
+              "CLAY_OUTPUT_FOLDER_LOCATION": GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"],
+              "LAKE_NAME": GLHE.CLAY.globals.config["LAKE_NAME"]}
+
+    with open(CONFIG_Name, 'w') as fp:
+        json.dump(ribbit, fp)
+    config_pointer_file_name = r"C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\GLHE\LIME\config\config.json"
+    with open(config_pointer_file_name, 'r') as f:
+        config_pointer = json.load(f)
+    config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"] = GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
+    with open(config_pointer_file_name, 'w') as fp:
+        json.dump(config_pointer, fp)
+    logger.info("Wrote CONFIG file to: " + CONFIG_Name)
     return
 
 

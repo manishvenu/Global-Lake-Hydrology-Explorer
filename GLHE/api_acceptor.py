@@ -1,17 +1,20 @@
-from flask import Flask, request, Response
-from GLHE.CLAY import lake_extraction
+from flask import Flask, request, Response, redirect
 import GLHE.CLAY.CLAY_driver as CLAY_driver
 import GLHE.LIME.LIME_sample_dashboard
 import json
 import sys
 import requests
+import logging
 
+logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 
 # api_acceptor = Api(app)
 @app.route('/glhe', methods=['GET'])
 def glhe():
+    logger.info("API Request Received")
+
     response = requests.get('http://localhost:4040/api/tunnels/')
     json_data = json.loads(response.text)
     url = json_data['tunnels'][1]['public_url']
@@ -20,9 +23,10 @@ def glhe():
 
     HYLAK_ID = request.args["hylak_id"]
     CLAY_driver_obj = CLAY_driver.CLAY_driver()
-    output_folder_path = CLAY_driver_obj.main(HYLAK_ID)
-    dict_response = {"URL": url}
-    response = Response(json.dumps(dict_response))
+    CLAY_driver_obj.main(HYLAK_ID)
+    logger.info("Driver Info:" + str(CLAY_driver_obj.data_products))
+    GLHE.LIME.LIME_sample_dashboard.prep_work()
+    response = redirect(url)
 
     @response.call_on_close
     def process_after_request():
