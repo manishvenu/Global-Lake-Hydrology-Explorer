@@ -69,7 +69,10 @@ class LakeExtraction:
         # Get the lake polygon and export as a geoJSON
         feature = result.GetNextFeature()
         self.lake_information = loads(feature.ExportToJson())
-        self.lake_name = self.lake_information['properties']['Lake_name'].replace(" ", "_")
+        ln = self.lake_information['properties']['Lake_name']
+        if ln is None:
+            ln = str(hylak_id)
+        self.lake_name = ln.replace(" ", "_")
         logger.info("Extracted Lake: {}".format(self.lake_name))
         self.polygon = shape(self.lake_information['geometry'])
         self.logger.info("Extracted Polygon")

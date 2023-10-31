@@ -18,7 +18,9 @@ class SeriesDataDisplay:
         """
         Given a config file, the function returns a DASH Data table.
         """
-        table = dash_table.DataTable(data=self.df.to_dict('records'), page_size=10)
+        table = dash_table.DataTable(data=self.df.to_dict('records'),
+                                     export_format='xlsx',
+                                     export_headers='display', page_size=10)
         return table
 
     def get_df(self) -> pd.DataFrame:
@@ -38,7 +40,9 @@ class SeriesDataDisplay:
         options_list = []
         for col in temp:
             options_list.append({'label': str.split(col, ".")[1], 'value': col})
-
+        if len(temp) == 0:
+            options_list.append({'label': "No Data", 'value': "No_Data"})
+            temp.append("No_Data")
         checklist = dbc.Checklist(
             id=component + "_checklist",
             options=options_list,

@@ -8,14 +8,6 @@ snapshot of its precipitation, evapotranspiration, and runoff.
 **Disclaimer**: This project is written by an undergraduate student with limited knowledge in hydrology and programming.
 It is not intended to be used for any serious research. Please use it at your own risk.
 
-## Things To Do
-
-- Set Precision Levels
-- Uncertainty
-- Runoff (Global) - Dependent on getting Lake Catchment Basin
-- UI
-- Map
-
 ## Current Status
 
 - There are NO protections against bad arguments, so be careful!
@@ -23,7 +15,6 @@ It is not intended to be used for any serious research. Please use it at your ow
   AND TAKES TIME! It's like 6 GB!
 - The tool is currently in development. The current version is a prototype and is not ready for use.
 - I don't know what coordinate systems are, but the goal is the general one, WCS_1984 or smthng
-- For UI, the plan is either ArcGIS (hopefully not) or some website hosted by UMICH
 
 ## Getting Started
 
@@ -36,13 +27,14 @@ environment it should just run. Remember, right now, runoff is only setup for CO
 ### Usage
 
 To use the tool in its current form, you will need your lakes' Hylak ID, you can find it
-here: https://hub.arcgis.com/maps/0abb136c398942e080f736c8eb09f5c4/explore
+here: https://glhe-fe.projects.earthengine.app/view/globallakehydrologyexplorer. (The demo uses this website as well,
+and the links only work when demo is active)
 Write that into the 'GLHE/driver.py' file, and run the code. It takes about a minute to run after the first time, or
-30-45 min
+10-20 min
 minutes the first time. (Ten minutes for ERA5 API, and ~15k files need to be processed for the NWM)
 You can find the output data under the lake name folder, and you should see a zip file of a sample month of gridded
-data,
-a csv of all the output data, and a plot of the all of it as well.
+data, a csv of all the output data, and a plot of the all of it as well. The UI is also built, but requires the overall
+demo to really function
 See the logging file 'GLHE.log' to see current progress.
 
 ### Contributing
@@ -56,7 +48,7 @@ Global Lake Hydrology Explorer is open source and distributed under the MIT Lice
 ## Acknowledgments
 
 Global Lake Hydrology Explorer was built using open-source libraries and datasets. We would like to acknowledge the
-following sources: ERA5, CRUTS, Hydrolakes, and more.
+following sources: ERA5, CRUTS, HydroLakes, and more.
 
 ## Contact
 

@@ -37,7 +37,7 @@ class CRUTS(data_access_parent_class.DataAccess):
             xarray Dataset format of the evap, precip, & runoff in a grid
         """
         self.logger.info("Reading in CRUTS data from LocalData folder")
-        self.xarray_dataset = xr.load_dataset("GLHE\\CLAY\\LocalData\\cruts_pet_pre_4.07_1901_2022.nc")
+        self.xarray_dataset = xr.load_dataset("CLAY\\LocalData\\cruts_pet_pre_4.07_1901_2022.nc")
         return self.xarray_dataset
 
     def product_driver(self, polygon, debug=False, run_cleanly=False) -> list[MVSeries]:
@@ -47,10 +47,10 @@ class CRUTS(data_access_parent_class.DataAccess):
 
         if not run_cleanly and not debug:
             try:
-                self.logger.info("Using pickled CRUTS data")
+                self.logger.info("Trying to find pickled CRUTS data")
                 dataset = helpers.unpickle_var("CRUTS")
             except FileNotFoundError:
-                self.logger.info("No saved CRUTS Land data found, calling script to download and process data")
+                self.logger.info("No saved CRUTS Land data found, calling script to process data")
                 dataset = self.call_CRUTS_access_and_process(polygon)
         else:
             dataset = self.call_CRUTS_access_and_process(polygon)

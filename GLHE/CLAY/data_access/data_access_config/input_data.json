@@ -39,6 +39,13 @@
       "local_remote_storage_filename": "SAMPLE_NWM_CHRTOUT.nc",
       "dropbox_download_link": "https://www.dropbox.com/s/4gfdw7vvipjho9b/SAMPLE_NWM_CHRTOUT.nc?dl=0",
       "description": "CHRTOUT file from NWM (sample) used sometime to find stream ids"
+    },
+    {
+      "name": "GLEV_Evap_Data",
+      "access_code": "local",
+      "local_remote_storage_filename": "GLEV_Evap_Data.csv",
+      "dropbox_download_link": "https://www.dropbox.com/scl/fi/2ea9f3cslp6er40nf4ap2/GLEV_Evap_Data.csv?rlkey=yuu53sl45x9d2yp1nt229o4co&dl=0",
+      "description": "Evaporation Data from GLEV"
     }
   ],
   "metadata": "This is a list of data products, and they have specific access methods. Right now that is API or Local. MUST HAVE NAME AND ACCESS CODE But eventually all you would need to do here is add the product, but that's far far away. "

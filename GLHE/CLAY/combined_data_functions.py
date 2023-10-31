@@ -199,12 +199,16 @@ def write_and_output_LIME_CONFIG(config_information: dict) -> None:
     """
     CONFIG_Name = GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/CONFIG.json"
     ribbit = {"README": config_information[events.TypeOfFileLIME.READ_ME],
+              "BLEEPBLEEP": config_information[events.TypeOfFileLIME.BLEEPBLEEP],
               "OTHER": config_information[events.TypeOfFileLIME.OTHER],
               "SERIES_DATA": config_information[events.TypeOfFileLIME.SERIES_DATA],
               "GRIDDED_DATA_FOLDER": config_information[events.TypeOfFileLIME.GRIDDED_DATA_FOLDER],
-              "NWM_LAKE_POINT_SHAPEFILENAME": config_information[events.TypeOfFileLIME.NWM_LAKE_POINT_SHAPEFILENAME],
               "CLAY_OUTPUT_FOLDER_LOCATION": GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"],
               "LAKE_NAME": GLHE.CLAY.globals.config["LAKE_NAME"]}
+    try:
+        ribbit["NWM_LAKE_POINT_SHAPEFILENAME"] = config_information[events.TypeOfFileLIME.NWM_LAKE_POINT_SHAPEFILENAME]
+    except:
+        logger.info("No NWM PubSub Event")
 
     with open(CONFIG_Name, 'w') as fp:
         json.dump(ribbit, fp)
