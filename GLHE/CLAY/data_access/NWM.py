@@ -99,7 +99,8 @@ class NWM(data_access_parent_class.DataAccess):
             lo_nwm.longitude[feature_id_index].item()) + ")")
         self.verification_lat_long["lat"] = lo_nwm.latitude[feature_id_index].item()
         self.verification_lat_long["lon"] = lo_nwm.longitude[feature_id_index].item()
-        if closest[0] > 0.001 and not polygon.contains(Point(longitude, latitude)):
+        if closest[0] > 0.001 and not polygon.contains(
+                Point(self.verification_lat_long["lon"], self.verification_lat_long["lat"])):
             self.logger.error("The lake is not in the NWM domain")
             raise Exception("NWM Lake not found, and no alternate NWM source exists")
         else:

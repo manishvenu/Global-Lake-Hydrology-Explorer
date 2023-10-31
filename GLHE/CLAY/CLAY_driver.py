@@ -25,6 +25,7 @@ class CLAY_driver:
     data_products = {}
     read_me_information = {"Data_Product": {}, "Output_File": {}}
     output_file_config = {}
+    lake_polygon = None
 
     def __init__(self):
         """
@@ -42,6 +43,7 @@ class CLAY_driver:
         self.data_products = {}
         self.read_me_information = {"Data_Product": {}, "Output_File": {}}
         self.output_file_config = {}
+        self.lake_polygon = None
         pub.subscribe(self.output_file_listener, events.topics["output_file_event"])
         pub.subscribe(self.read_me_data_product_run_listener, events.topics["data_product_run_event"])
 
@@ -49,7 +51,8 @@ class CLAY_driver:
         """
         This function indexes the datasets by their SLCs.
         """
-
+        for key in GLHE.CLAY.globals.SLC_MAPPING_REVERSE_NAMES:
+            self.datasets_index["slc"][key] = []
         for ds in self.datasets_index["all"]:
             # By Slc
             self.datasets_index["slc"][ds.single_letter_code].append(ds)
@@ -113,31 +116,37 @@ class CLAY_driver:
                          GLHE.CLAY.globals.config["LAKE_NAME"]))
 
         # Get lake polygon #
-        lake_polygon = lake_extraction_object.get_lake_polygon()
+        self.lake_polygon = lake_extraction_object.get_lake_polygon()
 
         # Collect the data #
         self.data_products = self.load_data_product_list()
 
         for key in self.data_products:
-            try:
-                self.data_products[key]["output_datasets"] = (
-                    self.data_products[key]["object"].product_driver(lake_polygon, GLHE.CLAY.globals.config["DEBUG"],
-                                                                     GLHE.CLAY.globals.config["RUN_CLEANLY"]))
-                for ds in self.data_products[key]["output_datasets"]:
-                    self.root_logger.info(ds)
-                self.datasets_index["all"].extend(self.data_products[key]["output_datasets"])
-            except Exception as e:
-                self.root_logger.error("Data Product: {} not available for this lake with Exception: {}".format(key, e))
+            if self.data_products[key]["run_on_start"]:
+                self.data_products[key]["loaded"] = True
+                try:
+                    self.data_products[key]["output_datasets"] = (
+                        self.data_products[key]["object"].product_driver(self.lake_polygon,
+                                                                         GLHE.CLAY.globals.config["DEBUG"],
+                                                                         GLHE.CLAY.globals.config["RUN_CLEANLY"]))
+                    for ds in self.data_products[key]["output_datasets"]:
+                        self.root_logger.info(ds)
+                    self.datasets_index["all"].extend(self.data_products[key]["output_datasets"])
+                except Exception as e:
+                    self.data_products[key]["loaded"] = False
+                    self.root_logger.error(
+                        "Data Product: {} not available for this lake with Exception: {}".format(key, e))
 
         # Attach Geodata
         for key in self.data_products:
-            response = self.data_products[key]["object"].attach_geodata()
-            if response == "grid":
-                self.datasets_index["grid"].extend(self.data_products[key]["output_datasets"])
-            elif response == "complete":
-                pass
-            else:
-                raise ValueError("Response from attach_geodata() must be either 'grid' or 'complete'")
+            if self.data_products[key]["loaded"]:
+                response = self.data_products[key]["object"].attach_geodata()
+                if response == "grid":
+                    self.datasets_index["grid"].extend(self.data_products[key]["output_datasets"])
+                elif response == "complete":
+                    pass
+                else:
+                    raise ValueError("Response from attach_geodata() must be either 'grid' or 'complete'")
 
         combined_data_functions.present_mv_series_as_geospatial_at_date_time(pd.to_datetime('2002-05-01'),
                                                                              *self.datasets_index["grid"])
@@ -148,11 +157,74 @@ class CLAY_driver:
         combined_data_functions.output_plot_of_all_data(self.pandas_dataset)
         combined_data_functions.output_all_compiled_data_to_csv(GLHE.CLAY.globals.config["LAKE_NAME"] + "_Data.csv",
                                                                 self.pandas_dataset)
+
+        self.export_data_product_config()
+        combined_data_functions.write_and_output_README(self.read_me_information)
+        combined_data_functions.write_and_output_LIME_CONFIG(self.output_file_config)
+        logging.info('"***********************Finished Driver Function*************************"')
+        return GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
+
+    def export_data_product_config(self) -> None:
+        data_products_temp = self.data_products.copy()
+        for key in self.data_products:
+            data_products_temp[key]["object"] = None
+            data_products_temp[key]["output_datasets"] = None
+        output_file_name = GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/" + GLHE.CLAY.globals.config[
+            "LAKE_NAME"] + "_data_products.json"
+        with open(output_file_name, 'w') as f:
+            json.dump(data_products_temp, f, indent=4)
+        pub.sendMessage(events.topics["output_file_event"],
+                        message=events.OutputFileEvent(output_file_name, output_file_name, ".json",
+                                                       "The products considered by GLHE",
+                                                       events.TypeOfFileLIME.BLEEPBLEEP))
+
+    def run_product(self, key: str) -> None:
+        """
+        This function runs the specified product from self.data_products
+        """
+        logging.info('"***********************Start Product Run*************************"')
+        if key is None:
+            return
+        self.data_products[key]["object"] = getattr(globals()[self.data_products[key]["module_name"]],
+                                                    self.data_products[key]["class_name"])()
+        self.data_products[key]["output_datasets"] = []
+        try:
+            self.data_products[key]["loaded"] = True
+            self.data_products[key]["output_datasets"] = (
+                self.data_products[key]["object"].product_driver(self.lake_polygon,
+                                                                 GLHE.CLAY.globals.config["DEBUG"],
+                                                                 GLHE.CLAY.globals.config["RUN_CLEANLY"]))
+            for ds in self.data_products[key]["output_datasets"]:
+                self.root_logger.info(ds)
+            self.datasets_index["all"].extend(self.data_products[key]["output_datasets"])
+        except Exception as e:
+            self.data_products[key]["loaded"] = False
+            self.root_logger.error(
+                "Data Product: {} not available for this lake with Exception: {}".format(key, e))
+
+        # Attach Geodata
+        response = self.data_products[key]["object"].attach_geodata()
+        if response == "grid":
+            self.datasets_index["grid"].extend(self.data_products[key]["output_datasets"])
+        elif response == "complete":
+            pass
+        else:
+            raise ValueError("Response from attach_geodata() must be either 'grid' or 'complete'")
+
+        combined_data_functions.present_mv_series_as_geospatial_at_date_time(pd.to_datetime('2002-05-01'),
+                                                                             *self.datasets_index["grid"])
+
+        # Plot and Output
+        self.index_datasets()  # Required for datasets_index: slc
+        self.pandas_dataset = combined_data_functions.merge_mv_series_into_pandas_dataframe(self.datasets_index["slc"])
+        combined_data_functions.output_plot_of_all_data(self.pandas_dataset)
+        combined_data_functions.output_all_compiled_data_to_csv(GLHE.CLAY.globals.config["LAKE_NAME"] + "_Data.csv",
+                                                                self.pandas_dataset)
+        self.export_data_product_config()
         combined_data_functions.write_and_output_README(self.read_me_information)
         combined_data_functions.write_and_output_LIME_CONFIG(self.output_file_config)
 
-        logging.info('"***********************Finished Driver Function*************************"')
-        return GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
+        logging.info('"***********************Finished Product Run*************************"')
 
     def load_data_product_list(self) -> dict:
         """
@@ -170,5 +242,5 @@ class CLAY_driver:
 
 if __name__ == "__main__":
     CLAY_driver_obj = CLAY_driver()
-    HYLAK_ID = 9
+    HYLAK_ID = 1085904
     CLAY_driver_obj.main(HYLAK_ID)

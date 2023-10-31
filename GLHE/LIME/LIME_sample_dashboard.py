@@ -1,7 +1,8 @@
 import dash_bootstrap_components as dbc
 import holoviews as hv
 import plotly.express as px
-from dash import Dash, html, dcc, Input, Output
+from dash import Dash, html, dcc, Input, Output, State
+
 from flask import Flask
 from holoviews import opts
 from holoviews.plotting.plotly.dash import to_dash
@@ -20,12 +21,15 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], )
 
 
-def prep_work():
+def prep_work(CDO):
+    global CLAY_driver_obj
+    CLAY_driver_obj = CDO
     with open(os.path.join(Path(__file__).parent, 'config', 'config.json'), 'r') as f:
         config_pointer = json.load(f)
     with open(os.path.join(config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"], 'config.json'), 'r') as f:
         config = json.load(f)
-
+    with open(config["BLEEPBLEEP"], 'r') as f:
+        data_products = json.load(f)
     Series_Data_Obj = series_data_display.SeriesDataDisplay(config)
     series_data_table = Series_Data_Obj.generate_series_data_table()
     global series_data_df
@@ -34,13 +38,24 @@ def prep_work():
     NWM_fig = LakePointDisplay_Obj.generate_nwm_point_figure()
     tiles = hv.element.tiles.CartoLight()
     Gridded_Data_Obj = gridded_data_validation.GriddedDataDisplay(config)
-
-    address = reverse_geocode.search(LakePointDisplay_Obj.center_point)
+    if not LakePointDisplay_Obj.no_data:
+        address = reverse_geocode.search(LakePointDisplay_Obj.center_point)
+    else:
+        address = [{"country": "Unknown Country"}]
     points = Gridded_Data_Obj.get_points("p.CRUTS")
-    points2 = Gridded_Data_Obj.get_points("p.ERA5-Land")
-    overlay = tiles * points * points2
+    overlay = tiles * points
+
+    try:
+        points2 = Gridded_Data_Obj.get_points("p.ERA5-Land")
+        overlay *= points2
+    except Exception as e:
+        print("No ERA5 Found. Exception:", e)
     overlay.opts(title='Gridded Data Validation')
     components = to_dash(app, [overlay])
+    options_list = []
+    for key in data_products.keys():
+        if not data_products[key]["loaded"]:
+            options_list.append(key)
     app.layout = html.Div([
         dbc.Row(dbc.Col(html.H1("Lake " + config["LAKE_NAME"].replace("_", " ") + ", " + address[0]["country"],
                                 style={'textAlign': 'center'}))),
@@ -54,7 +69,12 @@ def prep_work():
         dbc.Row([dbc.Col(dcc.Graph(id="o_graph"), width=11),
                  dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("o"), width=1, align="center")]),
         dbc.Row([dbc.Col(series_data_table)]),
-        dbc.Row([dbc.Col(components.children), dbc.Col(NWM_fig)])
+        dbc.Row([dbc.Col(components.children), dbc.Col(NWM_fig)]),
+        dbc.Row(
+            dbc.Col([html.P("Some Products are Slow! Load them here:"), dcc.Dropdown(options_list, id='demo-dropdown'),
+                     html.Button('Run Product', id='button'),
+                     html.Div(id='dd-output-container')]
+                    )),
     ])
 
 
@@ -114,6 +134,23 @@ def update_line_chart(plot_columns):
     return fig
 
 
+@app.callback(
+    Output('dd-output-container', 'children'),
+    [Input('button', 'n_clicks')],
+    [State(component_id='demo-dropdown', component_property='value')]
+)
+def update_output(n_clicks, value):
+    if n_clicks is not None:
+        if n_clicks > 0:
+            CLAY_driver_obj.run_product(value)
+            prep_work(CLAY_driver_obj)
+            return f'You have loaded {value}. Reload the Page!'
+
+
 if __name__ == '__main__':
-    prep_work()
-    app.run(debug=True)
+    import GLHE.CLAY.CLAY_driver as CLAY_driver
+
+    CLAY_driver_obj = CLAY_driver.CLAY_driver()
+    CLAY_driver_obj.main(67)
+    prep_work(CLAY_driver_obj)
+    app.run()
