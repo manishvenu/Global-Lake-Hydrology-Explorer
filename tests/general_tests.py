@@ -9,7 +9,7 @@ import xarray as xr
 import logging
 import GLHE
 from GLHE.CLAY import combined_data_functions, lake_extraction, helpers, xarray_helpers
-from GLHE import ERA5_Land, NWM, data_check
+from GLHE.CLAY.data_access import ERA5_Land, NWM, data_check
 
 
 class BaseTestCase(unittest.TestCase):

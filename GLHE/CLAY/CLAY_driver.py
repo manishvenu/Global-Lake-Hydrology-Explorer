@@ -242,5 +242,5 @@ class CLAY_driver:
 
 if __name__ == "__main__":
     CLAY_driver_obj = CLAY_driver()
-    HYLAK_ID = 1085904
+    HYLAK_ID = 67
     CLAY_driver_obj.main(HYLAK_ID)

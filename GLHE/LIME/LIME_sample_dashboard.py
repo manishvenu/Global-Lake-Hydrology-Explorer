@@ -150,7 +150,8 @@ def update_output(n_clicks, value):
 if __name__ == '__main__':
     import GLHE.CLAY.CLAY_driver as CLAY_driver
 
-    CLAY_driver_obj = CLAY_driver.CLAY_driver()
-    CLAY_driver_obj.main(67)
+    # CLAY_driver_obj = CLAY_driver.CLAY_driver()
+    # CLAY_driver_obj.main(9)
+    CLAY_driver_obj = None
     prep_work(CLAY_driver_obj)
     app.run()
