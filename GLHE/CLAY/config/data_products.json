@@ -2,7 +2,7 @@
   "ERA5_Land": {
     "module_name": "ERA5_Land",
     "class_name": "ERA5_Land",
-    "run_on_start": false,
+    "run_on_start": true,
     "loaded": false,
     "Product_README": "Validate this data with the gridded geodata in the zip file"
   },
