@@ -2,7 +2,6 @@ import logging
 import os
 from abc import ABC, abstractmethod
 import importlib
-from pubsub import pub
 import GLHE.CLAY.globals
 from GLHE.CLAY import events
 from GLHE.CLAY.helpers import MVSeries

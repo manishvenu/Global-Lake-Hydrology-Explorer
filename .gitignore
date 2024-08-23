@@ -12,6 +12,7 @@
 GLHE/CLAY/LocalData/
 GLHE/.temp/
 LakeOutputDirectory/
+**/__pycache__/
 
 # AWS User-specific
 .idea/**/aws.xml

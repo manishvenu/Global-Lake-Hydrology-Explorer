@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import rasterio
 import snakemd
-from pubsub import pub
 import json
 from GLHE.CLAY.globals import SLC_MAPPING_REVERSE_UNITS, SLC_MAPPING_REVERSE_NAMES
 from GLHE.CLAY import events
@@ -212,7 +211,7 @@ def write_and_output_LIME_CONFIG(config_information: dict) -> None:
 
     with open(CONFIG_Name, 'w') as fp:
         json.dump(ribbit, fp)
-    config_pointer_file_name = r"C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\GLHE\LIME\config\config.json"
+    config_pointer_file_name = r"..\LIME\config\config.json"
     with open(config_pointer_file_name, 'r') as f:
         config_pointer = json.load(f)
     config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"] = GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]

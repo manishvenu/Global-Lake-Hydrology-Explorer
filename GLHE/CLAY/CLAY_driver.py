@@ -4,7 +4,6 @@ import os
 import sys
 
 import pandas as pd
-from pubsub import pub
 import GLHE.CLAY.globals
 from GLHE.CLAY import combined_data_functions, events, lake_extraction, helpers
 from GLHE.CLAY.data_access import data_check, ERA5_Land, CRUTS, NWM

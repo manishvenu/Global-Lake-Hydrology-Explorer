@@ -1,0 +1,23 @@
+2024-08-23 10:02:41,835.835 INFO: general_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:02:41,835.835 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:03:26,050.050 INFO: general_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:03:26,050.050 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:03:37,021.021 INFO: general_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:03:37,021.021 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:05:24,031.031 INFO: general_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:05:24,031.031 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:05:24,037.037 INFO: xarray_helpers.label_xarray_dataset_with_product_name: Adding/Changing Product Name to Dataset to TerraClimateDummyData
+2024-08-23 10:09:37,176.176 INFO: general_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:09:37,176.176 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:11:04,259.259 INFO: general_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:11:04,259.259 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:11:20,752.752 INFO: general_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:11:20,753.753 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:12:00,174.174 INFO: general_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:12:00,174.174 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:12:00,179.179 INFO: xarray_helpers.label_xarray_dataset_with_product_name: Adding/Changing Product Name to Dataset to TerraClimateDummyData
+2024-08-23 10:12:11,965.965 INFO: general_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:12:11,965.965 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:21:45,529.529 INFO: initial_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:21:45,529.529 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:21:45,535.535 INFO: xarray_helpers.label_xarray_dataset_with_product_name: Adding/Changing Product Name to Dataset to TerraClimateDummyData

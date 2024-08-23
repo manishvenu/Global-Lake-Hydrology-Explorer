@@ -3,7 +3,6 @@ import os
 import fsspec
 import geopandas as gpd
 import xarray as xr
-from pubsub import pub
 from pyproj import CRS
 from shapely.geometry import Polygon, Point
 import boto3
