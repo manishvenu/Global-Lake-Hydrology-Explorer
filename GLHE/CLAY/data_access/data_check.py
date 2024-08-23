@@ -30,6 +30,7 @@ def download_data_from_dropbox(dropbox_link: str, filename: str, is_folder: bool
     headers = {'user-agent': 'Wget/1.16 (linux-gnu)'}
     r = requests.get(dropbox_link, stream=True, headers=headers)
     filepath = os.path.join(Path(__file__).parents[1], "LocalData", filename)
+    logger.info(filepath)
     if is_folder:
         filepath += ".zip"
     with open(filepath, 'wb') as f:
@@ -39,7 +40,7 @@ def download_data_from_dropbox(dropbox_link: str, filename: str, is_folder: bool
     if is_folder:
         with ZipFile(filepath, "r") as zip_file:
             # Extract the files
-            zip_file.extractall("LocalData/" + filename)
+            zip_file.extractall(os.path.join(Path(__file__).parents[1], "LocalData", filename))
         os.remove(filepath)
     logger.info("Finished downloading " + filename + " from dropbox")
     return
@@ -55,11 +56,11 @@ def check_data_and_download_missing_data_or_files() -> None:
     """
 
     # Check if Local Data Folder Exists #
-    if not os.path.exists("LocalData"):
-        os.mkdir("LocalData")
+    if not os.path.exists(os.path.join(Path(__file__).parents[1], "LocalData")):
+        os.mkdir(os.path.join(Path(__file__).parents[1], "LocalData"))
 
     # Read in local data files list #
-    with open(os.path.join(Path(__file__).parent, "data_access_config\input_data.json")) as f:
+    with open(os.path.join(Path(__file__).parent, "data_access_config","input_data.json")) as f:
         input_data_config = json.load(f)
 
     data_products = input_data_config['data_products']

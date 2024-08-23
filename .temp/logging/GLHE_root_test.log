@@ -21,3 +21,55 @@
 2024-08-23 10:21:45,529.529 INFO: initial_tests.setUpClass: ***********************Initializing Test Functions*************************
 2024-08-23 10:21:45,529.529 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
 2024-08-23 10:21:45,535.535 INFO: xarray_helpers.label_xarray_dataset_with_product_name: Adding/Changing Product Name to Dataset to TerraClimateDummyData
+2024-08-23 10:29:33,304.304 INFO: initial_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:29:33,304.304 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:30:13,706.706 INFO: initial_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:30:13,707.707 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:30:13,713.713 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2024-08-23 10:30:13,714.714 INFO: data_check.check_data_and_download_missing_data_or_files: Downloading CRUTS data. It will take some time!
+2024-08-23 10:30:13,714.714 INFO: data_check.download_data_from_dropbox: ** Checking Data **
+2024-08-23 10:34:19,614.614 INFO: initial_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:34:19,615.615 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:34:19,622.622 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2024-08-23 10:34:19,622.622 INFO: data_check.check_data_and_download_missing_data_or_files: Downloading CRUTS data. It will take some time!
+2024-08-23 10:34:19,623.623 INFO: data_check.download_data_from_dropbox: ** Checking Data **
+2024-08-23 10:35:09,694.694 INFO: data_check.download_data_from_dropbox: Finished downloading cruts_pet_pre_4.07_1901_2022.nc from dropbox
+2024-08-23 10:35:09,696.696 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2024-08-23 10:35:09,696.696 INFO: data_check.check_data_and_download_missing_data_or_files: Downloading Lake_Shapefiles data. It will take some time!
+2024-08-23 10:35:09,696.696 INFO: data_check.download_data_from_dropbox: ** Checking Data **
+2024-08-23 10:35:28,609.609 INFO: data_check.download_data_from_dropbox: Finished downloading HydroLAKES_polys_v10_shp from dropbox
+2024-08-23 10:35:28,610.610 INFO: data_check.check_data_and_download_missing_data_or_files: Downloading SAMPLE_NWM_LAKEOUT data. It will take some time!
+2024-08-23 10:35:28,611.611 INFO: data_check.download_data_from_dropbox: ** Checking Data **
+2024-08-23 10:35:30,208.208 INFO: data_check.download_data_from_dropbox: Finished downloading SAMPLE_NWM_LAKEOUT.nc from dropbox
+2024-08-23 10:35:30,208.208 INFO: data_check.check_data_and_download_missing_data_or_files: Downloading SAMPLE_NWM_CHRTOUT data. It will take some time!
+2024-08-23 10:35:30,208.208 INFO: data_check.download_data_from_dropbox: ** Checking Data **
+2024-08-23 10:35:32,564.564 INFO: data_check.download_data_from_dropbox: Finished downloading SAMPLE_NWM_CHRTOUT.nc from dropbox
+2024-08-23 10:35:32,564.564 INFO: data_check.check_data_and_download_missing_data_or_files: Downloading GLEV_Evap_Data data. It will take some time!
+2024-08-23 10:35:32,564.564 INFO: data_check.download_data_from_dropbox: ** Checking Data **
+2024-08-23 10:38:44,496.496 INFO: data_check.download_data_from_dropbox: Finished downloading GLEV_Evap_Data.csv from dropbox
+2024-08-23 10:38:44,499.499 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2024-08-23 10:38:51,940.940 INFO: initial_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:38:51,940.940 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:38:51,948.948 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2024-08-23 10:38:51,948.948 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2024-08-23 10:38:51,948.948 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2024-08-23 10:38:51,948.948 INFO: data_check.check_data_and_download_missing_data_or_files: Downloading Lake_Shapefiles data. It will take some time!
+2024-08-23 10:38:51,948.948 INFO: data_check.download_data_from_dropbox: ** Checking Data **
+2024-08-23 10:39:12,163.163 INFO: data_check.download_data_from_dropbox: Finished downloading HydroLAKES_polys_v10_shp from dropbox
+2024-08-23 10:39:12,164.164 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2024-08-23 10:39:12,164.164 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2024-08-23 10:39:12,164.164 INFO: data_check.check_data_and_download_missing_data_or_files: Found GLEV_Evap_Data data
+2024-08-23 10:39:12,164.164 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2024-08-23 10:40:50,094.094 INFO: initial_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-23 10:40:50,094.094 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-23 10:40:50,101.101 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2024-08-23 10:40:50,101.101 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2024-08-23 10:40:50,101.101 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2024-08-23 10:40:50,101.101 INFO: data_check.check_data_and_download_missing_data_or_files: Downloading Lake_Shapefiles data. It will take some time!
+2024-08-23 10:40:50,101.101 INFO: data_check.download_data_from_dropbox: ** Checking Data **
+2024-08-23 10:40:51,321.321 INFO: data_check.download_data_from_dropbox: /glade/u/home/manishrv/documents/glhe/GLHE/CLAY/LocalData/HydroLAKES_polys_v10_shp
+2024-08-23 10:41:08,629.629 INFO: data_check.download_data_from_dropbox: Finished downloading HydroLAKES_polys_v10_shp from dropbox
+2024-08-23 10:41:08,631.631 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2024-08-23 10:41:08,631.631 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2024-08-23 10:41:08,631.631 INFO: data_check.check_data_and_download_missing_data_or_files: Found GLEV_Evap_Data data
+2024-08-23 10:41:08,631.631 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
