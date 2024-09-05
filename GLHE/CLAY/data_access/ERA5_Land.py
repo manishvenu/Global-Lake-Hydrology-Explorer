@@ -1,6 +1,7 @@
 import cdsapi
 import xarray as xr
-from GLHE.CLAY import events, lake_extraction, helpers, xarray_helpers
+from GLHE.CALCITE import events
+from GLHE.CLAY import lake_extraction, helpers, xarray_helpers
 from GLHE.CLAY.data_access import data_access_parent_class
 from GLHE.CLAY.helpers import MVSeries
 
@@ -14,7 +15,9 @@ class ERA5_Land(data_access_parent_class.DataAccess):
 
         self.api_client = cdsapi.Client()
         self.xarray_dataset = None
-        self.README_default_information = "Validate this data with the gridded geodata in the zip file"
+        self.README_default_information = (
+            "Validate this data with the gridded geodata in the zip file"
+        )
         super().__init__()
 
     def verify_inputs(self) -> bool:
@@ -26,8 +29,9 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         self.logger.info("Attaching Geo Data inputs: " + self.__class__.__name__)
         return "grid"
 
-    def get_total_precip_runoff_evap_in_subset_box_api(self, west: float, east: float, south: float,
-                                                       north: float) -> xr.Dataset:
+    def get_total_precip_runoff_evap_in_subset_box_api(
+        self, west: float, east: float, south: float, north: float
+    ) -> xr.Dataset:
         """Gets ERA5 Land precip, evap, & runoff data in a known subregion by lat-long
 
         Parameters
@@ -49,58 +53,121 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         self.logger.info("Calling ERA5 Land API")
         try:
             self.api_client.retrieve(
-                'reanalysis-era5-land-monthly-means',
+                "reanalysis-era5-land-monthly-means",
                 {
-                    'product_type': 'monthly_averaged_reanalysis',
-                    'variable': [
-                        'runoff', 'total_evaporation', 'total_precipitation',
+                    "product_type": "monthly_averaged_reanalysis",
+                    "variable": [
+                        "runoff",
+                        "total_evaporation",
+                        "total_precipitation",
                     ],
-                    'year': [
-                        '1950', '1951', '1952',
-                        '1953', '1954', '1955',
-                        '1956', '1957', '1958',
-                        '1959', '1960', '1961',
-                        '1962', '1963', '1964',
-                        '1965', '1966', '1967',
-                        '1968', '1969', '1970',
-                        '1971', '1972', '1973',
-                        '1974', '1975', '1976',
-                        '1977', '1978', '1979',
-                        '1980', '1981', '1982',
-                        '1983', '1984', '1985',
-                        '1986', '1987', '1988',
-                        '1989', '1990', '1991',
-                        '1992', '1993', '1994',
-                        '1995', '1996', '1997',
-                        '1998', '1999', '2000',
-                        '2001', '2002', '2003',
-                        '2004', '2005', '2006',
-                        '2007', '2008', '2009',
-                        '2010', '2011', '2012',
-                        '2013', '2014', '2015',
-                        '2016', '2017', '2018',
-                        '2019', '2020', '2021',
-                        '2022',
+                    "year": [
+                        "1950",
+                        "1951",
+                        "1952",
+                        "1953",
+                        "1954",
+                        "1955",
+                        "1956",
+                        "1957",
+                        "1958",
+                        "1959",
+                        "1960",
+                        "1961",
+                        "1962",
+                        "1963",
+                        "1964",
+                        "1965",
+                        "1966",
+                        "1967",
+                        "1968",
+                        "1969",
+                        "1970",
+                        "1971",
+                        "1972",
+                        "1973",
+                        "1974",
+                        "1975",
+                        "1976",
+                        "1977",
+                        "1978",
+                        "1979",
+                        "1980",
+                        "1981",
+                        "1982",
+                        "1983",
+                        "1984",
+                        "1985",
+                        "1986",
+                        "1987",
+                        "1988",
+                        "1989",
+                        "1990",
+                        "1991",
+                        "1992",
+                        "1993",
+                        "1994",
+                        "1995",
+                        "1996",
+                        "1997",
+                        "1998",
+                        "1999",
+                        "2000",
+                        "2001",
+                        "2002",
+                        "2003",
+                        "2004",
+                        "2005",
+                        "2006",
+                        "2007",
+                        "2008",
+                        "2009",
+                        "2010",
+                        "2011",
+                        "2012",
+                        "2013",
+                        "2014",
+                        "2015",
+                        "2016",
+                        "2017",
+                        "2018",
+                        "2019",
+                        "2020",
+                        "2021",
+                        "2022",
                     ],
-                    'month': [
-                        '01', '02', '03',
-                        '04', '05', '06',
-                        '07', '08', '09',
-                        '10', '11', '12',
+                    "month": [
+                        "01",
+                        "02",
+                        "03",
+                        "04",
+                        "05",
+                        "06",
+                        "07",
+                        "08",
+                        "09",
+                        "10",
+                        "11",
+                        "12",
                     ],
-                    'time': '00:00',
-                    'area': [
-                        north, west, south,
+                    "time": "00:00",
+                    "area": [
+                        north,
+                        west,
+                        south,
                         east,
                     ],
-                    'format': 'netcdf',
+                    "format": "netcdf",
                 },
-                ".temp/TEMPORARY_ERA5Land_DONOTOPEN_ERA5LAND.nc")
+                ".temp/TEMPORARY_ERA5Land_DONOTOPEN_ERA5LAND.nc",
+            )
         except:
             self.logger.info("Error calling API")
             return None
         self.logger.info("Success calling ERA5 Land API")
-        xarray_dataset = xr.open_dataset(".temp/TEMPORARY_ERA5Land_DONOTOPEN_ERA5LAND.nc")
+        xarray_dataset = xr.open_dataset(
+            ".temp/TEMPORARY_ERA5Land_DONOTOPEN_ERA5LAND.nc"
+        )
         return xarray_dataset
 
     def product_driver(self, polygon, debug=False, run_cleanly=False) -> list[MVSeries]:
@@ -117,10 +184,16 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         else:
             dataset = self.call_ERA5_Land_API_and_process(polygon)
 
-        evap_ds, precip_ds = xarray_helpers.spatially_average_xarray_dataset_and_convert(dataset, "e", "tp")
+        evap_ds, precip_ds = (
+            xarray_helpers.spatially_average_xarray_dataset_and_convert(
+                dataset, "e", "tp"
+            )
+        )
         helpers.clean_up_specific_temporary_files("ERA5Land")
         list_of_MVSeries = [precip_ds, evap_ds]
-        self.send_data_product_event(events.DataProductRunEvent("ERA5_Land", self.README_default_information))
+        self.send_data_product_event(
+            events.DataProductRunEvent("ERA5_Land", self.README_default_information)
+        )
         self.logger.info("ERA Driver Finished")
         return list_of_MVSeries
 
@@ -134,20 +207,33 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         min_lat = min_lat - 1
         max_lat = max_lat + 1
 
-        dataset = self.get_total_precip_runoff_evap_in_subset_box_api(min_lon, max_lon, min_lat, max_lat)
-        dataset = xarray_helpers.label_xarray_dataset_with_product_name(dataset, "ERA5_Land")
+        dataset = self.get_total_precip_runoff_evap_in_subset_box_api(
+            min_lon, max_lon, min_lat, max_lat
+        )
+        dataset = xarray_helpers.label_xarray_dataset_with_product_name(
+            dataset, "ERA5_Land"
+        )
         dataset = xarray_helpers.fix_lat_long_names_in_xarray_dataset(dataset)
         try:
             dataset = lake_extraction.subset_box(dataset, polygon, 1)
         except ValueError:
             self.logger.error(
-                "ERA5 Land subset Failed: Polygon is too small for ERA5 Land, trying again with larger polygon")
+                "ERA5 Land subset Failed: Polygon is too small for ERA5 Land, trying again with larger polygon"
+            )
             dataset = lake_extraction.subset_box(dataset, polygon.buffer(0.5), 0)
-        dataset = xarray_helpers.fix_weird_units_descriptors_in_xarray_datasets(dataset, "e", "m")
-        dataset = xarray_helpers.add_descriptive_time_component_to_units_in_xarray_dataset(dataset, "day")
-        dataset = xarray_helpers.convert_xarray_dataset_units(dataset, "mm/month", "tp", "e")
+        dataset = xarray_helpers.fix_weird_units_descriptors_in_xarray_datasets(
+            dataset, "e", "m"
+        )
+        dataset = (
+            xarray_helpers.add_descriptive_time_component_to_units_in_xarray_dataset(
+                dataset, "day"
+            )
+        )
+        dataset = xarray_helpers.convert_xarray_dataset_units(
+            dataset, "mm/month", "tp", "e"
+        )
         dataset = xarray_helpers.make_sure_xarray_dataset_is_positive(dataset, "e")
-        helpers.pickle_var(dataset, dataset.attrs['product_name'])
+        helpers.pickle_var(dataset, dataset.attrs["product_name"])
         return dataset
 
 

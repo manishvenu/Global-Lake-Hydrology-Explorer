@@ -73,3 +73,14 @@
 2024-08-23 10:41:08,631.631 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
 2024-08-23 10:41:08,631.631 INFO: data_check.check_data_and_download_missing_data_or_files: Found GLEV_Evap_Data data
 2024-08-23 10:41:08,631.631 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files
+2024-08-27 23:11:25,025.025 INFO: initial_tests.setUpClass: ***********************Initializing Test Functions*************************
+2024-08-27 23:11:25,093.093 INFO: helpers.setup_output_directory: Made the output directory LakeOutputDirectory/TestLake
+2024-08-27 23:11:25,094.094 WARNING: helpers.setup_output_directory: There is no lake name set! Don't forget to set that!
+2024-08-27 23:11:25,150.150 INFO: data_check.check_data_and_download_missing_data_or_files: Found ERA5_Land api access script
+2024-08-27 23:11:25,158.158 INFO: data_check.check_data_and_download_missing_data_or_files: Found CRUTS data
+2024-08-27 23:11:25,160.160 INFO: data_check.check_data_and_download_missing_data_or_files: Found NWM api access script
+2024-08-27 23:11:25,163.163 INFO: data_check.check_data_and_download_missing_data_or_files: Found Lake_Shapefiles data
+2024-08-27 23:11:25,166.166 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_LAKEOUT data
+2024-08-27 23:11:25,170.170 INFO: data_check.check_data_and_download_missing_data_or_files: Found SAMPLE_NWM_CHRTOUT data
+2024-08-27 23:11:25,186.186 INFO: data_check.check_data_and_download_missing_data_or_files: Found GLEV_Evap_Data data
+2024-08-27 23:11:25,186.186 INFO: data_check.check_data_and_download_missing_data_or_files: Finished checking and/or downloading required data & files

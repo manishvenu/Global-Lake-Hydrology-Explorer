@@ -27,6 +27,13 @@
       "dropbox_download_link": "https://www.dropbox.com/sh/91riy601jr1itet/AABgOkSunThe35mvsM5KhJyQa?dl=1"
     },
     {
+      "name": "ERA5_Local",
+      "access_code": "local",
+      "description": "Dataset of global ERA5 for runoff, evap, and precip",
+      "local_remote_storage_filename": "ERA5/",
+      "dropbox_download_link": "https://www.dropbox.com/scl/fo/3s77aopnhgqfc8qbdq9ci/AN4RCkV9Wigl5gcISYfCc2E?rlkey=77o0okbh81zknfpo2dd48kyza&st=lo4xmu0n&dl=1"
+    },
+    {
       "name": "SAMPLE_NWM_LAKEOUT",
       "access_code": "local",
       "local_remote_storage_filename": "SAMPLE_NWM_LAKEOUT.nc",

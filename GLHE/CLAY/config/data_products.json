@@ -6,6 +6,13 @@
     "loaded": false,
     "Product_README": "Validate this data with the gridded geodata in the zip file"
   },
+  "ERA5_Land_Global": {
+    "module_name": "ERA5_Land_Global",
+    "class_name": "ERA5_Land_Global",
+    "run_on_start": true,
+    "loaded": false,
+    "Product_README": "Validate this data with the gridded geodata in the zip file"
+  },
   "CRUTS": {
     "module_name": "CRUTS",
     "class_name": "CRUTS",

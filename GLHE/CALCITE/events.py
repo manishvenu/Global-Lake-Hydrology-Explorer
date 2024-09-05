@@ -1,11 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
 
-topics = {
-    'output_file_event': 'output_file_event',
-    'data_product_run_event': 'data_product_run_event'
-}
-
 
 class TypeOfFileLIME(Enum):
     SERIES_DATA = 1
@@ -14,6 +9,11 @@ class TypeOfFileLIME(Enum):
     NWM_LAKE_POINT_SHAPEFILENAME = 4
     OTHER = 5
     BLEEPBLEEP = 6
+
+
+@dataclass
+class TestEvent:
+    name: str
 
 
 @dataclass
