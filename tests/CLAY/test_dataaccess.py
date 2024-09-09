@@ -1,5 +1,8 @@
 from GLHE.CLAY.data_access import ERA5_Land, NWM, CRUTS, data_check
 import pytest
+import shapely.geometry
+import GLHE.CLAY.lake_extraction as lake_extraction
+import GLHE
 
 
 class TestDataAccessInitialization:
@@ -20,3 +23,24 @@ class TestDataAccessInitialization:
     def test_CRUTS(self):
         cruts = CRUTS.CRUTS()
         assert cruts.verify_inputs() == True
+
+
+class TestERA5Land:
+
+    lake_polygon: shapely.geometry.Polygon
+    lake_id = 63
+
+    @pytest.fixture
+    def grab_sample_lake_polygon(self):
+        lake_extraction_object = lake_extraction.LakeExtraction()
+        lake_extraction_object.extract_lake_information(self.lake_id)
+        GLHE.CLAY.globals.config["LAKE_NAME"] = lake_extraction_object.get_lake_name()
+        self.lake_polygon = lake_extraction_object.get_lake_polygon()
+
+    @pytest.mark.subsetting_data
+    def test_ERA5_Land(self, grab_sample_lake_polygon):
+        era5_land = ERA5_Land.ERA5_Land()
+        era5_data = era5_land.product_driver(
+            self.lake_polygon, debug=False, run_cleanly=False
+        )
+        assert era5_data != None

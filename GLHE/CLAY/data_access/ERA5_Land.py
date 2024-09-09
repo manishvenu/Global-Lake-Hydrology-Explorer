@@ -4,6 +4,8 @@ from GLHE.CALCITE import events
 from GLHE.CLAY import lake_extraction, helpers, xarray_helpers
 from GLHE.CLAY.data_access import data_access_parent_class
 from GLHE.CLAY.helpers import MVSeries
+import os
+from pathlib import Path
 
 
 class ERA5_Land(data_access_parent_class.DataAccess):
@@ -207,9 +209,10 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         min_lat = min_lat - 1
         max_lat = max_lat + 1
 
-        dataset = self.get_total_precip_runoff_evap_in_subset_box_api(
-            min_lon, max_lon, min_lat, max_lat
-        )
+        # dataset = self.get_total_precip_runoff_evap_in_subset_box_api(
+        #     min_lon, max_lon, min_lat, max_lat
+        # )
+        dataset = self.get_total_dataset()
         dataset = xarray_helpers.label_xarray_dataset_with_product_name(
             dataset, "ERA5_Land"
         )
@@ -235,6 +238,25 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         dataset = xarray_helpers.make_sure_xarray_dataset_is_positive(dataset, "e")
         helpers.pickle_var(dataset, dataset.attrs["product_name"])
         return dataset
+
+    def get_total_dataset(self) -> xr.Dataset:
+        """Gets ERA5 evap, precip, runoff
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        xarray Dataset
+            xarray Dataset format of the evap, precip, & runoff in a grid
+        """
+        self.logger.info("Reading in ERA5 data from LocalData folder")
+        self.xarray_dataset = xr.open_mfdataset(
+            os.path.join(Path(__file__).parent.parent, "LocalData/ERA5/*.nc"),
+            combine="by_coords",
+        )
+        return self.xarray_dataset
 
 
 if __name__ == "__main__":

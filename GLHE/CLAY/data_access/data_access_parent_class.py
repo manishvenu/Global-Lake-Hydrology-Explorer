@@ -19,7 +19,7 @@ class DataAccess(ABC):
         """Initializes the data access class"""
         self.create_logger()
         if not self.verify_inputs():
-            raise ValueError("Invalid inputs")
+            raise ValueError("Verify Inputs Failed")
         self.logger.info("***Initialized: " + self.__class__.__name__ + "***")
         pass
 
