@@ -56,7 +56,7 @@ class DataAccess(ABC):
         """
         Sends data product event to event bus
         """
-        pubsub.EventBus.Publish(msg)
+        pubsub.EventBus.Publish(pubsub.EventBus, msg)
 
     @abstractmethod
     def attach_geodata(self) -> str:

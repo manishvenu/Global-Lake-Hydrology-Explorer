@@ -28,9 +28,18 @@ class TestDataAccessInitialization:
 class TestERA5Land:
 
     lake_polygon: shapely.geometry.Polygon
-    lake_id = 63
+    lake_id: int
 
-    @pytest.fixture
+    @classmethod
+    def setup_class(self):
+        """setup any state specific to the execution of the given class (which
+        usually contains tests).
+        """
+        self.lake_id = 63
+        self.grab_sample_lake_polygon(self)
+        GLHE.CLAY.helpers.setup_output_directory("TestLake")
+        GLHE.CLAY.helpers.setup_logging_directory(".temp_tests")
+
     def grab_sample_lake_polygon(self):
         lake_extraction_object = lake_extraction.LakeExtraction()
         lake_extraction_object.extract_lake_information(self.lake_id)
@@ -38,7 +47,7 @@ class TestERA5Land:
         self.lake_polygon = lake_extraction_object.get_lake_polygon()
 
     @pytest.mark.subsetting_data
-    def test_ERA5_Land(self, grab_sample_lake_polygon):
+    def test_ERA5_Land(self):
         era5_land = ERA5_Land.ERA5_Land()
         era5_data = era5_land.product_driver(
             self.lake_polygon, debug=False, run_cleanly=False

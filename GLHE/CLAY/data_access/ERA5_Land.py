@@ -218,7 +218,9 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         )
         dataset = xarray_helpers.fix_lat_long_names_in_xarray_dataset(dataset)
         try:
-            dataset = lake_extraction.subset_box(dataset, polygon, 1)
+            dataset = lake_extraction.subset_box(
+                dataset, polygon, 1, long_type_180=True
+            )
         except ValueError:
             self.logger.error(
                 "ERA5 Land subset Failed: Polygon is too small for ERA5 Land, trying again with larger polygon"

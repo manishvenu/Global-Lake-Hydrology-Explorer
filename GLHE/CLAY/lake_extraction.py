@@ -126,7 +126,7 @@ def extract_watershed_of_lake(polygon: Polygon) -> Polygon:
     return None
 
 
-def subset_box(da: xr.Dataset, poly: Polygon, pad=1) -> xr.Dataset:
+def subset_box(da: xr.Dataset, poly: Polygon, pad=1, long_type_180=False) -> xr.Dataset:
     """FROM ONLINE SOURCE!!!!! Subset an xarray object to the smallest box including the polygon.
     Assuming the polygon is defined as lon/lat and that those are variables in da.
     A mask if first constructed for all grid centers falling within the bounds of the polygon,
@@ -140,7 +140,8 @@ def subset_box(da: xr.Dataset, poly: Polygon, pad=1) -> xr.Dataset:
         The polygon to use for subsetting
     pad : int
         The number of cells to add around the polygon
-
+    long_type_180 : bool
+        Should we convert from [-180,180] to [0,360]
     Returns
     -------
     xr.Dataset
@@ -154,6 +155,11 @@ def subset_box(da: xr.Dataset, poly: Polygon, pad=1) -> xr.Dataset:
         min_lon, min_lat, max_lon, max_lat = poly.total_bounds
     else:
         min_lon, min_lat, max_lon, max_lat = poly.bounds
+
+    ## Change from [-180,180] to [0,360] ##
+    if long_type_180:
+        min_lon = min_lon + 360
+        max_lon = max_lon + 360
 
     mask = (
         (da.lon >= min_lon)
