@@ -38,8 +38,12 @@ class CLAY_driver:
         self.read_me_information = {"Data_Product": {}, "Output_File": {}}
         self.output_file_config = {}
         self.lake_polygon = None
-        pubsub.EventBus.Subscribe(self.output_file_listener)
-        pubsub.EventBus.Subscribe(self.read_me_data_product_run_listener)
+        pubsub.EventBus.Subscribe(
+            pubsub.EventBus, "OutputFileEvent", self.output_file_listener
+        )
+        pubsub.EventBus.Subscribe(
+            pubsub.EventBus, "OutputFileEvent", self.read_me_data_product_run_listener
+        )
 
     def index_datasets(self, *datasets: helpers.MVSeries):
         """
@@ -211,6 +215,7 @@ class CLAY_driver:
         with open(output_file_name, "w") as f:
             json.dump(data_products_temp, f, indent=4)
         pubsub.EventBus.Publish(
+            pubsub.EventBus,
             events.OutputFileEvent(
                 output_file_name,
                 output_file_name,

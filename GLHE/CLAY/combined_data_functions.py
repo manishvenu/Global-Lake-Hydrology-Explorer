@@ -88,6 +88,7 @@ def output_plot_of_all_data(dataset: pd.DataFrame) -> None:
         + "_products_plot.png"
     )
     pubsub.EventBus.Publish(
+        pubsub.EventBus,
         events.OutputFileEvent(
             GLHE.CLAY.globals.config["LAKE_NAME"] + "_products_plot.png",
             GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
@@ -123,6 +124,7 @@ def output_all_compiled_data_to_csv(filename: str, dataset: pd.DataFrame) -> Non
         + filename
     )
     pubsub.EventBus.Publish(
+        pubsub.EventBus,
         events.OutputFileEvent(
             filename,
             GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
@@ -204,6 +206,7 @@ def present_mv_series_as_geospatial_at_date_time(
         + ".zip"
     )
     pubsub.EventBus.Publish(
+        pubsub.EventBus,
         events.OutputFileEvent(
             zip_file,
             zip_file,
@@ -259,6 +262,7 @@ def write_and_output_README(read_me_information: dict) -> None:
     doc.dump(READ_ME_Name)
     logger.info("Wrote README file to: " + READ_ME_Name)
     pubsub.EventBus.Publish(
+        pubsub.EventBus,
         events.OutputFileEvent(
             READ_ME_Name,
             GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]

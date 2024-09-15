@@ -11,6 +11,7 @@ from GLHE.CALCITE import events, pubsub
 from GLHE.CLAY import helpers, xarray_helpers
 from GLHE.CLAY.data_access import data_access_parent_class
 from GLHE.CLAY.helpers import MVSeries
+from pathlib import Path
 
 
 class NWM(data_access_parent_class.DataAccess):
@@ -58,13 +59,14 @@ class NWM(data_access_parent_class.DataAccess):
         )
         gdf.to_file(output_file, compression="zip")
         pubsub.EventBus.Publish(
+            pubsub.EventBus,
             events.OutputFileEvent(
                 output_file,
                 output_file,
                 ".shp",
                 "A shapefile of the center point of the lake that the program chose.",
                 events.TypeOfFileLIME.NWM_LAKE_POINT_SHAPEFILENAME,
-            )
+            ),
         )
 
         return "complete"
@@ -87,8 +89,12 @@ class NWM(data_access_parent_class.DataAccess):
 
         latitude = polygon.centroid.y
         longitude = polygon.centroid.x
-        lo_file_name = "LocalData/SAMPLE_NWM_LAKEOUT.nc"
-        co_file_name = "LocalData/SAMPLE_NWM_CHRTOUT.nc"
+        lo_file_name = os.path.join(
+            Path(__file__).parent.parent, "LocalData/SAMPLE_NWM_LAKEOUT.nc"
+        )
+        co_file_name = os.path.join(
+            Path(__file__).parent.parent, "LocalData/SAMPLE_NWM_CHRTOUT.nc"
+        )
         if not os.path.exists(lo_file_name) or not os.path.exists(co_file_name):
             with open(lo_file_name, "wb") as f:
                 self.s3.download_fileobj(

@@ -7,8 +7,8 @@
     "Product_README": "Validate this data with the gridded geodata in the zip file"
   },
   "ERA5_Land_Global": {
-    "module_name": "ERA5_Land_Global",
-    "class_name": "ERA5_Land_Global",
+    "module_name": "ERA5_Land",
+    "class_name": "ERA5_Land",
     "run_on_start": true,
     "loaded": false,
     "Product_README": "Validate this data with the gridded geodata in the zip file"
