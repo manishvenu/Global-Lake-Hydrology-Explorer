@@ -1,5 +1,7 @@
 import xarray as xr
 import h5py
+import os
+from pathlib import Path
 from GLHE.CALCITE import events
 from GLHE.CLAY.data_access import data_access_parent_class
 from GLHE.CLAY.helpers import MVSeries
@@ -40,8 +42,11 @@ class CRUTS(data_access_parent_class.DataAccess):
             xarray Dataset format of the evap, precip, & runoff in a grid
         """
         self.logger.info("Reading in CRUTS data from LocalData folder")
-        self.xarray_dataset = xr.load_dataset(
-            "CLAY\\LocalData\\cruts_pet_pre_4.07_1901_2022.nc"
+        self.xarray_dataset = self.xarray_dataset = xr.open_mfdataset(
+            os.path.join(
+                Path(__file__).parent.parent,
+                "LocalData/cruts_pet_pre_4.07_1901_2022.nc",
+            )
         )
         return self.xarray_dataset
 

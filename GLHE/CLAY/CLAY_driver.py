@@ -86,8 +86,8 @@ class CLAY_driver:
         """
         # print("Data Product Message: " + str(message))
         self.read_me_information["Data_Product"][
-            message.product_name
-        ] = message.product_description
+            message.file_name
+        ] = message.file_description
 
     def output_file_listener(self, message: events.OutputFileEvent) -> None:
         """

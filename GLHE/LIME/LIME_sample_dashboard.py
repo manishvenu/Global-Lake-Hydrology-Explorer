@@ -18,17 +18,20 @@ import threading
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY], )
+app = Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.FLATLY],
+)
 
 
-def prep_work(CDO):
-    global CLAY_driver_obj
-    CLAY_driver_obj = CDO
-    with open(os.path.join(Path(__file__).parent, 'config', 'config.json'), 'r') as f:
+def prep_work():
+    with open(os.path.join(Path(__file__).parent, "config", "config.json"), "r") as f:
         config_pointer = json.load(f)
-    with open(os.path.join(config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"], 'config.json'), 'r') as f:
+    with open(
+        os.path.join(config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"], "config.json"), "r"
+    ) as f:
         config = json.load(f)
-    with open(config["BLEEPBLEEP"], 'r') as f:
+    with open(config["BLEEPBLEEP"], "r") as f:
         data_products = json.load(f)
     Series_Data_Obj = series_data_display.SeriesDataDisplay(config)
     series_data_table = Series_Data_Obj.generate_series_data_table()
@@ -50,108 +53,141 @@ def prep_work(CDO):
         overlay *= points2
     except Exception as e:
         print("No ERA5 Found. Exception:", e)
-    overlay.opts(title='Gridded Data Validation')
+    overlay.opts(title="Gridded Data Validation")
     components = to_dash(app, [overlay])
     options_list = []
     for key in data_products.keys():
         if not data_products[key]["loaded"]:
             options_list.append(key)
-    app.layout = html.Div([
-        dbc.Row(dbc.Col(html.H1("Lake " + config["LAKE_NAME"].replace("_", " ") + ", " + address[0]["country"],
-                                style={'textAlign': 'center'}))),
-        dbc.Row([
-            dbc.Col(dcc.Graph(id="p_graph"), width=11),
-            dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("p"), width=1, align="center")]),
-        dbc.Row([dbc.Col(dcc.Graph(id="e_graph"), width=11),
-                 dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("e"), width=1, align="center")]),
-        dbc.Row([dbc.Col(dcc.Graph(id="i_graph"), width=11),
-                 dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("i"), width=1, align="center")]),
-        dbc.Row([dbc.Col(dcc.Graph(id="o_graph"), width=11),
-                 dbc.Col(Series_Data_Obj.generate_graph_checklist_by_component("o"), width=1, align="center")]),
-        dbc.Row([dbc.Col(series_data_table)]),
-        dbc.Row([dbc.Col(components.children), dbc.Col(NWM_fig)]),
-        dbc.Row(
-            dbc.Col([html.P("Some Products are Slow! Load them here:"), dcc.Dropdown(options_list, id='demo-dropdown'),
-                     html.Button('Run Product', id='button'),
-                     html.Div(id='dd-output-container')]
-                    )),
-    ])
+    app.layout = html.Div(
+        [
+            dbc.Row(
+                dbc.Col(
+                    html.H1(
+                        "Lake "
+                        + config["LAKE_NAME"].replace("_", " ")
+                        + ", "
+                        + address[0]["country"],
+                        style={"textAlign": "center"},
+                    )
+                )
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(dcc.Graph(id="p_graph"), width=11),
+                    dbc.Col(
+                        Series_Data_Obj.generate_graph_checklist_by_component("p"),
+                        width=1,
+                        align="center",
+                    ),
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(dcc.Graph(id="e_graph"), width=11),
+                    dbc.Col(
+                        Series_Data_Obj.generate_graph_checklist_by_component("e"),
+                        width=1,
+                        align="center",
+                    ),
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(dcc.Graph(id="i_graph"), width=11),
+                    dbc.Col(
+                        Series_Data_Obj.generate_graph_checklist_by_component("i"),
+                        width=1,
+                        align="center",
+                    ),
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(dcc.Graph(id="o_graph"), width=11),
+                    dbc.Col(
+                        Series_Data_Obj.generate_graph_checklist_by_component("o"),
+                        width=1,
+                        align="center",
+                    ),
+                ]
+            ),
+            dbc.Row([dbc.Col(series_data_table)]),
+            dbc.Row([dbc.Col(components.children), dbc.Col(NWM_fig)]),
+            dbc.Row(
+                dbc.Col(
+                    [
+                        html.P("Some Products are Slow! Load them here:"),
+                        dcc.Dropdown(options_list, id="demo-dropdown"),
+                        html.Button("Run Product", id="button"),
+                        html.Div(id="dd-output-container"),
+                    ]
+                )
+            ),
+        ]
+    )
 
 
-@app.callback(
-    Output("p_graph", "figure"),
-    Input("p_checklist", "value"))
+@app.callback(Output("p_graph", "figure"), Input("p_checklist", "value"))
 def update_line_chart(plot_columns):
     y_cols = plot_columns
-    fig = px.line(series_data_df, x="Date", y=y_cols,
-                  labels={
-                      "Date": "Date",
-                      "value": "Precipitation (mm/month)",
-                      "variable": "Dataset"
-                  }, )
+    fig = px.line(
+        series_data_df,
+        x="Date",
+        y=y_cols,
+        labels={
+            "Date": "Date",
+            "value": "Precipitation (mm/month)",
+            "variable": "Dataset",
+        },
+    )
     return fig
 
 
-@app.callback(
-    Output("e_graph", "figure"),
-    Input("e_checklist", "value"))
+@app.callback(Output("e_graph", "figure"), Input("e_checklist", "value"))
 def update_line_chart(plot_columns):
     y_cols = plot_columns
-    fig = px.line(series_data_df, x="Date", y=y_cols,
-                  labels={
-                      "Date": "Date",
-                      "value": "Evaporation (mm/month)",
-                      "variable": "Dataset"
-                  }, )
+    fig = px.line(
+        series_data_df,
+        x="Date",
+        y=y_cols,
+        labels={
+            "Date": "Date",
+            "value": "Evaporation (mm/month)",
+            "variable": "Dataset",
+        },
+    )
     return fig
 
 
-@app.callback(
-    Output("i_graph", "figure"),
-    Input("i_checklist", "value"))
+@app.callback(Output("i_graph", "figure"), Input("i_checklist", "value"))
 def update_line_chart(plot_columns):
     y_cols = plot_columns
-    fig = px.line(series_data_df, x="Date", y=y_cols,
-                  labels={
-                      "Date": "Date",
-                      "value": "Inflow (m^3/month)",
-                      "variable": "Dataset"
-                  }, )
+    fig = px.line(
+        series_data_df,
+        x="Date",
+        y=y_cols,
+        labels={"Date": "Date", "value": "Inflow (m^3/month)", "variable": "Dataset"},
+    )
     return fig
 
 
-@app.callback(
-    Output("o_graph", "figure"),
-    Input("o_checklist", "value"))
+@app.callback(Output("o_graph", "figure"), Input("o_checklist", "value"))
 def update_line_chart(plot_columns):
     y_cols = plot_columns
-    fig = px.line(series_data_df, x="Date", y=y_cols,
-                  labels={
-                      "Date": "Date",
-                      "value": "Outflow (m^3/month)",
-                      "variable": "Dataset"
-                  }, )
+    fig = px.line(
+        series_data_df,
+        x="Date",
+        y=y_cols,
+        labels={"Date": "Date", "value": "Outflow (m^3/month)", "variable": "Dataset"},
+    )
     return fig
 
 
-@app.callback(
-    Output('dd-output-container', 'children'),
-    [Input('button', 'n_clicks')],
-    [State(component_id='demo-dropdown', component_property='value')]
-)
-def update_output(n_clicks, value):
-    if n_clicks is not None:
-        if n_clicks > 0:
-            CLAY_driver_obj.run_product(value)
-            prep_work(CLAY_driver_obj)
-            return f'You have loaded {value}. Reload the Page!'
-
-
-if __name__ == '__main__':
-    import GLHE.CLAY.CLAY_driver as CLAY_driver
-
-    # CLAY_driver_obj = CLAY_driver.CLAY_driver()
-    # CLAY_driver_obj.main(9)
-    CLAY_driver_obj = None
-    prep_work(CLAY_driver_obj)
+def driver():
+    prep_work()
     app.run()
+
+
+if __name__ == "__main__":
+    driver()

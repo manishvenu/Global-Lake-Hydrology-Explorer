@@ -177,9 +177,15 @@ def present_mv_series_as_geospatial_at_date_time(
         input_filenames.append(filename)
         width = len(lon)
         height = len(lat)
-        nearest_idx = list(variable.time.values).index(
-            variable.sel(time=date, method="nearest").time
-        )
+
+        try:
+            nearest_idx = list(variable.time.values).index(
+                variable.sel(time=date, method="nearest").time
+            )
+        except:
+            nearest_idx = list(variable.valid_time.values).index(
+                variable.sel(valid_time=date, method="nearest").valid_time
+            )
 
         # Create the raster layer using rasterio
         with rasterio.open(
@@ -279,7 +285,6 @@ def write_and_output_README(read_me_information: dict) -> None:
 def write_and_output_LIME_CONFIG(config_information: dict) -> None:
     """
     Create a CONFIG file that points to all exported data in LIME-readable format
-    It's hardcoded!! How do we figure out a way to send an information out from functions...frick. I hate that this is a full circle movement. (Event Bus/Observer)
     """
     CONFIG_Name = (
         GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/CONFIG.json"
@@ -306,14 +311,12 @@ def write_and_output_LIME_CONFIG(config_information: dict) -> None:
 
     with open(CONFIG_Name, "w") as fp:
         json.dump(ribbit, fp)
-    config_pointer_file_name = r"..\LIME\config\config.json"
-    with open(config_pointer_file_name, "r") as f:
-        config_pointer = json.load(f)
-    config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"] = GLHE.CLAY.globals.config[
-        "DIRECTORIES"
-    ]["OUTPUT_DIRECTORY"]
-    with open(config_pointer_file_name, "w") as fp:
-        json.dump(config_pointer, fp)
+    # config_pointer_file_name = r"..\LIME\config\config.json"
+    # with open(config_pointer_file_name, "r") as f:
+    #     config_pointer = json.load(f)
+    # config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"] = GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
+    # with open(config_pointer_file_name, "w") as fp:
+    #     json.dump(config_pointer, fp)
     logger.info("Wrote CONFIG file to: " + CONFIG_Name)
     return
 
