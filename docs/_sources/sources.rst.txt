@@ -19,4 +19,8 @@ It's not robust in certain areas, but it's the best we have for now. We'll add f
 CRUTS
 ------------
 
-We use the CRUTS dataset primarily because it goes back so far. It's frankly a horrible dataset, and will be removed when TerraClimate gets moved in.
+We use the CRUTS dataset primarily because it goes back so far. It's frankly a not great dataset, and will be removed when TerraClimate gets moved in.
+
+NWM
+----
+We use this because it is easily accessible for the US. It's not great b/c not global, but it's the best we have for now.
