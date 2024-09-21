@@ -3,5 +3,5 @@ import GLHE.LIME.LIME_sample_dashboard
 
 
 def test_run():
-    GLHE.LIME.LIME_sample_dashboard.driver()
+    GLHE.LIME.LIME_sample_dashboard.LIME_driver()
     assert True

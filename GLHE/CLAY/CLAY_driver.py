@@ -165,16 +165,23 @@ class CLAY_driver:
         # Attach Geodata
         for key in self.data_products:
             if self.data_products[key]["loaded"]:
-                response = self.data_products[key]["object"].attach_geodata()
-                if response == "grid":
-                    self.datasets_index["grid"].extend(
-                        self.data_products[key]["output_datasets"]
-                    )
-                elif response == "complete":
-                    pass
-                else:
-                    raise ValueError(
-                        "Response from attach_geodata() must be either 'grid' or 'complete'"
+                try:
+                    response = self.data_products[key]["object"].attach_geodata()
+                    if response == "grid":
+                        self.datasets_index["grid"].extend(
+                            self.data_products[key]["output_datasets"]
+                        )
+                    elif response == "complete":
+                        pass
+                    else:
+                        raise ValueError(
+                            "Response from attach_geodata() must be either 'grid' or 'complete'"
+                        )
+                except Exception as e:
+                    self.root_logger.error(
+                        "Geodata for Data Product: {} not available for this lake with Exception: {}".format(
+                            key, e
+                        )
                     )
 
         combined_data_functions.present_mv_series_as_geospatial_at_date_time(

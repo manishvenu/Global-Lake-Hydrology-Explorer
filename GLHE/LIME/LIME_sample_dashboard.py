@@ -24,9 +24,14 @@ app = Dash(
 )
 
 
-def prep_work():
-    with open(os.path.join(Path(__file__).parent, "config", "config.json"), "r") as f:
-        config_pointer = json.load(f)
+def prep_work(output_file_dir: str):
+    if output_file_dir is None:
+        with open(
+            os.path.join(Path(__file__).parent, "config", "config.json"), "r"
+        ) as f:
+            config_pointer = json.load(f)
+    else:
+        config_pointer = {"CLAY_OUTPUT_FOLDER_LOCATION": output_file_dir}
     with open(
         os.path.join(config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"], "config.json"), "r"
     ) as f:
@@ -184,8 +189,8 @@ def update_line_chart(plot_columns):
     return fig
 
 
-def driver():
-    prep_work()
+def LIME_driver(output_file_dir: str):
+    prep_work(output_file_dir)
     app.run()
 
 
