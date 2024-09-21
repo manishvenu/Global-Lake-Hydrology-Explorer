@@ -1,7 +1,7 @@
 #!/bin/bash
 cd docs/
 make html
-cp -r _build/html/* .
+cp -r build/html/* .
 cd ..
 git add .
 git commit -m "Update documentation"
