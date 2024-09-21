@@ -11,9 +11,10 @@ the usage of free global data products, so *no* prep work is needed (theoretical
 
 **Disclaimer**: This project is written by an undergraduate student with limited knowledge in hydrology and programming. It is not intended to be used for any serious research. Please use it at your own risk.
 
+See below for more information on how to use this project and how it is structured.
 .. note::
 
-   This project is under active development, and is not public. If you are interested in seeing the code or helping out, please contact me at manishrv@umich.edu.
+   This project is under active development!
 .. toctree::
    :maxdepth: 3
    :caption: Contents:
