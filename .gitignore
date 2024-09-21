@@ -18,6 +18,7 @@ LakeOutputDirectory/
 *.log
 .temp/
 .tmp/
+docs/build/
 # AWS User-specific
 .idea/**/aws.xml
 
