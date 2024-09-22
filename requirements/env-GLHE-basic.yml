@@ -1,0 +1,43 @@
+name: glhe
+channels:
+  - nsidc
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - xarray
+  - pandas
+  - gdal
+  - matplotlib
+  - pint
+  - rasterio
+  - shapely
+  - h5py
+  - cdsapi
+  - geopandas
+  - boto3
+  - pyproj
+  - fsspec
+  - pytest
+  - ca-certificates
+  - certifi
+  - openssl
+  - netcdf4
+  - dask
+  - black
+  - s3fs
+  - zarr
+  - holoviews
+  - flask
+  - dash
+  - plotly
+  - pip:
+      - dash-bootstrap-components
+      - dash-core-components
+      - dash-html-components
+      - dash-table
+      - pint-xarray
+      - raster2xyz
+      - reverse-geocode
+      - snakemd
+prefix: /home/manishrv/miniconda3/envs/glhe
