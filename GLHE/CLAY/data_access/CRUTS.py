@@ -1,8 +1,11 @@
 import xarray as xr
 import h5py
+import os
+from pathlib import Path
+from GLHE.CALCITE import events
 from GLHE.CLAY.data_access import data_access_parent_class
 from GLHE.CLAY.helpers import MVSeries
-from GLHE.CLAY import events, lake_extraction, helpers, xarray_helpers
+from GLHE.CLAY import lake_extraction, helpers, xarray_helpers
 
 
 class CRUTS(data_access_parent_class.DataAccess):
@@ -13,7 +16,9 @@ class CRUTS(data_access_parent_class.DataAccess):
 
         self.xarray_dataset = None
         super().__init__()
-        self.README_default_information = "Validate this data with the gridded geodata in the zip file"
+        self.README_default_information = (
+            "Validate this data with the gridded geodata in the zip file"
+        )
 
     def verify_inputs(self) -> bool:
         """See parent class for description"""
@@ -37,7 +42,12 @@ class CRUTS(data_access_parent_class.DataAccess):
             xarray Dataset format of the evap, precip, & runoff in a grid
         """
         self.logger.info("Reading in CRUTS data from LocalData folder")
-        self.xarray_dataset = xr.load_dataset("CLAY\\LocalData\\cruts_pet_pre_4.07_1901_2022.nc")
+        self.xarray_dataset = self.xarray_dataset = xr.open_mfdataset(
+            os.path.join(
+                Path(__file__).parent.parent,
+                "LocalData/cruts_pet_pre_4.07_1901_2022.nc",
+            )
+        )
         return self.xarray_dataset
 
     def product_driver(self, polygon, debug=False, run_cleanly=False) -> list[MVSeries]:
@@ -50,16 +60,24 @@ class CRUTS(data_access_parent_class.DataAccess):
                 self.logger.info("Trying to find pickled CRUTS data")
                 dataset = helpers.unpickle_var("CRUTS")
             except FileNotFoundError:
-                self.logger.info("No saved CRUTS Land data found, calling script to process data")
+                self.logger.info(
+                    "No saved CRUTS Land data found, calling script to process data"
+                )
                 dataset = self.call_CRUTS_access_and_process(polygon)
         else:
             dataset = self.call_CRUTS_access_and_process(polygon)
 
-        pet_ds, precip_ds = xarray_helpers.spatially_average_xarray_dataset_and_convert(dataset, "pet", "pre")
-        pet_ds, precip_ds = helpers.move_date_index_to_first_of_the_month(pet_ds, precip_ds)
+        pet_ds, precip_ds = xarray_helpers.spatially_average_xarray_dataset_and_convert(
+            dataset, "pet", "pre"
+        )
+        pet_ds, precip_ds = helpers.move_date_index_to_first_of_the_month(
+            pet_ds, precip_ds
+        )
         helpers.clean_up_specific_temporary_files("CRUTS")
         list_of_MVSeries = [pet_ds, precip_ds]
-        self.send_data_product_event(events.DataProductRunEvent("CRUTS", self.README_default_information))
+        self.send_data_product_event(
+            events.DataProductRunEvent("CRUTS", self.README_default_information)
+        )
         self.logger.info("CRUTS Driver Finished")
         return list_of_MVSeries
 
@@ -69,15 +87,21 @@ class CRUTS(data_access_parent_class.DataAccess):
 
         """
         dataset = self.get_total_precip_evap()
-        dataset = xarray_helpers.label_xarray_dataset_with_product_name(dataset, "CRUTS")
+        dataset = xarray_helpers.label_xarray_dataset_with_product_name(
+            dataset, "CRUTS"
+        )
         dataset = xarray_helpers.fix_lat_long_names_in_xarray_dataset(dataset)
         try:
             dataset = lake_extraction.subset_box(dataset, polygon, 1)
         except ValueError:
-            self.logger.error("CRUTS subset Polygon is too small for CRUTS, trying again with larger polygon")
+            self.logger.error(
+                "CRUTS subset Polygon is too small for CRUTS, trying again with larger polygon"
+            )
             dataset = lake_extraction.subset_box(dataset, polygon.buffer(0.5), 0)
-        dataset = xarray_helpers.convert_xarray_dataset_units(dataset, "mm/month", "pet", "pre")
-        helpers.pickle_var(dataset, dataset.attrs['product_name'])
+        dataset = xarray_helpers.convert_xarray_dataset_units(
+            dataset, "mm/month", "pet", "pre"
+        )
+        helpers.pickle_var(dataset, dataset.attrs["product_name"])
         return dataset
 
 

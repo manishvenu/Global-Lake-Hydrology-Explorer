@@ -2,14 +2,15 @@ import logging
 import os
 from abc import ABC, abstractmethod
 import importlib
-from pubsub import pub
 import GLHE.CLAY.globals
-from GLHE.CLAY import events
+from GLHE.CALCITE import events
 from GLHE.CLAY.helpers import MVSeries
+from GLHE.CALCITE import pubsub, events
 
 
 class DataAccess(ABC):
     """Parent class for all data access. This class is an abstract class and should not be instantiated."""
+
     logger: logging.Logger
     README_default_information: str
 
@@ -18,7 +19,7 @@ class DataAccess(ABC):
         """Initializes the data access class"""
         self.create_logger()
         if not self.verify_inputs():
-            raise ValueError("Invalid inputs")
+            raise ValueError("Verify Inputs Failed")
         self.logger.info("***Initialized: " + self.__class__.__name__ + "***")
         pass
 
@@ -27,10 +28,15 @@ class DataAccess(ABC):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         fh = logging.FileHandler(
-            os.path.join(GLHE.CLAY.globals.config["DIRECTORIES"]["LOGGING_DIRECTORY"],
-                         self.__class__.__name__ + "_driver.log"))
+            os.path.join(
+                GLHE.CLAY.globals.config["DIRECTORIES"]["LOGGING_DIRECTORY"],
+                self.__class__.__name__ + "_driver.log",
+            )
+        )
         fh.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s')
+        formatter = logging.Formatter(
+            "%(asctime)s.%(msecs)03d %(levelname)s: %(module)s.%(funcName)s: %(message)s"
+        )
         fh.setFormatter(formatter)
         self.logger.addHandler(fh)
 
@@ -50,7 +56,7 @@ class DataAccess(ABC):
         """
         Sends data product event to event bus
         """
-        pub.sendMessage(events.topics["data_product_run_event"], message=msg)
+        pubsub.EventBus.Publish(pubsub.EventBus, msg)
 
     @abstractmethod
     def attach_geodata(self) -> str:
@@ -82,5 +88,5 @@ class DataAccess(ABC):
         list[MVSeries]
             List of MVSeries objects containing the data
         """
-        pub.sendMessage(events.topics["data_product_run_event"], msg=None)
+        pubsub.EventBus.Publish(events.topics["data_product_run_event"])
         pass

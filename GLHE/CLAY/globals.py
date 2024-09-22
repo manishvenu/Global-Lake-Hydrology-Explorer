@@ -3,8 +3,8 @@ config = {
     "RUN_CLEANLY": False,
     "LAKE_NAME": None,
     "DIRECTORIES": {
-        "LAKE_OUTPUT_FOLDER": r'C:\Users\manis\OneDrive - Umich\Documents\Global Lake Hydrology Explorer\LakeOutputDirectory',
-        "UNIT_DEFINITION_FILE_PATH": r'config\pint_unit_registry.txt',
+        "LAKE_OUTPUT_FOLDER": r'LakeOutputDirectory',
+        "UNIT_DEFINITION_FILE_PATH": 'config/pint_unit_registry.txt',
         "LOGGING_DIRECTORY": "",
         "OUTPUT_DIRECTORY_SAVE_FILES": "",
         "OUTPUT_DIRECTORY": "",

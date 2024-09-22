@@ -7,12 +7,18 @@
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/
 
 # Manish Stuff
 GLHE/CLAY/LocalData/
 GLHE/.temp/
 LakeOutputDirectory/
-
+**/__pycache__/
+*.nc 
+*.log
+.temp/
+.tmp/
+docs/build/
 # AWS User-specific
 .idea/**/aws.xml
 
@@ -80,3 +86,5 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
+
+.vscode/settings.json
