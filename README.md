@@ -22,8 +22,8 @@ It is not intended to be used for any serious research because it hasn't been va
 
 To use Global Lake Hydrology Explorer, please:
 
-1. Clone the Repo
-2. You will need to setup the environment. The suggested install is with conda, and requirements/env-GLHE.yml as the conda environment file. You can also use the requirements.txt files, which may or may not be out of date.
+1. Clone the Repo on a LINUX computer (Windows/Mac is fine, just need to workshop the packages a little.)
+2. You will need to setup the environment. The suggested install is with conda, and requirements/env-GLHE.yml or requirements/env-GLHE-basic.yml which should give some flexibility as the conda environment file. You can also use the requirements.txt files, which may or may not be out of date.
 3. Once you set up the conda
 environment it should just run. FYI, right now, runoff is only setup for CONUS lakes recognized in the NHDv2Plus.
 
@@ -34,11 +34,12 @@ Check out sample_script.py! To use the tool in its current form, it's a package,
 You will need your lakes' HYLAK ID, you can find it
 here: https://glhe-fe.projects.earthengine.app/view/globallakehydrologyexplorer. Ignore all the demo links, which only work in a supervised environment. 
 
-Import GLHE, call the CLAY_driver, which will download all the data the first time, and then pass the output folder location to LIME. You can change the output folder location in GLHE.CLAY.globals!
+Import GLHE, call the CLAY_driver, which will download all the data the first time (OR FOR FASTER DOWNLOAD - go here: https://www.dropbox.com/scl/fo/d9a8t8rs05qjr9dnzdzvw/AOIR2cebgd4tb3u5rjOm4RQ?rlkey=z8pd6py7ec1wwwt0rahae77zb&st=c10pjgqf&dl=0, download the folder GLHE-Large Data REpository (20 GB) and extract it in GLHE/CLAY as "LocalData" folder, which is faster), then run the CLAY_driver, and then pass the output folder location of CLAY_driver to LIME. You can change the output folder location in GLHE.CLAY.globals!
 
+This is tested to work on Linux and Windows, but Mac shouldn't be a problem. We're not using OS-specific packages yet. 
 ### Contributing
 
-TBA, See Credits for where I've taken some code and things like that.
+TBA, See Credits for where I've taken some code and things like that. I have taken A LOT of code from random sources hah.
 
 ### License
 
