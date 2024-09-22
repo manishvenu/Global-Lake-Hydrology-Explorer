@@ -2,7 +2,7 @@ import GLHE
 
 
 def main():
-    HYLAK_ID = 67
+    HYLAK_ID = 67  # Get Lake ID from here: https://glhe-fe.projects.earthengine.app/view/globallakehydrologyexplorer
     clay_driver_obj = GLHE.CLAY.CLAY_driver.CLAY_driver()
     output_files_dir = clay_driver_obj.main(HYLAK_ID)
 
