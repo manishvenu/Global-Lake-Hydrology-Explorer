@@ -31,6 +31,7 @@ dependencies:
   - flask
   - dash
   - plotly
+  - pip
   - pip:
       - dash-bootstrap-components
       - dash-core-components
