@@ -25,8 +25,6 @@ class NWM(data_access_parent_class.DataAccess):
         self.s3 = boto3.client(
             "s3",
             region_name="us-east-1",
-            aws_access_key_id="AKIA6BHGCVJLQKADHHWY",
-            aws_secret_access_key="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",
         )
         self.README_default_information = (
             "Validate this data with the point file labeled 'NWM' in the output folder"
