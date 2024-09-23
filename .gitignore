@@ -10,10 +10,10 @@
 .idea/
 
 # Manish Stuff
-GLHE/CLAY/LocalData/
+LocalData/
 GLHE/.temp/
 LakeOutputDirectory/
-**/__pycache__/
+__pycache__/
 *.nc 
 *.log
 .temp/
