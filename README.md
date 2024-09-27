@@ -1,12 +1,11 @@
-# Global Lake Hydrology Explorer
+# Global Lake Hydrology Explorer (GLHE)
 
-Global Lake Hydrology Explorer is a for practice, in-development tool. If implemented, it
-is a tool for predicting future water levels of lakes around the world using global
+If implemented, the GLHE is a tool for predicting future water levels of lakes around the world using global
 precipitation, evapotranspiration, and runoff data. The tool visualizes all components of the water balance and uses a
 small model component to simulate lake water levels. It allows users to select any lake in the world and obtain a
 snapshot of its precipitation, evapotranspiration, and runoff.
 
-**Disclaimer**: This project is written by a student with limited knowledge in hydrology and programming.
+**Disclaimer**: This project is written by a student with limited knowledge in hydrology and programming. Global Lake Hydrology Explorer is a for practice, in-development tool.
 It is not intended to be used for any serious research because it hasn't been validated. Please use it at your own risk.
 
 ## Current Status
