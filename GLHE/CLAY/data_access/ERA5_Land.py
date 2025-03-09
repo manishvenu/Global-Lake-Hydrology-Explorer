@@ -209,10 +209,7 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         min_lat = min_lat - 1
         max_lat = max_lat + 1
 
-        # dataset = self.get_total_precip_runoff_evap_in_subset_box_api(
-        #     min_lon, max_lon, min_lat, max_lat
-        # )
-        dataset = self.get_total_dataset()
+        dataset = self.get_dataset(min_lon, max_lon, min_lat, max_lat)
         dataset = xarray_helpers.label_xarray_dataset_with_product_name(
             dataset, "ERA5_Land"
         )
@@ -240,6 +237,32 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         dataset = xarray_helpers.make_sure_xarray_dataset_is_positive(dataset, "e")
         helpers.pickle_var(dataset, dataset.attrs["product_name"])
         return dataset
+
+    def get_dataset(self, min_lon, max_lon, min_lat, max_lat) -> xr.Dataset:
+        """Calls ERA5 Land Dataset Access Functions and returns the dataset"""
+        self.logger.info("Getting ERA5 Land Dataset")
+        try:
+            dataset = self.get_dataset_from_cloud()
+        except:
+            try:
+                dataset = self.get_total_dataset()
+            except:
+                dataset = self.get_total_precip_runoff_evap_in_subset_box_api(
+                    min_lon, max_lon, min_lat, max_lat
+                )
+        return dataset
+
+    def get_dataset_from_cloud(self) -> xr.Dataset:
+        """Access dataset from the S3 Bucket in Zarr form"""
+        self.logger.info("Reading in ERA5 data from AWS S3 Bucket")
+        zarr_s3_path = "s3://glhe/zarr/ERA5.zarr"
+
+        self.xarray_dataset = xr.open_dataset(
+            zarr_s3_path,
+            engine="zarr",
+            backend_kwargs={"storage_options": {"anon": False}},
+        )
+        return self.xarray_dataset
 
     def get_total_dataset(self) -> xr.Dataset:
         """Gets ERA5 evap, precip, runoff

@@ -29,6 +29,29 @@ class CRUTS(data_access_parent_class.DataAccess):
         self.logger.info("Attaching Geo Data inputs: " + self.__class__.__name__)
         return "grid"
 
+    def get_dataset_from_local_source(self) -> xr.Dataset:
+        """Access dataset from the Local Data Folder"""
+        self.logger.info("Reading in CRUTS data from LocalData folder")
+        self.xarray_dataset = self.xarray_dataset = xr.open_mfdataset(
+            os.path.join(
+                Path(__file__).parent.parent,
+                "LocalData/cruts_pet_pre_4.07_1901_2022.nc",
+            )
+        )
+        return self.xarray_dataset
+
+    def get_dataset_from_cloud(self) -> xr.Dataset:
+        """Access dataset from the S3 Bucket in Zarr form"""
+        self.logger.info("Reading in CRUTS data from AWS S3 Bucket")
+        zarr_s3_path = "s3://glhe/zarr/CRUTS.zarr"
+
+        self.xarray_dataset = xr.open_dataset(
+            zarr_s3_path,
+            engine="zarr",
+            backend_kwargs={"storage_options": {"anon": False}},
+        )
+        return self.xarray_dataset
+
     def get_total_precip_evap(self) -> xr.Dataset:
         """Gets CRUTS evap
 
@@ -42,12 +65,10 @@ class CRUTS(data_access_parent_class.DataAccess):
             xarray Dataset format of the evap, precip, & runoff in a grid
         """
         self.logger.info("Reading in CRUTS data from LocalData folder")
-        self.xarray_dataset = self.xarray_dataset = xr.open_mfdataset(
-            os.path.join(
-                Path(__file__).parent.parent,
-                "LocalData/cruts_pet_pre_4.07_1901_2022.nc",
-            )
-        )
+        try:
+            self.xarray_dataset = self.get_dataset_from_cloud()
+        except:
+            self.xarray_dataset = self.get_dataset_from_local_source()
         return self.xarray_dataset
 
     def product_driver(self, polygon, debug=False, run_cleanly=False) -> list[MVSeries]:
