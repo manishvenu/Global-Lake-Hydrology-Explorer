@@ -44,7 +44,6 @@ class CRUTS(data_access_parent_class.DataAccess):
         """Access dataset from the S3 Bucket in Zarr form"""
         self.logger.info("Reading in CRUTS data from AWS S3 Bucket")
         zarr_s3_path = "s3://glhe/zarr/CRUTS.zarr"
-
         self.xarray_dataset = xr.open_dataset(
             zarr_s3_path,
             engine="zarr",
@@ -64,7 +63,7 @@ class CRUTS(data_access_parent_class.DataAccess):
         xarray Dataset
             xarray Dataset format of the evap, precip, & runoff in a grid
         """
-        self.logger.info("Reading in CRUTS data from LocalData folder")
+        self.logger.info("Reading in CRUTS data")
         try:
             self.xarray_dataset = self.get_dataset_from_cloud()
         except:

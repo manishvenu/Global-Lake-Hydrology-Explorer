@@ -4,12 +4,10 @@ import zarr
 # Open NetCDF with spatial chunking
 print("Opening NetCDF...")
 ds = xr.open_mfdataset(
-    "/mnt/c/Users/manis/Documents/GLHE/GLHE/CLAY/LocalData/ERA5/data*",
+    "/mnt/c/Users/manis/Documents/GLHE/GLHE/CLAY/LocalData/cruts_pet_pre_4.07_1901_2022.nc",
     chunks="auto",
 )
-ds = ds.chunk(
-    {"valid_time": 10, "latitude": 100, "longitude": 100}
-)  # Ensure uniform chunking
+ds = ds.chunk({"time": 10, "lat": 100, "lon": 100})  # Ensure uniform chunking
 
 # Apply Blosc compression
 print("Applying Blosc compression...")
@@ -20,7 +18,7 @@ encoding = {
 # Save to Zarr
 print("Saving to Zarr...")
 ds.to_zarr(
-    "/mnt/c/Users/manis/Documents/GLHE/GLHE/CLAY/LocalData/zarr/ERA5/output.zarr",
+    "/mnt/c/Users/manis/Documents/GLHE/GLHE/CLAY/LocalData/zarr/CRUTS_v2/output.zarr",
     encoding=encoding,
     consolidated=True,
 )

@@ -6,7 +6,10 @@ import requests
 from zipfile import ZipFile
 import pkgutil
 from pathlib import Path
+import boto3
+from botocore.exceptions import ClientError
 
+s3 = boto3.client("s3")
 logger = logging.getLogger(__name__)
 
 
@@ -77,6 +80,14 @@ def check_data_and_download_missing_data_or_files() -> None:
         if code == "local":
             filename = product["local_remote_storage_filename"]
             is_folder = False
+            if "cloud" in product:
+                cloud_path = product["cloud"]
+                if s3_object_or_folder_exists("glhe", cloud_path):
+                    logger.info("Found " + name + " data in S3")
+                    continue
+                else:
+                    logger.info("Could not find " + name + " data in S3")
+                    exit()
             if not os.path.exists(
                 os.path.join(Path(__file__).parents[1], "LocalData", filename)
             ):
@@ -112,6 +123,28 @@ def check_data_and_download_missing_data_or_files() -> None:
                 logger.info("Found " + name + " api access script")
     logger.info("Finished checking and/or downloading required data & files")
     return None
+
+
+def s3_object_or_folder_exists(bucket_name, s3_path):
+    s3 = boto3.client("s3")
+
+    # First, check if the exact object (file) exists using head_object
+    try:
+        s3.head_object(Bucket=bucket_name, Key=s3_path)
+        return True  # If object exists, return True
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            pass  # Object doesn't exist, continue to check for folder
+
+    # If the object doesn't exist, check if it's a folder (prefix) by listing objects
+    result = s3.list_objects_v2(Bucket=bucket_name, Prefix=s3_path, Delimiter="/")
+
+    # If 'Contents' or 'CommonPrefixes' exists, it means the folder (prefix) exists
+    if "Contents" in result or "CommonPrefixes" in result:
+        return True
+
+    # If neither exists, return False
+    return False
 
 
 if __name__ == "__main__":
