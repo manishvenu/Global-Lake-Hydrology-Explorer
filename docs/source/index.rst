@@ -24,5 +24,6 @@ Contents
    usage
    sources
    discussions
+   api-docs/modules
 
 
