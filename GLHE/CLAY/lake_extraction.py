@@ -7,7 +7,8 @@ from osgeo.gdal import OpenEx, OF_VECTOR, UseExceptions
 from shapely.geometry import shape, Polygon
 import GLHE.CLAY.globals
 from pathlib import Path
-
+import os
+os.environ["AWS_NO_SIGN_REQUEST"] = "YES"
 logger = logging.getLogger(__name__)
 
 
@@ -64,11 +65,18 @@ class LakeExtraction:
         UseExceptions()
 
         # Read in the shapefile and open it with gdal.OpenEx
-        hydro_lakes_shapefile_location = os.path.join(
-            Path(__file__).parent,
-            "LocalData/HydroLAKES_polys_v10_shp/HydroLAKES_polys_v10.shp",
-        )
-        hydro_lakes = OpenEx(hydro_lakes_shapefile_location, OF_VECTOR)
+        try:
+            self.logger.info("Trying Local Access")
+            hydro_lakes_shapefile_location = os.path.join(
+                Path(__file__).parent,
+                "LocalData/HydroLAKES_polys_v10_shp/HydroLAKES_polys_v10.shp",
+            )
+            hydro_lakes = OpenEx(hydro_lakes_shapefile_location, OF_VECTOR)
+        except:
+            self.logger.info("Could not open the Local Access format, trying S3 shapefile (Takes time)")
+            
+            s3_hl_shp_path = "/vsis3/glhe/HydroLAKES/HydroLAKES_polys_v10_shp/HydroLAKES_polys_v10.shp"
+            hydro_lakes = OpenEx(s3_hl_shp_path, OF_VECTOR)
 
         # Access the data layer and access the lake from the lake ID passed in (It's in SQL)
         layer = hydro_lakes.GetLayer()
