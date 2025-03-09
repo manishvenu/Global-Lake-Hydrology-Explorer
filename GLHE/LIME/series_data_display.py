@@ -12,15 +12,18 @@ class SeriesDataDisplay:
     def __init__(self, config: dict):
 
         self.df = pd.read_csv(config["SERIES_DATA"])
-        self.df = self.df.rename(columns={'time': 'Date'})
+        self.df = self.df.rename(columns={"time": "Date"})
 
     def generate_series_data_table(self) -> dash_table.DataTable:
         """
         Given a config file, the function returns a DASH Data table.
         """
-        table = dash_table.DataTable(data=self.df.to_dict('records'),
-                                     export_format='xlsx',
-                                     export_headers='display', page_size=10)
+        table = dash_table.DataTable(
+            data=self.df.to_dict("records"),
+            export_format="xlsx",
+            export_headers="display",
+            page_size=10,
+        )
         return table
 
     def get_df(self) -> pd.DataFrame:
@@ -33,19 +36,17 @@ class SeriesDataDisplay:
         """
         Return Checklist best  on p,e,i,o
         """
-        if component[0] not in ['p', 'e', 'i', 'o']:
+        if component[0] not in ["p", "e", "i", "o"]:
             raise ValueError("Invalid component")
 
         temp = [col for col in self.df if col.startswith(component[0])]
         options_list = []
         for col in temp:
-            options_list.append({'label': str.split(col, ".")[1], 'value': col})
+            options_list.append({"label": str.split(col, ".")[1], "value": col})
         if len(temp) == 0:
-            options_list.append({'label': "No Data", 'value': "No_Data"})
+            options_list.append({"label": "No Data", "value": "No_Data"})
             temp.append("No_Data")
         checklist = dbc.Checklist(
-            id=component + "_checklist",
-            options=options_list,
-            value=[temp[0]]
+            id=component + "_checklist", options=options_list, value=[temp[0]]
         )
         return checklist

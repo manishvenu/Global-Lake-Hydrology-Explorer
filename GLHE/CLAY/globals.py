@@ -3,26 +3,21 @@ config = {
     "RUN_CLEANLY": False,
     "LAKE_NAME": None,
     "DIRECTORIES": {
-        "LAKE_OUTPUT_FOLDER": r'LakeOutputDirectory',
-        "UNIT_DEFINITION_FILE_PATH": 'config/pint_unit_registry.txt',
+        "LAKE_OUTPUT_FOLDER": r"LakeOutputDirectory",
+        "UNIT_DEFINITION_FILE_PATH": "config/pint_unit_registry.txt",
         "LOGGING_DIRECTORY": "",
         "OUTPUT_DIRECTORY_SAVE_FILES": "",
         "OUTPUT_DIRECTORY": "",
-        "TEMP_DIRECTORY": ".temp"
-    }
+        "TEMP_DIRECTORY": ".temp",
+    },
 }
 
-SLC_MAPPING_REVERSE_NAMES = {
-    "p": "precip",
-    "e": "evap",
-    "i": "inflow",
-    "o": "outflow"
-}
+SLC_MAPPING_REVERSE_NAMES = {"p": "precip", "e": "evap", "i": "inflow", "o": "outflow"}
 SLC_MAPPING_REVERSE_UNITS = {
     "e": "mm/month",
     "i": "m^3/month",
     "p": "mm/month",
-    "o": "m^3/month"
+    "o": "m^3/month",
 }
 SLC_MAPPING = {
     "e": "e",
@@ -37,6 +32,6 @@ SLC_MAPPING = {
     "r": "i",
     "runoff": "i",
     "inflow": "i",
-    "outflow": "o"
+    "outflow": "o",
     # Add more mappings as needed
 }

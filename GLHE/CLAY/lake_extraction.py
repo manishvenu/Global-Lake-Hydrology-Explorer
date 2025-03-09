@@ -8,6 +8,7 @@ from shapely.geometry import shape, Polygon
 import GLHE.CLAY.globals
 from pathlib import Path
 import os
+
 os.environ["AWS_NO_SIGN_REQUEST"] = "YES"
 logger = logging.getLogger(__name__)
 
@@ -73,8 +74,10 @@ class LakeExtraction:
             )
             hydro_lakes = OpenEx(hydro_lakes_shapefile_location, OF_VECTOR)
         except:
-            self.logger.info("Could not open the Local Access format, trying S3 shapefile (Takes time)")
-            
+            self.logger.info(
+                "Could not open the Local Access format, trying S3 shapefile (Takes time)"
+            )
+
             s3_hl_shp_path = "/vsis3/glhe/HydroLAKES/HydroLAKES_polys_v10_shp/HydroLAKES_polys_v10.shp"
             hydro_lakes = OpenEx(s3_hl_shp_path, OF_VECTOR)
 
