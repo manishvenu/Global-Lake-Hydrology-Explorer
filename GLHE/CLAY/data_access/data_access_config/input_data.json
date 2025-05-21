@@ -7,6 +7,12 @@
       "api_access_script": "ERA5_Land"
     },
     {
+      "name": "TerraClimate",
+      "access_code": "api",
+      "description": "P & E data from ERA5",
+      "api_access_script": "TerraClimate"
+    },
+    {
       "name": "CRUTS",
       "access_code": "local",
       "local_remote_storage_filename": "cruts_pet_pre_4.07_1901_2022.nc",

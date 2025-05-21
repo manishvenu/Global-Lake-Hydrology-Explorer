@@ -1,4 +1,4 @@
-from GLHE.CLAY.data_access import ERA5_Land, NWM, CRUTS, data_check
+from GLHE.CLAY.data_access import ERA5_Land, NWM, CRUTS, data_check, TerraClimate
 import pytest
 import shapely.geometry
 import GLHE.CLAY.lake_extraction as lake_extraction
@@ -81,3 +81,33 @@ class TestNWM:
         nwm = NWM.NWM()
         nwm_data = nwm.product_driver(self.lake_polygon, debug=False, run_cleanly=False)
         assert nwm_data != None
+
+
+class TestTerraClimate:
+
+    lake_polygon: shapely.geometry.Polygon
+    lake_id: int
+
+    @classmethod
+    def setup_class(self):
+        """setup any state specific to the execution of the given class (which
+        usually contains tests).
+        """
+        self.lake_id = 67
+        self.grab_sample_lake_polygon(self)
+        GLHE.CLAY.helpers.setup_output_directory("TestLake")
+        GLHE.CLAY.helpers.setup_logging_directory(".temp")
+
+    def grab_sample_lake_polygon(self):
+        lake_extraction_object = lake_extraction.LakeExtraction()
+        lake_extraction_object.extract_lake_information(self.lake_id)
+        GLHE.CLAY.globals.config["LAKE_NAME"] = lake_extraction_object.get_lake_name()
+        self.lake_polygon = lake_extraction_object.get_lake_polygon()
+
+    @pytest.mark.subsetting_data
+    def test_TerraClimate(self):
+        obj = TerraClimate.TerraClimate()
+        data = obj.product_driver(
+            self.lake_polygon, debug=False, run_cleanly=False
+        )
+        assert data != None
