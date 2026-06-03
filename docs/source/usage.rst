@@ -15,14 +15,11 @@ Create the conda environment (Linux recommended; Windows works, Mac untested):
 
 .. code-block:: console
 
-    $ conda env create -f requirements/env-GLHE-basic.yml
+    $ conda env create -f environment.yml
     $ conda activate glhe
 
-Install the package in editable mode:
-
-.. code-block:: console
-
-    $ pip install -e .
+The ``environment.yml`` installs all dependencies and runs ``pip install -e .[dev]``
+automatically — no separate pip step needed.
 
 Data requirements (first run)
 ------------------------------

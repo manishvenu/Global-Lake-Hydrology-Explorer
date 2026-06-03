@@ -11,7 +11,7 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.12"
 # Packages with C extensions (gdal, rasterio, geopandas, netCDF4, h5py) must be
-# installed via conda — see requirements/env-GLHE-basic.yml.
+# installed via conda — see environment.yml at the repo root.
 dependencies = [
     "xarray",
     "pandas",

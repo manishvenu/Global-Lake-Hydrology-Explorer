@@ -17,12 +17,11 @@ The project is prototype-stage research software. It has not been scientifically
 Conda is the recommended approach (Python 3.12):
 
 ```bash
-conda env create -f requirements/env-GLHE-basic.yml
+conda env create -f environment.yml
 conda activate glhe
-pip install -e .
 ```
 
-Platform-specific environment files live in `requirements/`. The basic one (`env-GLHE-basic.yml`) is most portable. `setup.py` is minimal and only registers the package name.
+The `environment.yml` at the repo root installs all conda and pip dependencies, then runs `pip install -e .[dev]` automatically — no separate pip step needed.
 
 ---
 

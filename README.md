@@ -22,9 +22,13 @@ It is not intended to be used for any serious research because it hasn't been va
 To use Global Lake Hydrology Explorer, please:
 
 1. Clone the Repo on a LINUX computer (Windows/Mac is fine, just need to workshop the packages in your conda environment a little.)
-2. You will need to setup the environment. The suggested install is with conda, and requirements/env-GLHE-{platform}.yml or requirements/env-GLHE-basic.yml which should give some flexibility as the conda environment file. You can also use the requirements.txt files, which may or may not be out of date.
-3. Once you set up the conda
-environment it should just run. 
+2. Set up the conda environment:
+   ```bash
+   conda env create -f environment.yml
+   conda activate glhe
+   ```
+   The `environment.yml` at the repo root handles all dependencies and installs the package in editable mode automatically.
+3. Once the environment is active, it should just run.
 4. **Caveat**: The project also hosts all the data from DropBox. If AWS S3 access is not available, it downloads everything from there. That takes a while through python, so I recommend downloading the "GLHE - Large Data Repository data" from here: https://www.dropbox.com/scl/fo/d9a8t8rs05qjr9dnzdzvw/AOIR2cebgd4tb3u5rjOm4RQ?rlkey=z8pd6py7ec1wwwt0rahae77zb&st=c10pjgqf&dl=0, then extracting it as the "LocalData" folder under GLHE/CLAY. Then, the first run of the code will be like 10 minutes as opposed to 2 hours. After a successful first run, this no longer matters.
 
 ### Usage

@@ -1,0 +1,39 @@
+name: glhe
+channels:
+  - conda-forge
+  - nsidc
+  - defaults
+dependencies:
+  - python=3.12
+  # C-extension packages — best installed via conda
+  - gdal
+  - rasterio
+  - geopandas
+  - netcdf4
+  - h5py
+  - shapely
+  - pyproj
+  # Core science stack
+  - xarray
+  - pandas
+  - matplotlib
+  - pint
+  - dask
+  - zarr
+  - s3fs
+  - fsspec
+  - boto3
+  # Data access
+  - cdsapi
+  # Visualization
+  - holoviews
+  - plotly
+  - dash
+  - flask
+  # Dev tools
+  - ipykernel
+  - pytest
+  - black
+  - pip
+  - pip:
+      - -e .[dev]
