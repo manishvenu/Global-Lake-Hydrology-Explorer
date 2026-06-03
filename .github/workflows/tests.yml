@@ -27,13 +27,14 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      # Install only the packages that are pip-safe and needed for the unit
-      # tests that don't touch real data. Heavy C-extension packages (gdal,
-      # rasterio, geopandas, etc.) are mocked or not needed for the fast suite.
+      # pint is pure-Python and required by GLHE/CLAY/__init__.py at import
+      # time. CLAY/LIME tests need the full conda env (real data, C extensions)
+      # so only the CALCITE tests run here.
       - name: Install test dependencies
-        run: |
-          pip install pytest
-          pip install --no-deps -e .
+        run: pip install pytest pint
 
-      - name: Run fast tests
-        run: pytest -m "not slow and not subsetting_data" --tb=short
+      - name: Install GLHE package
+        run: pip install --no-deps -e .
+
+      - name: Run CALCITE unit tests
+        run: pytest tests/test_CALCITE.py --tb=short -v
