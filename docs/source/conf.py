@@ -31,6 +31,7 @@ exclude_patterns = []
 # Mock heavy C-extension / environment-specific packages so autodoc can import
 # GLHE modules without needing a full conda environment in CI.
 autodoc_mock_imports = [
+    "pandas",
     "xarray",
     "osgeo",
     "gdal",

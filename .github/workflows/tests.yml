@@ -27,11 +27,11 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      # pint is pure-Python and required by GLHE/CLAY/__init__.py at import
-      # time. CLAY/LIME tests need the full conda env (real data, C extensions)
-      # so only the CALCITE tests run here.
+      # GLHE uses lazy subpackage imports, so CALCITE can be imported without
+      # CLAY's heavy deps (pandas, xarray, …). CLAY/LIME tests need the full
+      # conda env so only the CALCITE tests run in CI.
       - name: Install test dependencies
-        run: pip install pytest pint
+        run: pip install pytest
 
       - name: Install GLHE package
         run: pip install --no-deps -e .
