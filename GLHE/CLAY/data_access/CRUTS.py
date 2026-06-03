@@ -47,7 +47,7 @@ class CRUTS(data_access_parent_class.DataAccess):
         self.xarray_dataset = xr.open_dataset(
             zarr_s3_path,
             engine="zarr",
-            backend_kwargs={"storage_options": {"anon": False}},
+            backend_kwargs={"storage_options": {"anon": True}},
         )
         return self.xarray_dataset
 
@@ -64,10 +64,15 @@ class CRUTS(data_access_parent_class.DataAccess):
             xarray Dataset format of the evap, precip, & runoff in a grid
         """
         self.logger.info("Reading in CRUTS data")
-        try:
-            self.xarray_dataset = self.get_dataset_from_cloud()
-        except:
-            self.xarray_dataset = self.get_dataset_from_local_source()
+        local_zarr = Path(__file__).parent.parent / "LocalData" / "zarr" / "CRUTS.zarr"
+        if local_zarr.exists():
+            self.logger.info("Reading CRUTS data from local cache")
+            self.xarray_dataset = xr.open_dataset(str(local_zarr), engine="zarr")
+        else:
+            try:
+                self.xarray_dataset = self.get_dataset_from_cloud()
+            except Exception:
+                self.xarray_dataset = self.get_dataset_from_local_source()
         return self.xarray_dataset
 
     def product_driver(self, polygon, debug=False, run_cleanly=False) -> list[MVSeries]:

@@ -1,159 +1,139 @@
 import json
 import logging
-import os
-import requests
-from requests.adapters import HTTPAdapter, Retry
-from zipfile import ZipFile
 from pathlib import Path
+
 import boto3
+from botocore import UNSIGNED
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
-s3 = boto3.client("s3")
 logger = logging.getLogger(__name__)
 
-_DOWNLOAD_SESSION = requests.Session()
-_retry = Retry(total=3, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504])
-_DOWNLOAD_SESSION.mount("https://", HTTPAdapter(max_retries=_retry))
-_DOWNLOAD_SESSION.mount("http://", HTTPAdapter(max_retries=_retry))
-
-
-# THIS MODULE CHECKS FOR DATA BY FILENAME!!!!! IF YOU CHANGE THE FILENAME, YOU MUST CHANGE THE FILENAME IN THE CONFIGURATION FILE
-def download_data_from_dropbox(
-    dropbox_link: str, filename: str, is_folder: bool
-) -> None:
-    """
-    This function downloads data from dropbox. It is used to download data from dropbox that is too large to be shipped with the project.
-    Parameters
-    ----------
-    dropbox_link : str
-        The dropbox link to the data
-    filename : str
-        The filename of the data
-    is_folder : bool
-        If the data is a folder or not
-    Returns
-    -------
-    None
-    """
-    logger.info("** Checking Data **")
-    headers = {"user-agent": "Wget/1.16 (linux-gnu)"}
-    r = _DOWNLOAD_SESSION.get(dropbox_link, stream=True, headers=headers, timeout=120)
-    r.raise_for_status()
-    filepath = os.path.join(Path(__file__).parents[1], "LocalData", filename)
-    logger.info(filepath)
-    if is_folder:
-        filepath += ".zip"
-    with open(filepath, "wb") as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-    if is_folder:
-        with ZipFile(filepath, "r") as zip_file:
-            # Extract the files
-            zip_file.extractall(
-                os.path.join(Path(__file__).parents[1], "LocalData", filename)
-            )
-        os.remove(filepath)
-    logger.info("Finished downloading " + filename + " from dropbox")
-    return
+_LOCAL_DATA_DIR = Path(__file__).parents[1] / "LocalData"
+_BUCKET = "glhe"
 
 
 def check_data_and_download_missing_data_or_files() -> None:
-    """
-    This function checks if data files (listed in configuration file) exists in the LocalData folder.
-    Returns
-    -------
-    list[str]
-        Returns data files that need to be imported
-    """
+    """Verify all required data is accessible — locally cached or on S3."""
+    _LOCAL_DATA_DIR.mkdir(exist_ok=True)
 
-    # Check if Local Data Folder Exists #
-    if not os.path.exists(os.path.join(Path(__file__).parents[1], "LocalData")):
-        os.mkdir(os.path.join(Path(__file__).parents[1], "LocalData"))
-
-    # Read in local data files list #
-    with open(
-        os.path.join(Path(__file__).parent, "data_access_config", "input_data.json")
-    ) as f:
-        input_data_config = json.load(f)
-
-    data_products = input_data_config["data_products"]
-
-    for product in data_products:
+    for product in _load_products():
         name = product["name"]
         code = product["access_code"]
+
         if code == "local":
-            filename = product["local_remote_storage_filename"]
-            is_folder = False
-            if "cloud" in product:
-                cloud_path = product["cloud"]
-                if s3_object_or_folder_exists("glhe", cloud_path):
-                    logger.info("Found " + name + " data in S3")
-                    continue
-                else:
-                    logger.info("Could not find " + name + " data in S3")
-                    exit()
-            if not os.path.exists(
-                os.path.join(Path(__file__).parents[1], "LocalData", filename)
-            ):
-                logger.info("Downloading " + name + " data. It will take some time!")
-                if filename[-1] == "/":
-                    is_folder = True
-                    # os.mkdir("LocalData/" + filename[:-1])
-                    download_data_from_dropbox(
-                        product["dropbox_download_link"], filename[:-1], is_folder
-                    )
-                else:
-                    download_data_from_dropbox(
-                        product["dropbox_download_link"], filename, is_folder
-                    )
+            local_path = _LOCAL_DATA_DIR / product["local_path"]
+            if local_path.exists():
+                logger.info(f"Found {name} locally")
+                continue
+            cloud_path = product["cloud"]
+            if s3_object_or_folder_exists(_BUCKET, cloud_path):
+                logger.info(f"Found {name} in S3")
             else:
-                logger.info("Found " + name + " data")
+                raise RuntimeError(
+                    f"{name} not found locally or in S3 (s3://{_BUCKET}/{cloud_path})"
+                )
+
         elif code == "api":
-            if not os.path.exists(
-                os.path.join(
-                    Path(__file__).parent, product["api_access_script"] + ".py"
-                )
-            ):
-                logger.warning(
-                    "Downloading "
-                    + name
-                    + "api access script. Why didn't you have this? Definitely reclone the "
-                    "project from github if you can"
-                )
-                download_data_from_dropbox(
-                    product["api_access_script"], filename, is_folder
-                )
+            script = product["api_access_script"]
+            script_path = Path(__file__).parent / (script + ".py")
+            if script_path.exists():
+                logger.info(f"Found {name} api access script")
             else:
-                logger.info("Found " + name + " api access script")
+                raise RuntimeError(
+                    f"Missing api access script for {name}: {script_path}"
+                )
+
     logger.info("Finished checking and/or downloading required data & files")
-    return None
 
 
-def s3_object_or_folder_exists(bucket_name, s3_path):
-    s3 = boto3.client("s3")
+def download_for_offline() -> None:
+    """Download all S3 data products to LocalData so CLAY can run without internet.
 
-    # First, check if the exact object (file) exists using head_object
+    Call this once before going offline:
+        from GLHE.CLAY.data_access.data_check import download_for_offline
+        download_for_offline()
+    """
+    _LOCAL_DATA_DIR.mkdir(exist_ok=True)
+
+    for product in _load_products():
+        if product["access_code"] != "local":
+            continue
+        local_path = _LOCAL_DATA_DIR / product["local_path"]
+        if local_path.exists():
+            logger.info(f"{product['name']} already cached locally")
+            continue
+        cloud_path = product["cloud"]
+        logger.info(f"Downloading {product['name']} from s3://{_BUCKET}/{cloud_path} ...")
+        _download_from_s3(_BUCKET, cloud_path, local_path)
+        logger.info(f"Downloaded {product['name']}")
+
+
+def _load_products() -> list:
+    config_path = Path(__file__).parent / "data_access_config" / "input_data.json"
+    with open(config_path) as f:
+        return json.load(f)["data_products"]
+
+
+def _download_from_s3(bucket: str, s3_path: str, local_path: Path) -> None:
+    """Download a file or directory (zarr store, shapefile folder) from S3."""
+    s3 = boto3.client("s3", config=Config(signature_version=UNSIGNED))
+    prefix = s3_path.rstrip("/") + "/"
+
+    objects = [
+        obj
+        for page in s3.get_paginator("list_objects_v2").paginate(
+            Bucket=bucket, Prefix=prefix
+        )
+        for obj in page.get("Contents", [])
+    ]
+
+    if not objects:
+        # Single file
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        s3.download_file(bucket, s3_path, str(local_path))
+        return
+
+    logger.info(f"  {len(objects)} files to download")
+    for obj in objects:
+        key = obj["Key"]
+        rel = key[len(prefix):]
+        if not rel:
+            continue
+        dest = local_path / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        s3.download_file(bucket, key, str(dest))
+
+
+def s3_object_or_folder_exists(bucket_name: str, s3_path: str) -> bool:
+    s3 = boto3.client("s3", config=Config(signature_version=UNSIGNED))
+
     try:
         s3.head_object(Bucket=bucket_name, Key=s3_path)
-        return True  # If object exists, return True
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "404":
-            pass  # Object doesn't exist, continue to check for folder
-
-    # If the object doesn't exist, check if it's a folder (prefix) by listing objects
-    result = s3.list_objects_v2(Bucket=bucket_name, Prefix=s3_path, Delimiter="/")
-
-    # If 'Contents' or 'CommonPrefixes' exists, it means the folder (prefix) exists
-    if "Contents" in result or "CommonPrefixes" in result:
         return True
+    except ClientError as e:
+        code = e.response["Error"]["Code"]
+        if code not in ("404", "403", "NoSuchKey"):
+            raise
 
-    # If neither exists, return False
-    return False
+    if s3_path.endswith(".zarr"):
+        try:
+            s3.head_object(Bucket=bucket_name, Key=s3_path + "/.zmetadata")
+            return True
+        except ClientError:
+            pass
 
-
-if __name__ == "__main__":
-    print(
-        "This is the download data module. It downloads all the general local data that can't really be accessed "
-        "through API's. These are massive files (4-5 GB)"
-    )
+    try:
+        result = s3.list_objects_v2(
+            Bucket=bucket_name, Prefix=s3_path, Delimiter="/"
+        )
+        return "Contents" in result or "CommonPrefixes" in result
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "AccessDenied":
+            logger.warning(
+                "s3:ListBucket denied for %s/%s — assuming it exists",
+                bucket_name,
+                s3_path,
+            )
+            return True
+        raise

@@ -289,25 +289,23 @@ def write_and_output_LIME_CONFIG(config_information: dict) -> None:
     CONFIG_Name = (
         GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/config.json"
     )
+    optional_keys = {
+        "README": events.TypeOfFileLIME.READ_ME,
+        "DATA_PRODUCTS_CONFIG": events.TypeOfFileLIME.DATA_PRODUCTS_CONFIG,
+        "OTHER": events.TypeOfFileLIME.OTHER,
+        "SERIES_DATA": events.TypeOfFileLIME.SERIES_DATA,
+        "GRIDDED_DATA_FOLDER": events.TypeOfFileLIME.GRIDDED_DATA_FOLDER,
+        "NWM_LAKE_POINT_SHAPEFILENAME": events.TypeOfFileLIME.NWM_LAKE_POINT_SHAPEFILENAME,
+    }
     ribbit = {
-        "README": config_information[events.TypeOfFileLIME.READ_ME],
-        "DATA_PRODUCTS_CONFIG": config_information[events.TypeOfFileLIME.DATA_PRODUCTS_CONFIG],
-        "OTHER": config_information[events.TypeOfFileLIME.OTHER],
-        "SERIES_DATA": config_information[events.TypeOfFileLIME.SERIES_DATA],
-        "GRIDDED_DATA_FOLDER": config_information[
-            events.TypeOfFileLIME.GRIDDED_DATA_FOLDER
-        ],
-        "CLAY_OUTPUT_FOLDER_LOCATION": GLHE.CLAY.globals.config["DIRECTORIES"][
-            "OUTPUT_DIRECTORY"
-        ],
+        "CLAY_OUTPUT_FOLDER_LOCATION": GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"],
         "LAKE_NAME": GLHE.CLAY.globals.config["LAKE_NAME"],
     }
-    try:
-        ribbit["NWM_LAKE_POINT_SHAPEFILENAME"] = config_information[
-            events.TypeOfFileLIME.NWM_LAKE_POINT_SHAPEFILENAME
-        ]
-    except:
-        logger.info("No NWM PubSub Event")
+    for json_key, event_key in optional_keys.items():
+        if event_key in config_information:
+            ribbit[json_key] = config_information[event_key]
+        else:
+            logger.info("No PubSub event for %s", json_key)
 
     with open(CONFIG_Name, "w") as fp:
         json.dump(ribbit, fp)

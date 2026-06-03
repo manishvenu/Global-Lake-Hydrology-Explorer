@@ -1,31 +1,21 @@
-import os
-
 import fsspec
 import geopandas as gpd
+import numpy as np
 import xarray as xr
-from pyproj import CRS
 from shapely.geometry import Polygon, Point
-import boto3
 import GLHE
 from GLHE.CALCITE import events, pubsub
 from GLHE.CLAY import helpers, xarray_helpers
 from GLHE.CLAY.data_access import data_access_parent_class
 from GLHE.CLAY.helpers import MVSeries
-from pathlib import Path
 
 
 class NWM(data_access_parent_class.DataAccess):
     xarray_dataset: xr.Dataset
-    BUCKET_URL = "s3://noaa-nwm-retrospective-2-1-zarr-pds/lakeout.zarr"
-    BUCKET_NAME_NETCDF = "noaa-nwm-retrospective-2-1-pds"
+    BUCKET_URL = "s3://noaa-nwm-retrospective-3-0-pds/CONUS/zarr/lakeout.zarr"
     verification_lat_long = {"lat": 0, "lon": 0}
-    s3: boto3.client
 
     def __init__(self):
-        self.s3 = boto3.client(
-            "s3",
-            region_name="us-east-1",
-        )
         self.README_default_information = (
             "Validate this data with the point file labeled 'NWM' in the output folder"
         )
@@ -70,78 +60,30 @@ class NWM(data_access_parent_class.DataAccess):
         return "complete"
 
     def find_lake_id(self, polygon: Polygon) -> list[int]:
-        """
-        Finds the lake ID for a given polygon
-
-        Parameters
-        ----------
-        polygon : shapely.geometry.Polygon
-            The polygon of the lake
-
-        Returns
-        -------
-        int,bool
-            The lake ID
-        """
+        """Find the NWM feature_id index closest to the lake centroid using the zarr store coordinates."""
         self.logger.info("Starting Lake ID Searcher")
+        centroid_lat = polygon.centroid.y
+        centroid_lon = polygon.centroid.x
 
-        latitude = polygon.centroid.y
-        longitude = polygon.centroid.x
-        lo_file_name = os.path.join(
-            Path(__file__).parent.parent, "LocalData/SAMPLE_NWM_LAKEOUT.nc"
-        )
-        co_file_name = os.path.join(
-            Path(__file__).parent.parent, "LocalData/SAMPLE_NWM_CHRTOUT.nc"
-        )
-        if not os.path.exists(lo_file_name) or not os.path.exists(co_file_name):
-            with open(lo_file_name, "wb") as f:
-                self.s3.download_fileobj(
-                    self.BUCKET_NAME_NETCDF,
-                    "model_output/1979/197902010100.LAKEOUT_DOMAIN1.comp",
-                    f,
-                )
-            with open(co_file_name, "wb") as f:
-                self.s3.download_fileobj(
-                    self.BUCKET_NAME_NETCDF,
-                    "model_output/1979/197902010100.CHRTOUT_DOMAIN1.comp",
-                    f,
-                )
+        ds = xr.open_zarr(fsspec.get_mapper(self.BUCKET_URL, anon=True), consolidated=True)
+        lats = ds.latitude.values
+        lons = ds.longitude.values
 
-        lo_nwm = xr.open_dataset(lo_file_name)
-        # Select the data corresponding to a specific value
-        closest = None
+        dists = np.hypot(lons - centroid_lon, lats - centroid_lat)
+        feature_id_index = int(dists.argmin())
+        closest_lat = float(lats[feature_id_index])
+        closest_lon = float(lons[feature_id_index])
 
-        crs = CRS("EPSG:4326")
-        for i, val in enumerate(lo_nwm.feature_id):
-            dist = (
-                (longitude - lo_nwm.longitude[i].values) ** 2
-                + (latitude - lo_nwm.latitude[i].values) ** 2
-            ) ** 0.5
-            if closest is None or dist < closest[0]:
-                closest = (
-                    dist,
-                    i,
-                    lo_nwm.longitude[i].values,
-                    lo_nwm.latitude[i].values,
-                )
-        feature_id_index = closest[1]
-        self.logger.info(
-            "Found Lake ID Verify Correct Placement (Lat, Long): ("
-            + str(lo_nwm.latitude[feature_id_index].item())
-            + ", "
-            + str(lo_nwm.longitude[feature_id_index].item())
-            + ")"
-        )
-        self.verification_lat_long["lat"] = lo_nwm.latitude[feature_id_index].item()
-        self.verification_lat_long["lon"] = lo_nwm.longitude[feature_id_index].item()
-        if closest[0] > 0.001 and not polygon.contains(
-            Point(self.verification_lat_long["lon"], self.verification_lat_long["lat"])
-        ):
+        self.logger.info(f"Found Lake ID Verify Correct Placement (Lat, Long): ({closest_lat}, {closest_lon})")
+        self.verification_lat_long["lat"] = closest_lat
+        self.verification_lat_long["lon"] = closest_lon
+
+        if dists[feature_id_index] > 0.001 and not polygon.contains(Point(closest_lon, closest_lat)):
             self.logger.error("The lake is not in the NWM domain")
             raise Exception("NWM Lake not found, and no alternate NWM source exists")
-        else:
-            self.logger.info("Found Lake ID")
-            return [feature_id_index]
+
+        self.logger.info("Found Lake ID")
+        return [feature_id_index]
 
     def product_driver(self, polygon, debug=False, run_cleanly=False) -> list[MVSeries]:
         """
@@ -210,7 +152,9 @@ class NWM(data_access_parent_class.DataAccess):
         s3_path = self.BUCKET_URL
         ds = xr.open_zarr(fsspec.get_mapper(s3_path, anon=True), consolidated=True)
         dataset = ds.sel(feature_id=ds.feature_id[feature_id_index].item())
-        dataset = dataset.drop_vars(["crs", "water_sfc_elev"])
+        drop = [v for v in ["crs", "water_sfc_elev"] if v in dataset]
+        if drop:
+            dataset = dataset.drop_vars(drop)
 
         self.logger.warning(
             "No verification for if this is the correct lake has been implemented yet. Please implement!"

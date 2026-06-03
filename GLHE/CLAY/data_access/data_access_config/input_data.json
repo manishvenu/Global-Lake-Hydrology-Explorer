@@ -9,10 +9,9 @@
     {
       "name": "CRUTS",
       "access_code": "local",
-      "local_remote_storage_filename": "cruts_pet_pre_4.07_1901_2022.nc",
-      "dropbox_download_link": "https://www.dropbox.com/scl/fi/vqs1x27wnlplx6wpbay7t/cruts_pet_pre_4.07_1901_2022.nc?dl=0&rlkey=pkctmwuk1idba07mntcxscc87",
       "description": "Pre, PET data from CRU TS",
-      "cloud": "zarr/CRUTS.zarr"
+      "cloud": "zarr/CRUTS.zarr",
+      "local_path": "zarr/CRUTS.zarr"
     },
     {
       "name": "NWM",
@@ -24,32 +23,16 @@
       "name": "Lake_Shapefiles",
       "access_code": "local",
       "description": "Dataset of all lakes in the world",
-      "local_remote_storage_filename": "HydroLAKES_polys_v10_shp/",
-      "dropbox_download_link": "https://www.dropbox.com/sh/91riy601jr1itet/AABgOkSunThe35mvsM5KhJyQa?dl=1",
-      "cloud": "HydroLAKES/HydroLAKES_polys_v10_shp/HydroLAKES_polys_v10.shp"
+      "cloud": "HydroLAKES/HydroLAKES_polys_v10_shp",
+      "local_path": "HydroLAKES_polys_v10_shp"
     },
     {
       "name": "ERA5_Local",
       "access_code": "local",
       "description": "Dataset of global ERA5 for runoff, evap, and precip",
-      "local_remote_storage_filename": "ERA5/",
-      "dropbox_download_link": "https://www.dropbox.com/scl/fo/3s77aopnhgqfc8qbdq9ci/AN4RCkV9Wigl5gcISYfCc2E?rlkey=77o0okbh81zknfpo2dd48kyza&st=lo4xmu0n&dl=1",
-      "cloud": "zarr/ERA5.zarr"
-    },
-    {
-      "name": "SAMPLE_NWM_LAKEOUT",
-      "access_code": "local",
-      "local_remote_storage_filename": "SAMPLE_NWM_LAKEOUT.nc",
-      "dropbox_download_link": "https://www.dropbox.com/s/2lqrmi1za8x0rj4/SAMPLE_NWM_LAKEOUT.nc?dl=0",
-      "description": "LAKEOUT file from NWM (sample) used everytime to find lake id"
-    },
-    {
-      "name": "SAMPLE_NWM_CHRTOUT",
-      "access_code": "local",
-      "local_remote_storage_filename": "SAMPLE_NWM_CHRTOUT.nc",
-      "dropbox_download_link": "https://www.dropbox.com/s/4gfdw7vvipjho9b/SAMPLE_NWM_CHRTOUT.nc?dl=0",
-      "description": "CHRTOUT file from NWM (sample) used sometime to find stream ids"
+      "cloud": "zarr/ERA5.zarr",
+      "local_path": "zarr/ERA5.zarr"
     }
   ],
-  "metadata": "This is a list of data products, and they have specific access methods. Right now that is API or Local. MUST HAVE NAME AND ACCESS CODE But eventually all you would need to do here is add the product, but that's far far away. "
+  "metadata": "Data products use S3 by default. Run download_for_offline() once to cache locally for offline use."
 }
