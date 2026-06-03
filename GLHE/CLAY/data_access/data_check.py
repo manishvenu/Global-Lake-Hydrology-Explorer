@@ -1,16 +1,20 @@
 import json
 import logging
 import os
-import json
 import requests
+from requests.adapters import HTTPAdapter, Retry
 from zipfile import ZipFile
-import pkgutil
 from pathlib import Path
 import boto3
 from botocore.exceptions import ClientError
 
 s3 = boto3.client("s3")
 logger = logging.getLogger(__name__)
+
+_DOWNLOAD_SESSION = requests.Session()
+_retry = Retry(total=3, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504])
+_DOWNLOAD_SESSION.mount("https://", HTTPAdapter(max_retries=_retry))
+_DOWNLOAD_SESSION.mount("http://", HTTPAdapter(max_retries=_retry))
 
 
 # THIS MODULE CHECKS FOR DATA BY FILENAME!!!!! IF YOU CHANGE THE FILENAME, YOU MUST CHANGE THE FILENAME IN THE CONFIGURATION FILE
@@ -33,7 +37,8 @@ def download_data_from_dropbox(
     """
     logger.info("** Checking Data **")
     headers = {"user-agent": "Wget/1.16 (linux-gnu)"}
-    r = requests.get(dropbox_link, stream=True, headers=headers)
+    r = _DOWNLOAD_SESSION.get(dropbox_link, stream=True, headers=headers, timeout=120)
+    r.raise_for_status()
     filepath = os.path.join(Path(__file__).parents[1], "LocalData", filename)
     logger.info(filepath)
     if is_folder:

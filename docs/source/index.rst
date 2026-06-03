@@ -22,6 +22,7 @@ Contents
 
    usage
    architecture
+   products
    organization
    sources
    discussions

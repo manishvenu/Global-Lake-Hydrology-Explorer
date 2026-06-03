@@ -1,0 +1,39 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "GLHE/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - ".github/workflows/tests.yml"
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      # Install only the packages that are pip-safe and needed for the unit
+      # tests that don't touch real data. Heavy C-extension packages (gdal,
+      # rasterio, geopandas, etc.) are mocked or not needed for the fast suite.
+      - name: Install test dependencies
+        run: |
+          pip install pytest
+          pip install --no-deps -e .
+
+      - name: Run fast tests
+        run: pytest -m "not slow and not subsetting_data" --tb=short

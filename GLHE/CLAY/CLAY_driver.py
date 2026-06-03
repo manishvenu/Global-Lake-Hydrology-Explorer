@@ -17,13 +17,13 @@ class CLAY_driver:
     This is the driver class.
     """
 
-    datasets_index = {"all": [], "grid": [], "slc": {}}
+    datasets_index: dict
     pandas_dataset: pd.DataFrame
     root_logger: logging.Logger
-    data_products = {}
-    read_me_information = {"Data_Product": {}, "Output_File": {}}
-    output_file_config = {}
-    lake_polygon = None
+    data_products: dict
+    read_me_information: dict
+    output_file_config: dict
+    lake_polygon: object
 
     def __init__(self):
         """

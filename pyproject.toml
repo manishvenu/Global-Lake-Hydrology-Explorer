@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "GLHE"
+version = "0.1"
+description = "Global Lake Hydrology Explorer — lake-scale hydrology data access and visualization"
+authors = [{name = "Manish Venumuddula", email = "manish.venumuddula@gmail.com"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.12"
+# Packages with C extensions (gdal, rasterio, geopandas, netCDF4, h5py) must be
+# installed via conda — see requirements/env-GLHE-basic.yml.
+dependencies = [
+    "xarray",
+    "pandas",
+    "matplotlib",
+    "pint",
+    "pint-xarray",
+    "rasterio",
+    "shapely",
+    "h5py",
+    "cdsapi",
+    "geopandas",
+    "boto3",
+    "pyproj",
+    "fsspec",
+    "s3fs",
+    "netCDF4",
+    "dask",
+    "zarr",
+    "requests",
+    "dash",
+    "dash-bootstrap-components",
+    "plotly",
+    "holoviews",
+    "flask",
+    "reverse-geocode",
+    "snakemd",
+    "raster2xyz",
+]
+
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "sphinx-autodoc-typehints",
+]
+dev = [
+    "pytest",
+    "black",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["GLHE*"]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "subsetting_data: marks tests as subsetting_data (deselect with '-m \"not subsetting_data\"')",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::RuntimeWarning",
+]
+log_cli = true
+log_cli_level = "INFO"
