@@ -31,14 +31,11 @@ dependencies = [
     "dask",
     "zarr",
     "requests",
-    "dash",
-    "dash-bootstrap-components",
     "plotly",
     "holoviews",
-    "flask",
-    "reverse-geocode",
+    "hvplot",
+    "panel",
     "snakemd",
-    "raster2xyz",
 ]
 
 [project.optional-dependencies]

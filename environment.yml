@@ -27,9 +27,9 @@ dependencies:
   - cdsapi
   # Visualization
   - holoviews
+  - hvplot
+  - panel
   - plotly
-  - dash
-  - flask
   # Dev tools
   - ipykernel
   - pytest

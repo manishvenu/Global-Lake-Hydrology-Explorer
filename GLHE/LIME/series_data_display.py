@@ -1,52 +1,41 @@
 import pandas as pd
-import os
-import json
-from dash import dash_table, dcc
-import dash_bootstrap_components as dbc
-from pathlib import Path
+import hvplot.pandas  # noqa: F401 — registers .hvplot accessor on DataFrames
+import panel as pn
+
+SLC_LABELS = {
+    "p": "Precipitation (mm/month)",
+    "e": "Evapotranspiration (mm/month)",
+    "i": "Inflow (m³/month)",
+    "o": "Outflow (m³/month)",
+}
 
 
 class SeriesDataDisplay:
-    df: pd.DataFrame
+    def __init__(self, csv_path: str):
+        self.df = pd.read_csv(csv_path, index_col=0, parse_dates=True)
+        self.df.index.name = "Date"
 
-    def __init__(self, config: dict):
+    def make_plots(self) -> list:
+        """One hvplot line chart per variable type (p/e/i/o) that has data."""
+        plots = []
+        for slc, label in SLC_LABELS.items():
+            cols = [c for c in self.df.columns if c.startswith(slc + ".")]
+            if cols:
+                plot = self.df[cols].hvplot.line(
+                    ylabel=label,
+                    responsive=True,
+                    height=280,
+                    legend="top_left",
+                    grid=True,
+                )
+                plots.append(plot)
+        return plots
 
-        self.df = pd.read_csv(config["SERIES_DATA"])
-        self.df = self.df.rename(columns={"time": "Date"})
-
-    def generate_series_data_table(self) -> dash_table.DataTable:
-        """
-        Given a config file, the function returns a DASH Data table.
-        """
-        table = dash_table.DataTable(
-            data=self.df.to_dict("records"),
-            export_format="xlsx",
-            export_headers="display",
-            page_size=10,
+    def make_table(self) -> pn.widgets.Tabulator:
+        """Scrollable data table with export support."""
+        return pn.widgets.Tabulator(
+            self.df.reset_index(),
+            pagination="remote",
+            page_size=20,
+            sizing_mode="stretch_width",
         )
-        return table
-
-    def get_df(self) -> pd.DataFrame:
-        """
-        Simple getter for the df
-        """
-        return self.df
-
-    def generate_graph_checklist_by_component(self, component: str) -> dcc.Checklist:
-        """
-        Return Checklist best  on p,e,i,o
-        """
-        if component[0] not in ["p", "e", "i", "o"]:
-            raise ValueError("Invalid component")
-
-        temp = [col for col in self.df if col.startswith(component[0])]
-        options_list = []
-        for col in temp:
-            options_list.append({"label": str.split(col, ".")[1], "value": col})
-        if len(temp) == 0:
-            options_list.append({"label": "No Data", "value": "No_Data"})
-            temp.append("No_Data")
-        checklist = dbc.Checklist(
-            id=component + "_checklist", options=options_list, value=[temp[0]]
-        )
-        return checklist

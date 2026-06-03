@@ -1,198 +1,110 @@
-import dash_bootstrap_components as dbc
-import holoviews as hv
-import plotly.express as px
-from dash import Dash, html, dcc, Input, Output, State
+"""
+LIME — Lake Interactive Map Explorer
 
-from flask import Flask
-from holoviews import opts
-from holoviews.plotting.plotly.dash import to_dash
-import os
-from pathlib import Path
+Entry point: LIME_driver(output_dir)
+
+Reads config.json written by CLAY and launches a Panel dashboard with four tabs:
+  1. Time Series  — interactive line charts per variable type (P / E / I / O)
+  2. Data Table   — paginated, sortable table of the CSV output
+  3. Gridded Data — GeoTIFF point overlay on a tile map
+  4. Lake Map     — NWM validation point on a tile map
+"""
+
 import json
-import GLHE.LIME.gridded_data_validation as gridded_data_validation
-import GLHE.LIME.lake_point_validation as lake_point_validation
-import GLHE.LIME.series_data_display as series_data_display
-import warnings
-import reverse_geocode
-import threading
+import panel as pn
+import holoviews as hv
+from pathlib import Path
 
-warnings.filterwarnings("ignore", category=FutureWarning)
+from GLHE.LIME.series_data_display import SeriesDataDisplay
+from GLHE.LIME.gridded_data_display import GriddedDataDisplay
+from GLHE.LIME.lake_map_display import LakeMapDisplay
 
-app = Dash(
-    __name__,
-    external_stylesheets=[dbc.themes.FLATLY],
-)
+pn.extension("tabulator")
+hv.extension("bokeh")
 
 
-def prep_work(output_file_dir: str):
-    if output_file_dir is None:
-        with open(
-            os.path.join(Path(__file__).parent, "config", "config.json"), "r"
-        ) as f:
-            config_pointer = json.load(f)
-    else:
-        config_pointer = {"CLAY_OUTPUT_FOLDER_LOCATION": output_file_dir}
-    with open(
-        os.path.join(config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"], "config.json"), "r"
-    ) as f:
-        config = json.load(f)
-    with open(config["BLEEPBLEEP"], "r") as f:
-        data_products = json.load(f)
-    Series_Data_Obj = series_data_display.SeriesDataDisplay(config)
-    series_data_table = Series_Data_Obj.generate_series_data_table()
-    global series_data_df
-    series_data_df = Series_Data_Obj.get_df()
-    LakePointDisplay_Obj = lake_point_validation.LakePointDisplay(config)
-    NWM_fig = LakePointDisplay_Obj.generate_nwm_point_figure()
-    tiles = hv.element.tiles.CartoLight()
-    Gridded_Data_Obj = gridded_data_validation.GriddedDataDisplay(config)
-    if not LakePointDisplay_Obj.no_data:
-        address = reverse_geocode.search(LakePointDisplay_Obj.center_point)
-    else:
-        address = [{"country": "Unknown Country"}]
-    points = Gridded_Data_Obj.get_points("p.CRUTS")
-    overlay = tiles * points
+def _load_config(output_dir: str | None) -> dict:
+    """
+    Load config.json from the CLAY output directory.
+    If output_dir is None, falls back to the pointer stored in LIME/config/config.json.
+    """
+    if output_dir is None:
+        pointer_path = Path(__file__).parent / "config" / "config.json"
+        with open(pointer_path) as f:
+            pointer = json.load(f)
+        output_dir = pointer["CLAY_OUTPUT_FOLDER_LOCATION"]
+    with open(Path(output_dir) / "config.json") as f:
+        return json.load(f)
 
+
+def build_dashboard(config: dict) -> pn.template.FastListTemplate:
+    """
+    Assemble the Panel dashboard from CLAY output described by config.
+
+    Parameters
+    ----------
+    config : dict
+        The contents of config.json written by CLAY_driver.
+
+    Returns
+    -------
+    pn.template.FastListTemplate
+        A serveable Panel app.
+    """
+    lake_name = config["LAKE_NAME"].replace("_", " ")
+
+    # --- Time series tab ---
+    series = SeriesDataDisplay(config["SERIES_DATA"])
+    ts_tab = pn.Column(*series.make_plots(), sizing_mode="stretch_width")
+
+    # --- Data table tab ---
+    table_tab = series.make_table()
+
+    # --- Gridded data tab ---
     try:
-        points2 = Gridded_Data_Obj.get_points("p.ERA5-Land")
-        overlay *= points2
+        gridded_map = GriddedDataDisplay(config["GRIDDED_DATA_FOLDER"]).make_map()
+        gridded_tab = pn.pane.HoloViews(gridded_map, sizing_mode="stretch_width")
     except Exception as e:
-        print("No ERA5 Found. Exception:", e)
-    overlay.opts(title="Gridded Data Validation")
-    components = to_dash(app, [overlay])
-    options_list = []
-    for key in data_products.keys():
-        if not data_products[key]["loaded"]:
-            options_list.append(key)
-    app.layout = html.Div(
-        [
-            dbc.Row(
-                dbc.Col(
-                    html.H1(
-                        "Lake "
-                        + config["LAKE_NAME"].replace("_", " ")
-                        + ", "
-                        + address[0]["country"],
-                        style={"textAlign": "center"},
-                    )
-                )
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(dcc.Graph(id="p_graph"), width=11),
-                    dbc.Col(
-                        Series_Data_Obj.generate_graph_checklist_by_component("p"),
-                        width=1,
-                        align="center",
-                    ),
-                ]
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(dcc.Graph(id="e_graph"), width=11),
-                    dbc.Col(
-                        Series_Data_Obj.generate_graph_checklist_by_component("e"),
-                        width=1,
-                        align="center",
-                    ),
-                ]
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(dcc.Graph(id="i_graph"), width=11),
-                    dbc.Col(
-                        Series_Data_Obj.generate_graph_checklist_by_component("i"),
-                        width=1,
-                        align="center",
-                    ),
-                ]
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(dcc.Graph(id="o_graph"), width=11),
-                    dbc.Col(
-                        Series_Data_Obj.generate_graph_checklist_by_component("o"),
-                        width=1,
-                        align="center",
-                    ),
-                ]
-            ),
-            dbc.Row([dbc.Col(series_data_table)]),
-            dbc.Row([dbc.Col(components.children), dbc.Col(NWM_fig)]),
-            dbc.Row(
-                dbc.Col(
-                    [
-                        html.P("Some Products are Slow! Load them here:"),
-                        dcc.Dropdown(options_list, id="demo-dropdown"),
-                        html.Button("Run Product", id="button"),
-                        html.Div(id="dd-output-container"),
-                    ]
-                )
-            ),
-        ]
+        gridded_tab = pn.pane.Alert(f"Gridded data unavailable: {e}", alert_type="warning")
+
+    # --- Lake map tab ---
+    lake_map = LakeMapDisplay(config).make_map()
+    lake_tab = pn.pane.HoloViews(lake_map, sizing_mode="stretch_width")
+
+    return pn.template.FastListTemplate(
+        title=f"GLHE — {lake_name}",
+        main=[
+            pn.Tabs(
+                ("Time Series", ts_tab),
+                ("Data Table", table_tab),
+                ("Gridded Data", gridded_tab),
+                ("Lake Map", lake_tab),
+            )
+        ],
     )
 
 
-@app.callback(Output("p_graph", "figure"), Input("p_checklist", "value"))
-def update_line_chart(plot_columns):
-    y_cols = plot_columns
-    fig = px.line(
-        series_data_df,
-        x="Date",
-        y=y_cols,
-        labels={
-            "Date": "Date",
-            "value": "Precipitation (mm/month)",
-            "variable": "Dataset",
-        },
-    )
-    return fig
+def LIME_driver(output_dir: str | None = None) -> None:
+    """
+    Launch the LIME dashboard.
 
+    Parameters
+    ----------
+    output_dir : str, optional
+        Path to the CLAY output directory for the lake of interest.
+        If None, reads the path from LIME/config/config.json.
 
-@app.callback(Output("e_graph", "figure"), Input("e_checklist", "value"))
-def update_line_chart(plot_columns):
-    y_cols = plot_columns
-    fig = px.line(
-        series_data_df,
-        x="Date",
-        y=y_cols,
-        labels={
-            "Date": "Date",
-            "value": "Evaporation (mm/month)",
-            "variable": "Dataset",
-        },
-    )
-    return fig
-
-
-@app.callback(Output("i_graph", "figure"), Input("i_checklist", "value"))
-def update_line_chart(plot_columns):
-    y_cols = plot_columns
-    fig = px.line(
-        series_data_df,
-        x="Date",
-        y=y_cols,
-        labels={"Date": "Date", "value": "Inflow (m^3/month)", "variable": "Dataset"},
-    )
-    return fig
-
-
-@app.callback(Output("o_graph", "figure"), Input("o_checklist", "value"))
-def update_line_chart(plot_columns):
-    y_cols = plot_columns
-    fig = px.line(
-        series_data_df,
-        x="Date",
-        y=y_cols,
-        labels={"Date": "Date", "value": "Outflow (m^3/month)", "variable": "Dataset"},
-    )
-    return fig
-
-
-def LIME_driver(output_file_dir: str):
-    prep_work(output_file_dir)
-    app.run()
+    Example
+    -------
+    >>> import GLHE
+    >>> clay = GLHE.CLAY.CLAY_driver.CLAY_driver()
+    >>> output_dir = clay.main(67)
+    >>> GLHE.LIME.LIME_sample_dashboard.LIME_driver(output_dir)
+    """
+    config = _load_config(output_dir)
+    dashboard = build_dashboard(config)
+    dashboard.show()
 
 
 if __name__ == "__main__":
-    driver()
+    LIME_driver()
