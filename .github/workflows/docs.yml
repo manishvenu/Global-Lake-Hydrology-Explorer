@@ -37,7 +37,8 @@ jobs:
           pip install \
             sphinx \
             sphinx-rtd-theme \
-            "sphinx-autodoc-typehints"
+            "sphinx-autodoc-typehints" \
+            myst-parser
 
       # Install the package itself so `import GLHE` resolves during autodoc.
       # Heavy dependencies are mocked in conf.py so only the package metadata

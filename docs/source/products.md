@@ -1,11 +1,9 @@
-Planned Features & Products
-============================
+# Planned Features & Products
 
 This page documents features and data products planned for or under active
 development in GLHE.
 
-Web Dashboard
--------------
+## Web Dashboard
 
 The LIME dashboard (built on Plotly/Dash) is planned to include:
 
@@ -18,8 +16,7 @@ The LIME dashboard (built on Plotly/Dash) is planned to include:
 - Contextual explanations for each data product
 - Responsive design for different screen sizes
 
-Information & Data Displayed
------------------------------
+## Information & Data Displayed
 
 - Lake name, location, area, and depth
 - Historical lake parameters (water level, temperature, etc.)
@@ -29,8 +26,7 @@ Information & Data Displayed
 - Hydrological data (inflow, outflow, streamflow)
 - Historical and projected water levels
 
-Downloadable Data
------------------
+## Downloadable Data
 
 - Raw data files (CSV, JSON, NetCDF)
 - Aggregated data (hourly, daily, weekly, monthly averages)
@@ -38,25 +34,21 @@ Downloadable Data
 - Sample code and scripts for data retrieval and processing
 - Documentation (data characteristics, usage instructions)
 
-Intermediary Products
----------------------
+## Intermediary Products
 
-Uncertainty and Cautionary Flags
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Uncertainty and Cautionary Flags
 
 An API or indicator for identifying areas with potential data weaknesses.
 Provides information on data quality, gaps, and uncertainties — particularly
 important given the multi-source nature of GLHE data.
 
-Global Product API
-~~~~~~~~~~~~~~~~~~
+### Global Product API
 
 An API providing information on global data products (satellite data, climate
 indices) suitable for the selected lake's location. Helps users identify
 relevant global datasets for comparison and analysis.
 
-Visualizer API
-~~~~~~~~~~~~~~
+### Visualizer API
 
 Low-priority feature: allow users to upload their own CSV data and visualize
 it alongside GLHE outputs on the dashboard.
