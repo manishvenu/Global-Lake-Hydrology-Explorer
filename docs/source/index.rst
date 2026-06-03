@@ -20,8 +20,9 @@ Contents
 
 .. toctree::
 
-   organization
    usage
+   architecture
+   organization
    sources
    discussions
    api-docs/modules

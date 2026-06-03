@@ -1,0 +1,63 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "GLHE/**/*.py"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+# Allow one concurrent deployment; cancel any in-progress run for the same branch.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Sphinx and theme
+        run: |
+          pip install \
+            sphinx \
+            sphinx-rtd-theme \
+            "sphinx-autodoc-typehints"
+
+      # Install the package itself so `import GLHE` resolves during autodoc.
+      # Heavy dependencies are mocked in conf.py so only the package metadata
+      # needs to be present, not the full conda environment.
+      - name: Install GLHE package (no heavy deps)
+        run: pip install --no-deps -e .
+
+      - name: Build HTML docs
+        run: sphinx-build -b html docs/source docs/build/html -W --keep-going
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/build/html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
