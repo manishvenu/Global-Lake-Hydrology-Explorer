@@ -5,9 +5,9 @@ import pandas as pd
 import rasterio
 import snakemd
 import json
+import GLHE.CLAY.globals
 from GLHE.CLAY.globals import SLC_MAPPING_REVERSE_UNITS, SLC_MAPPING_REVERSE_NAMES
-from GLHE.CALCITE import events
-from GLHE.CLAY.helpers import *
+from GLHE.CLAY.helpers import MVSeries, clean_up_specific_temporary_files
 from GLHE.CALCITE import pubsub, events
 
 logger = logging.getLogger(__name__)
@@ -287,11 +287,11 @@ def write_and_output_LIME_CONFIG(config_information: dict) -> None:
     Create a CONFIG file that points to all exported data in LIME-readable format
     """
     CONFIG_Name = (
-        GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/CONFIG.json"
+        GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/config.json"
     )
     ribbit = {
         "README": config_information[events.TypeOfFileLIME.READ_ME],
-        "BLEEPBLEEP": config_information[events.TypeOfFileLIME.BLEEPBLEEP],
+        "DATA_PRODUCTS_CONFIG": config_information[events.TypeOfFileLIME.DATA_PRODUCTS_CONFIG],
         "OTHER": config_information[events.TypeOfFileLIME.OTHER],
         "SERIES_DATA": config_information[events.TypeOfFileLIME.SERIES_DATA],
         "GRIDDED_DATA_FOLDER": config_information[

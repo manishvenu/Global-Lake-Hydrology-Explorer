@@ -8,7 +8,7 @@ class TypeOfFileLIME(Enum):
     READ_ME = 3
     NWM_LAKE_POINT_SHAPEFILENAME = 4
     OTHER = 5
-    BLEEPBLEEP = 6
+    DATA_PRODUCTS_CONFIG = 6
 
 
 @dataclass

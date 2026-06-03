@@ -4,7 +4,6 @@ import os
 import sys
 
 import pandas as pd
-from GLHE.CALCITE import events
 import GLHE.CLAY.globals
 from GLHE.CLAY import combined_data_functions, lake_extraction, helpers
 from GLHE.CLAY.data_access import data_check, ERA5_Land, CRUTS, NWM
@@ -166,17 +165,7 @@ class CLAY_driver:
         for key in self.data_products:
             if self.data_products[key]["loaded"]:
                 try:
-                    response = self.data_products[key]["object"].attach_geodata()
-                    if response == "grid":
-                        self.datasets_index["grid"].extend(
-                            self.data_products[key]["output_datasets"]
-                        )
-                    elif response == "complete":
-                        pass
-                    else:
-                        raise ValueError(
-                            "Response from attach_geodata() must be either 'grid' or 'complete'"
-                        )
+                    self._attach_geodata_for_product(key)
                 except Exception as e:
                     self.root_logger.error(
                         "Geodata for Data Product: {} not available for this lake with Exception: {}".format(
@@ -184,12 +173,37 @@ class CLAY_driver:
                         )
                     )
 
-        combined_data_functions.present_mv_series_as_geospatial_at_date_time(
-            pd.to_datetime("2002-05-01"), *self.datasets_index["grid"]
+        self._run_output_pipeline()
+        logging.info(
+            '"***********************Finished Driver Function*************************"'
         )
+        return GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
 
-        # Plot and Output
-        self.index_datasets()  # Required for datasets_index: slc
+    def _attach_geodata_for_product(self, key: str) -> None:
+        response = self.data_products[key]["object"].attach_geodata()
+        if response == "grid":
+            self.datasets_index["grid"].extend(
+                self.data_products[key]["output_datasets"]
+            )
+        elif response == "complete":
+            pass
+        else:
+            raise ValueError(
+                "Response from attach_geodata() must be either 'grid' or 'complete'"
+            )
+
+    def _run_output_pipeline(self) -> None:
+        if self.datasets_index["grid"]:
+            first_grid = self.datasets_index["grid"][0].xarray_dataarray
+            try:
+                first_ts = pd.Timestamp(first_grid.time.values[0])
+            except AttributeError:
+                first_ts = pd.Timestamp(first_grid.valid_time.values[0])
+            combined_data_functions.present_mv_series_as_geospatial_at_date_time(
+                first_ts, *self.datasets_index["grid"]
+            )
+
+        self.index_datasets()
         self.pandas_dataset = (
             combined_data_functions.merge_mv_series_into_pandas_dataframe(
                 self.datasets_index["slc"]
@@ -199,14 +213,9 @@ class CLAY_driver:
         combined_data_functions.output_all_compiled_data_to_csv(
             GLHE.CLAY.globals.config["LAKE_NAME"] + "_Data.csv", self.pandas_dataset
         )
-
         self.export_data_product_config()
         combined_data_functions.write_and_output_README(self.read_me_information)
         combined_data_functions.write_and_output_LIME_CONFIG(self.output_file_config)
-        logging.info(
-            '"***********************Finished Driver Function*************************"'
-        )
-        return GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
 
     def export_data_product_config(self) -> None:
         data_products_temp = self.data_products.copy()
@@ -228,7 +237,7 @@ class CLAY_driver:
                 output_file_name,
                 ".json",
                 "The products considered by GLHE",
-                events.TypeOfFileLIME.BLEEPBLEEP,
+                events.TypeOfFileLIME.DATA_PRODUCTS_CONFIG,
             ),
         )
 
@@ -268,38 +277,8 @@ class CLAY_driver:
                 )
             )
 
-        # Attach Geodata
-        response = self.data_products[key]["object"].attach_geodata()
-        if response == "grid":
-            self.datasets_index["grid"].extend(
-                self.data_products[key]["output_datasets"]
-            )
-        elif response == "complete":
-            pass
-        else:
-            raise ValueError(
-                "Response from attach_geodata() must be either 'grid' or 'complete'"
-            )
-
-        combined_data_functions.present_mv_series_as_geospatial_at_date_time(
-            pd.to_datetime("2002-05-01"), *self.datasets_index["grid"]
-        )
-
-        # Plot and Output
-        self.index_datasets()  # Required for datasets_index: slc
-        self.pandas_dataset = (
-            combined_data_functions.merge_mv_series_into_pandas_dataframe(
-                self.datasets_index["slc"]
-            )
-        )
-        combined_data_functions.output_plot_of_all_data(self.pandas_dataset)
-        combined_data_functions.output_all_compiled_data_to_csv(
-            GLHE.CLAY.globals.config["LAKE_NAME"] + "_Data.csv", self.pandas_dataset
-        )
-        self.export_data_product_config()
-        combined_data_functions.write_and_output_README(self.read_me_information)
-        combined_data_functions.write_and_output_LIME_CONFIG(self.output_file_config)
-
+        self._attach_geodata_for_product(key)
+        self._run_output_pipeline()
         logging.info(
             '"***********************Finished Product Run*************************"'
         )
