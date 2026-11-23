@@ -7,7 +7,7 @@ The app runs in a **rootless Podman container**, started by a **systemd user ser
 | GLHE app (public) | https://glhe.venumuddula.com |
 | From gram itself, or through `ssh -L 5006:127.0.0.1:5006 gram` | http://localhost:5006/app |
 | App usage (sessions, CPU, memory, logs; private mode only) | http://localhost:5006/admin (same SSH tunnel) |
-| Machine + containers (Cockpit, tailnet only) | https://gram-wsl.tailbc2832.ts.net:9090 |
+| Machine + containers (Cockpit, tailnet only) | https://cockpit.venumuddula.com (redirects to https://gram-wsl.tailbc2832.ts.net) |
 
 ```
 browser ──► Cloudflare ──tunnel──► cloudflared on gram ──► 127.0.0.1:5006 ──► container "glhe" (panel serve)
@@ -66,7 +66,15 @@ deploy/run.sh --no-build
 
 Limits are set in the same `deploy.env` (`GLHE_MAX_RUN_MINUTES`, `GLHE_MAX_LAKE_AREA_KM2`, `GLHE_COOLDOWN_MINUTES`). To take the site offline: `systemctl --user stop cloudflared-glhe` (the app keeps running, reachable over SSH). To run it without the public guards, set `GLHE_PUBLIC=0` and `deploy/run.sh --no-build`, but only with the tunnel stopped. Big lakes for the public site: run them while private (or from `~/glhe-deploy` with `podman exec -w /data glhe /opt/conda/bin/python -m GLHE.LIME.run_clay <id>`); they then open for everyone from the cache.
 
-**Never expose Cockpit (`:9090`) publicly** (no Funnel, no Cloudflare route).
+**Never expose Cockpit (`:9090`) publicly** (no Funnel, no Cloudflare Tunnel route).
+
+Cockpit's addresses: `tailscale serve` (tailnet only) publishes it at
+`https://gram-wsl.tailbc2832.ts.net` (port 443) and `:9090`; both are listed in
+`Origins` in `/etc/cockpit/cockpit.conf`. `https://cockpit.venumuddula.com` is
+only a Cloudflare redirect rule (DNS record `cockpit` AAAA `100::`, proxied,
+plus Rules → Redirect Rules: `http.host eq "cockpit.venumuddula.com"` → 302 to
+the tailnet address). No Cockpit traffic goes through Cloudflare, so it still
+works only on the tailnet.
 
 ## Custom domain (Cloudflare Tunnel)
 
@@ -116,7 +124,7 @@ clicks look the lake up in HydroLAKES instead.
 
 ## Monitoring
 
-- **Cockpit** (`:9090`, log in as `manishrv`): CPU, memory, disk and network for the whole machine; *Services* shows `container-glhe`; *Podman containers* lists containers.
+- **Cockpit** (https://cockpit.venumuddula.com, tailnet only, log in as `manishrv`): CPU, memory, disk and network for the whole machine; *Services* shows `container-glhe`; *Podman containers* lists containers.
 - **Panel admin** (`http://localhost:5006/admin` over `ssh -L 5006:127.0.0.1:5006 gram`; private mode only): who is using the app right now, per-session CPU/memory, and app logs.
 - **Disk**: Cockpit's *Storage* page shows the whole disk. Big GLHE files: `~/glhe-tiles/HydroLAKES_polys_v10.pmtiles` (~0.9 GB, lake tiles served at `/tiles`), `~/glhe-data` (`du -sh ~/glhe-data/*`).
 - **Tailscale admin console**: which devices are connected.
