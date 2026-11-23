@@ -19,5 +19,26 @@
     "run_on_start": true,
     "loaded": false,
     "Product_README": "Validate this data with the point file labeled 'NWM' in the output folder"
+  },
+  "DAHITI": {
+    "module_name": "DAHITI",
+    "class_name": "DAHITI",
+    "run_on_start": true,
+    "loaded": false,
+    "Product_README": "Water surface elevation from DAHITI satellite altimetry. Requires DAHITI_API_KEY env var — register at https://dahiti.dgfi.tum.de/en/"
+  },
+  "GloFAS": {
+    "module_name": "GloFAS",
+    "class_name": "GloFAS",
+    "run_on_start": true,
+    "loaded": false,
+    "Product_README": "River discharge from GloFAS v4 ERA5-based reanalysis via CDS API. Uses the same credentials as ERA5-Land (~/.cdsapirc). Requires cfgrib: conda install -c conda-forge cfgrib"
+  },
+  "GLEAM": {
+    "module_name": "GLEAM",
+    "class_name": "GLEAM",
+    "run_on_start": true,
+    "loaded": false,
+    "Product_README": "Actual lake evaporation from GLEAM v3. Download Ew_* or Ea_* NetCDF files from https://www.gleam.eu (free registration) and place in GLHE/CLAY/LocalData/GLEAM/"
   }
 }

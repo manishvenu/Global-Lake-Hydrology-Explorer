@@ -1,9 +1,11 @@
+import os
 import fsspec
 import geopandas as gpd
 import numpy as np
 import xarray as xr
 from shapely.geometry import Polygon, Point
 import GLHE
+import GLHE.CLAY.globals
 from GLHE.CALCITE import events, pubsub
 from GLHE.CLAY import helpers, xarray_helpers
 from GLHE.CLAY.data_access import data_access_parent_class
@@ -59,8 +61,12 @@ class NWM(data_access_parent_class.DataAccess):
 
         return "complete"
 
-    def find_lake_id(self, polygon: Polygon) -> list[int]:
-        """Find the NWM feature_id index closest to the lake centroid using the zarr store coordinates."""
+    def find_lake_id(self, polygon: Polygon) -> int:
+        """Return the NWM feature_id closest to the lake centroid.
+
+        Searches the v3 zarr lakeout store's latitude/longitude coordinates.
+        Raises if the closest NWM lake is implausibly far away (lake outside CONUS).
+        """
         self.logger.info("Starting Lake ID Searcher")
         centroid_lat = polygon.centroid.y
         centroid_lon = polygon.centroid.x
@@ -70,20 +76,29 @@ class NWM(data_access_parent_class.DataAccess):
         lons = ds.longitude.values
 
         dists = np.hypot(lons - centroid_lon, lats - centroid_lat)
-        feature_id_index = int(dists.argmin())
-        closest_lat = float(lats[feature_id_index])
-        closest_lon = float(lons[feature_id_index])
+        idx = int(dists.argmin())
+        closest_lat = float(lats[idx])
+        closest_lon = float(lons[idx])
+        feature_id = int(ds.feature_id.values[idx])
 
-        self.logger.info(f"Found Lake ID Verify Correct Placement (Lat, Long): ({closest_lat}, {closest_lon})")
+        self.logger.info(
+            "Closest NWM lake: feature_id=%d at (%.4f, %.4f), dist=%.4f deg",
+            feature_id, closest_lat, closest_lon, dists[idx],
+        )
         self.verification_lat_long["lat"] = closest_lat
         self.verification_lat_long["lon"] = closest_lon
 
-        if dists[feature_id_index] > 0.001 and not polygon.contains(Point(closest_lon, closest_lat)):
-            self.logger.error("The lake is not in the NWM domain")
+        # 0.5 degrees (~55 km) is generous enough for any lake in the NWM domain;
+        # if we're still this far away the lake is outside CONUS.
+        search_area = polygon.buffer(0.1)
+        if dists[idx] > 0.5 and not search_area.contains(Point(closest_lon, closest_lat)):
+            self.logger.error(
+                "Lake not found in NWM domain — closest point is %.4f degrees away", dists[idx]
+            )
             raise Exception("NWM Lake not found, and no alternate NWM source exists")
 
-        self.logger.info("Found Lake ID")
-        return [feature_id_index]
+        self.logger.info("Found Lake ID: %d", feature_id)
+        return feature_id
 
     def product_driver(self, polygon, debug=False, run_cleanly=False) -> list[MVSeries]:
         """
@@ -126,8 +141,8 @@ class NWM(data_access_parent_class.DataAccess):
 
     def call_NWM_s3_access_and_process(self, polygon) -> xr.Dataset:
         """Just moving some product driver functions here"""
-        list_of_feature_ids = self.find_lake_id(polygon)
-        self.xarray_dataset = self.zarr_lakeout_process(list_of_feature_ids)
+        feature_id = self.find_lake_id(polygon)
+        self.xarray_dataset = self.zarr_lakeout_process(feature_id)
         self.xarray_dataset = xarray_helpers.label_xarray_dataset_with_product_name(
             self.xarray_dataset, "NWM"
         )
@@ -146,12 +161,11 @@ class NWM(data_access_parent_class.DataAccess):
         helpers.pickle_var(self.xarray_dataset, "NWM")
         return self.xarray_dataset
 
-    def zarr_lakeout_process(self, feature_id_index) -> xr.Dataset:
-        """If we are using zarr files, this code can quickly and efficiently give us the"""
+    def zarr_lakeout_process(self, feature_id: int) -> xr.Dataset:
+        """Select the timeseries for a single NWM lake from the v3 zarr lakeout store."""
         self.logger.info("Accessing NWM Retrospective Data")
-        s3_path = self.BUCKET_URL
-        ds = xr.open_zarr(fsspec.get_mapper(s3_path, anon=True), consolidated=True)
-        dataset = ds.sel(feature_id=ds.feature_id[feature_id_index].item())
+        ds = xr.open_zarr(fsspec.get_mapper(self.BUCKET_URL, anon=True), consolidated=True)
+        dataset = ds.sel(feature_id=feature_id)
         drop = [v for v in ["crs", "water_sfc_elev"] if v in dataset]
         if drop:
             dataset = dataset.drop_vars(drop)

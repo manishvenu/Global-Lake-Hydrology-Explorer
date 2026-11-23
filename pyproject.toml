@@ -62,6 +62,7 @@ target-version = ["py312"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "subsetting_data: marks tests as subsetting_data (deselect with '-m \"not subsetting_data\"')",
+    "network: marks tests that require live network/API access (deselect with '-m \"not network\"')",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

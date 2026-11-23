@@ -9,6 +9,9 @@ class TypeOfFileLIME(Enum):
     NWM_LAKE_POINT_SHAPEFILENAME = 4
     OTHER = 5
     DATA_PRODUCTS_CONFIG = 6
+    WATER_BALANCE_DATA = 7
+    TREND_STATS_DATA = 8
+    HYPSOMETRY_DATA = 9
 
 
 @dataclass

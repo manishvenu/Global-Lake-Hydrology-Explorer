@@ -25,6 +25,8 @@ dependencies:
   - boto3
   # Data access
   - cdsapi
+  - cfgrib
+  - scipy
   # Visualization
   - holoviews
   - hvplot

@@ -18,6 +18,7 @@ from pathlib import Path
 from GLHE.LIME.series_data_display import SeriesDataDisplay
 from GLHE.LIME.gridded_data_display import GriddedDataDisplay
 from GLHE.LIME.lake_map_display import LakeMapDisplay
+from GLHE.LIME.water_balance_display import WaterBalanceDisplay
 
 pn.extension("tabulator")
 hv.extension("bokeh")
@@ -71,11 +72,28 @@ def build_dashboard(config: dict) -> pn.template.FastListTemplate:
     lake_map = LakeMapDisplay(config).make_map()
     lake_tab = pn.pane.HoloViews(lake_map, sizing_mode="stretch_width")
 
+    # --- Water balance tab ---
+    if "WATER_BALANCE_DATA" in config:
+        try:
+            wb = WaterBalanceDisplay(
+                config["WATER_BALANCE_DATA"],
+                hyps_path=config.get("HYPSOMETRY_DATA"),
+            )
+            wb_tab = pn.Column(*wb.make_plots(), sizing_mode="stretch_width")
+        except Exception as e:
+            wb_tab = pn.pane.Alert(f"Water balance unavailable: {e}", alert_type="warning")
+    else:
+        wb_tab = pn.pane.Alert(
+            "Water balance data not found. Re-run CLAY to generate it.",
+            alert_type="info",
+        )
+
     return pn.template.FastListTemplate(
         title=f"GLHE — {lake_name}",
         main=[
             pn.Tabs(
                 ("Time Series", ts_tab),
+                ("Water Balance", wb_tab),
                 ("Data Table", table_tab),
                 ("Gridded Data", gridded_tab),
                 ("Lake Map", lake_tab),

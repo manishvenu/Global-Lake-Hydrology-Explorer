@@ -7,6 +7,7 @@ SLC_LABELS = {
     "e": "Evapotranspiration (mm/month)",
     "i": "Inflow (m³/month)",
     "o": "Outflow (m³/month)",
+    "l": "Water Level (m)",
 }
 
 
