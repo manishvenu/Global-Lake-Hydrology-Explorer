@@ -5,7 +5,7 @@ The app runs in a **rootless Podman container**, started by a **systemd user ser
 | What | URL |
 |---|---|
 | GLHE app | https://gram-wsl.tailbc2832.ts.net:8443 |
-| App usage (sessions, CPU, memory, logs) | https://gram-wsl.tailbc2832.ts.net:8443/admin |
+| App usage (sessions, CPU, memory, logs; private mode only) | https://gram-wsl.tailbc2832.ts.net:8443/admin |
 | Machine + containers (Cockpit) | https://gram-wsl.tailbc2832.ts.net:9090 |
 
 ```
@@ -52,6 +52,20 @@ du -sh ~/glhe-data/*                          # disk used by outputs and data
 ```
 
 Rolling back: `git checkout <older commit> && deploy/run.sh`.
+
+## Public mode (internet, via Tailscale Funnel)
+
+Public mode adds guards for strangers (see `GLHE/LIME/public.py`): each run stops after 45 min; lakes over 10,000 km² (or of unknown size) and lakes already processed cannot be run; each visitor gets one run per 10 min; only the visitor who started a run can cancel it; a "not validated" banner is shown; and the Panel `/admin` page is **off**.
+
+```bash
+mkdir -p ~/.config/glhe && echo GLHE_PUBLIC=1 > ~/.config/glhe/deploy.env   # remembered by run.sh
+deploy/run.sh --no-build
+tailscale funnel --bg --https=8443 http://127.0.0.1:5006     # needs Funnel enabled in the tailnet policy
+```
+
+Limits are set in the same `deploy.env` (`GLHE_MAX_RUN_MINUTES`, `GLHE_MAX_LAKE_AREA_KM2`, `GLHE_COOLDOWN_MINUTES`). To go private again: `tailscale funnel --https=8443 off`, then `tailscale serve --bg --https=8443 http://127.0.0.1:5006`, set `GLHE_PUBLIC=0` and `deploy/run.sh --no-build`. Big lakes for the public site: run them while private (or from `~/glhe-deploy` with `podman exec -w /data glhe /opt/conda/bin/python -m GLHE.LIME.run_clay <id>`); they then open for everyone from the cache.
+
+**Never funnel Cockpit (`:9090`).**
 
 ## Monitoring
 

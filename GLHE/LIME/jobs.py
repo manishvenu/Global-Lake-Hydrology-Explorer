@@ -58,6 +58,9 @@ class ClayJob:
     on_update : callable, optional
         ``on_update(job)`` is called after every new log line and on every
         status change (from a background thread).
+    max_seconds : float, optional
+        Stop a run that takes longer than this (status becomes "failed").
+        None (the default) means no limit.
     """
 
     def __init__(
@@ -66,6 +69,7 @@ class ClayJob:
         cwd: str | None = None,
         max_log_lines: int = 2000,
         on_update: Callable[["ClayJob"], None] | None = None,
+        max_seconds: float | None = None,
     ):
         self.command = command or default_command
         self.cwd = cwd
@@ -79,6 +83,8 @@ class ClayJob:
         self._proc: subprocess.Popen | None = None
         self._thread: threading.Thread | None = None
         self._cancelled = False
+        self.max_seconds = max_seconds
+        self._timer: threading.Timer | None = None
 
     # ------------------------------------------------------------------ API
     @property
@@ -130,6 +136,10 @@ class ClayJob:
             target=self._watch, name=f"ClayJob-{self.hylak_id}", daemon=True
         )
         self._thread.start()
+        if self.max_seconds:
+            self._timer = threading.Timer(self.max_seconds, self._time_limit_reached)
+            self._timer.daemon = True
+            self._timer.start()
         self._notify()
         return True
 
@@ -145,6 +155,13 @@ class ClayJob:
             proc.wait(timeout=10)
         except subprocess.TimeoutExpired:
             proc.kill()
+
+    def _time_limit_reached(self) -> None:
+        """Timer thread: stop a run that went past ``max_seconds``."""
+        if self.status == "running":
+            minutes = self.max_seconds / 60
+            self._append(f"Time limit reached ({minutes:g} min); stopping CLAY.")
+            self.cancel()
 
     def wait(self, timeout: float | None = None) -> str:
         """Block until the current run finishes (handy in scripts/tests)."""
@@ -189,6 +206,9 @@ class ClayJob:
             if proc is not None:
                 self.returncode = proc.returncode
         finally:
+            if self._timer is not None:
+                self._timer.cancel()
+                self._timer = None
             self._set_status(final)
 
     def _append(self, line: str) -> None:

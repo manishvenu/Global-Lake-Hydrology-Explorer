@@ -20,8 +20,11 @@ ENV HOME=/tmp \
     MPLCONFIGDIR=/tmp/matplotlib \
     XDG_CACHE_HOME=/tmp/cache \
     PYTHONUNBUFFERED=1 \
-    GLHE_ORIGIN=localhost:5006
+    GLHE_ORIGIN=localhost:5006 \
+    GLHE_PUBLIC=0
 WORKDIR /data
 EXPOSE 5006
 
-CMD ["sh", "-c", "exec panel serve /app/GLHE/LIME/app.py --address 0.0.0.0 --port 5006 --index app --admin --allow-websocket-origin \"$GLHE_ORIGIN\" --allow-websocket-origin localhost:5006"]
+# The /admin page (sessions, logs) is only served in private mode: with
+# GLHE_PUBLIC=1 the app is on the internet and /admin must not be.
+CMD ["sh", "-c", "if [ \"$GLHE_PUBLIC\" = 1 ]; then ADMIN=; else ADMIN=--admin; fi; exec panel serve /app/GLHE/LIME/app.py --address 0.0.0.0 --port 5006 --index app $ADMIN --allow-websocket-origin \"$GLHE_ORIGIN\" --allow-websocket-origin localhost:5006"]

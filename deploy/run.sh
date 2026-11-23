@@ -9,12 +9,24 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
+# Saved settings (e.g. GLHE_PUBLIC=1) so a plain `deploy/run.sh` keeps the same
+# mode; variables set on the command line still win.
+DEPLOY_ENV="${GLHE_DEPLOY_ENV:-$HOME/.config/glhe/deploy.env}"
+if [[ -f "$DEPLOY_ENV" ]]; then
+  while IFS='=' read -r key value; do
+    [[ "$key" =~ ^GLHE_[A-Z_]+$ && -z "${!key:-}" ]] && export "$key=$value"
+  done < <(grep -E '^GLHE_[A-Z_]+=' "$DEPLOY_ENV")
+fi
 DATA="${GLHE_DATA:-$HOME/glhe-data}"            # LakeOutputDirectory/, .temp/, LocalData/
 CDSAPIRC="${GLHE_CDSAPIRC:-$HOME/.cdsapirc}"     # ERA5 (Copernicus) API key, mounted read-only
 SECRETS="${GLHE_SECRETS:-$HOME/.config/glhe/secrets.env}"  # optional KEY=value lines, e.g. DAHITI_API_KEY
 PORT="${GLHE_PORT:-5006}"                        # bound to 127.0.0.1 only
 ORIGIN="${GLHE_ORIGIN:-gram-wsl.tailbc2832.ts.net:8443}"  # the public-facing host:port
 MEMORY="${GLHE_MEMORY:-5g}"
+PUBLIC="${GLHE_PUBLIC:-0}"                       # 1 = public mode (see GLHE/LIME/public.py)
+MAX_RUN_MINUTES="${GLHE_MAX_RUN_MINUTES:-45}"      # public mode: stop runs after this
+MAX_LAKE_AREA_KM2="${GLHE_MAX_LAKE_AREA_KM2:-10000}"  # public mode: largest lake visitors can run
+COOLDOWN_MINUTES="${GLHE_COOLDOWN_MINUTES:-10}"    # public mode: per-visitor wait between runs
 IMAGE=localhost/glhe:latest
 NAME=glhe
 
@@ -54,6 +66,10 @@ podman create --name "$NAME" \
   -v "$DATA/LocalData:/app/GLHE/CLAY/LocalData:rw,Z" \
   "${secret_args[@]}" \
   -e GLHE_ORIGIN="$ORIGIN" \
+  -e GLHE_PUBLIC="$PUBLIC" \
+  -e GLHE_MAX_RUN_MINUTES="$MAX_RUN_MINUTES" \
+  -e GLHE_MAX_LAKE_AREA_KM2="$MAX_LAKE_AREA_KM2" \
+  -e GLHE_COOLDOWN_MINUTES="$COOLDOWN_MINUTES" \
   "$IMAGE" >/dev/null
 
 echo "==> Installing systemd user service container-$NAME.service"
@@ -71,7 +87,7 @@ podman exec "$NAME" /opt/conda/bin/python -c "import GLHE.CLAY, GLHE.LIME.app" \
 echo "==> Waiting for the app"
 for _ in $(seq 1 60); do
   if curl -fsS -o /dev/null "http://127.0.0.1:$PORT/app"; then
-    echo "GLHE is up on http://127.0.0.1:$PORT (tailnet: https://$ORIGIN)"
+    echo "GLHE is up on http://127.0.0.1:$PORT (https://$ORIGIN, public mode: $PUBLIC)"
     exit 0
   fi
   sleep 2

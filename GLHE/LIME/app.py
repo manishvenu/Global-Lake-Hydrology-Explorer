@@ -34,7 +34,7 @@ from pathlib import Path
 import panel as pn
 import param
 
-from GLHE.LIME import catalog, caveats, jobs, lake_lookup, theme
+from GLHE.LIME import catalog, caveats, jobs, lake_lookup, public, theme
 from GLHE.LIME.components import sidebar as sb
 from GLHE.LIME.components.caveats_panel import make_caveats
 from GLHE.LIME.components.globe import LakeGlobe, read_points
@@ -88,7 +88,9 @@ JOB_CACHE_KEY = "glhe_clay_job"
 def shared_job() -> jobs.ClayJob:
     """The server-wide CLAY job (created on first use)."""
     if JOB_CACHE_KEY not in pn.state.cache:
-        pn.state.cache[JOB_CACHE_KEY] = jobs.ClayJob()
+        pn.state.cache[JOB_CACHE_KEY] = jobs.ClayJob(
+            max_seconds=public.max_run_seconds()
+        )
     return pn.state.cache[JOB_CACHE_KEY]
 
 
@@ -261,7 +263,7 @@ class LimeApp:
             variant="outline",
             visible=False,
         )
-        self.cancel_button.on_click(lambda _: self.job.cancel())
+        self.cancel_button.on_click(lambda _: self.cancel_clay())
         self.status_pill = pn.pane.HTML(sb.status_pill_html("idle"), stylesheets=css)
         self.log_pane = pn.pane.HTML(sb.log_html([]), stylesheets=css)
         self.log_card = pn.Card(
@@ -300,7 +302,16 @@ class LimeApp:
 
     def main(self) -> list:
         """Main area: the globe on top, result tabs underneath."""
-        return [self.globe, self.cells_caption, self.tabs]
+        banner = [
+            pn.pane.HTML(
+                public.BANNER_HTML, sizing_mode="stretch_width", margin=(0, 10)
+            )
+        ]
+        return (banner if public.enabled() else []) + [
+            self.globe,
+            self.cells_caption,
+            self.tabs,
+        ]
 
     def template(self) -> pn.template.BootstrapTemplate:
         """The full page."""
@@ -446,6 +457,7 @@ class LimeApp:
             roots = self.roots + extra
             self._catalog = catalog.list_processed_lakes(roots[0], roots[1:])
         self._render_catalog()
+        self._update_run_button()
 
     def _render_catalog(self) -> None:
         """One button per processed lake, filtered by the text box."""
@@ -533,14 +545,38 @@ class LimeApp:
             location.update_query(theme="dark" if event.new else "light")
 
     # ------------------------------------------------------------ CLAY job
+    @property
+    def _processed_ids(self) -> set[int]:
+        """HYLAK_IDs that already have CLAY results."""
+        return {e["hylak_id"] for e in self._catalog if e.get("hylak_id") is not None}
+
     def _update_run_button(self) -> None:
+        if not hasattr(self, "run_button"):  # called while building the sidebar
+            return
         hylak_id = (self.selected or {}).get("hylak_id")
         running = self.job.is_running
-        self.run_button.disabled = hylak_id is None or running
-        self.run_button.label = (
-            f"Run CLAY for #{hylak_id}" if hylak_id is not None else "Run CLAY"
+        blocked = (
+            public.lake_block_reason(self.selected, self._processed_ids)
+            if public.enabled()
+            else None
         )
-        self.cancel_button.visible = running
+        self.run_button.disabled = hylak_id is None or running or blocked is not None
+        if blocked:
+            self.run_button.label = blocked
+        else:
+            self.run_button.label = (
+                f"Run CLAY for #{hylak_id}" if hylak_id is not None else "Run CLAY"
+            )
+        # In public mode only the visitor who started a run may cancel it.
+        self.cancel_button.visible = running and (
+            not public.enabled() or self._started_here
+        )
+
+    def cancel_clay(self) -> None:
+        if public.enabled() and not self._started_here:
+            _notify("warning", "Only the visitor who started this run can cancel it.")
+            return
+        self.job.cancel()
 
     def run_clay(self) -> None:
         """Start CLAY for the selected lake and follow its progress."""
@@ -548,9 +584,22 @@ class LimeApp:
         if hylak_id is None:
             _notify("warning", "Pick a lake first.")
             return
+        visitor = None
+        if public.enabled():
+            reason = public.lake_block_reason(self.selected, self._processed_ids)
+            visitor = public.visitor_id()
+            reason = reason or public.visitor_block_reason(visitor)
+            if reason:
+                _notify("warning", reason)
+                return
         if not self.job.start(hylak_id):
-            _notify("warning", "CLAY is already running; wait for it to finish.")
+            _notify(
+                "warning",
+                f"CLAY is busy with lake #{self.job.hylak_id}; try again when it finishes.",
+            )
             return
+        if visitor is not None:
+            public.record_run(visitor)
         self._started_here = True  # only this page opens the result when done
         self.log_card.collapsed = False
         self._start_polling()

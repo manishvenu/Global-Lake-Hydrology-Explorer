@@ -192,6 +192,14 @@ body {{
   font-size: 0.8rem;
   letter-spacing: 0.02em;
 }}
+.glhe-banner {{
+  background: color-mix(in srgb, var(--glhe-warning) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--glhe-warning) 45%, transparent);
+  color: var(--glhe-text);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.88rem;
+}}
 .glhe-badge {{
   display: inline-block;
   padding: 1px 8px;
