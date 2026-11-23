@@ -1,3 +1,5 @@
+import os
+
 import fsspec
 import geopandas as gpd
 import numpy as np
@@ -37,15 +39,11 @@ class NWM(data_access_parent_class.DataAccess):
         gdf = gpd.GeoDataFrame(
             data, geometry="geometry", crs=self.xarray_dataset.attrs["proj4"]
         )
-        # point_shape_file_dir = os.path.join(GLHE.globals.OUTPUT_DIRECTORY,
-        #                                    GLHE.globals.LAKE_NAME + "_NWM_Verification_Point_Shapefile")
-        # if not os.path.exists(point_shape_file_dir):
-        #    os.mkdir(point_shape_file_dir)
         output_file = os.path.join(
             GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"],
-            GLHE.CLAY.globals.config["LAKE_NAME"] + "_NWM_lake_point",
+            GLHE.CLAY.globals.config["LAKE_NAME"] + "_NWM_lake_point.shp",
         )
-        gdf.to_file(output_file, compression="zip")
+        gdf.to_file(output_file)
         pubsub.EventBus.Publish(
             pubsub.EventBus,
             events.OutputFileEvent(
@@ -65,7 +63,9 @@ class NWM(data_access_parent_class.DataAccess):
         centroid_lat = polygon.centroid.y
         centroid_lon = polygon.centroid.x
 
-        ds = xr.open_zarr(fsspec.get_mapper(self.BUCKET_URL, anon=True), consolidated=True)
+        ds = xr.open_zarr(
+            fsspec.get_mapper(self.BUCKET_URL, anon=True), consolidated=True
+        )
         lats = ds.latitude.values
         lons = ds.longitude.values
 
@@ -74,11 +74,15 @@ class NWM(data_access_parent_class.DataAccess):
         closest_lat = float(lats[feature_id_index])
         closest_lon = float(lons[feature_id_index])
 
-        self.logger.info(f"Found Lake ID Verify Correct Placement (Lat, Long): ({closest_lat}, {closest_lon})")
+        self.logger.info(
+            f"Found Lake ID Verify Correct Placement (Lat, Long): ({closest_lat}, {closest_lon})"
+        )
         self.verification_lat_long["lat"] = closest_lat
         self.verification_lat_long["lon"] = closest_lon
 
-        if dists[feature_id_index] > 0.001 and not polygon.contains(Point(closest_lon, closest_lat)):
+        if dists[feature_id_index] > 0.001 and not polygon.contains(
+            Point(closest_lon, closest_lat)
+        ):
             self.logger.error("The lake is not in the NWM domain")
             raise Exception("NWM Lake not found, and no alternate NWM source exists")
 
