@@ -12,6 +12,7 @@ class TypeOfFileLIME(Enum):
     WATER_BALANCE_DATA = 7
     TREND_STATS_DATA = 8
     HYPSOMETRY_DATA = 9
+    CAVEATS_DATA = 10
 
 
 @dataclass

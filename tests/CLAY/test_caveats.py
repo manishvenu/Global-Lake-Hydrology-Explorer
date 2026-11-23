@@ -1,14 +1,14 @@
-"""Tests for GLHE.LIME.caveats and the Caveats tab."""
+"""Tests for GLHE.CLAY.caveats (the caveat rules) and LIME's Caveats tab."""
 
 import json
 from pathlib import Path
 
 import pytest
 
-from GLHE.LIME import caveats as cv
+from GLHE.CLAY import caveats as cv
 from GLHE.LIME.state import AppState
 
-FIXTURE = Path(__file__).parent / "fixtures" / "Fixture_Lake"
+FIXTURE = Path(__file__).parents[1] / "LIME" / "fixtures" / "Fixture_Lake"
 
 
 @pytest.fixture(scope="module")
@@ -66,7 +66,7 @@ def test_products_filter_out_other_files(state):
 
 
 def test_sorted_warnings_first(state):
-    found = cv.caveats_for_state(state)
+    found = cv.caveats_for_dataset(state.polygon_geojson or None, state.df)
     order = [cv.LEVEL_ORDER[c["level"]] for c in found]
     assert order == sorted(order)
 
@@ -119,7 +119,7 @@ def test_panel_cards_and_empty_state(state):
     view = cp.make_caveats(state)
     pane = view[0]
     assert cp.EMPTY_TEXT in pane.object
-    state.caveats = cv.caveats_for_state(state)
+    state.caveats = cv.caveats_for_dataset(state.polygon_geojson or None, state.df)
     assert "ERA5LAND001" in pane.object
     state.caveats = []
 
@@ -141,5 +141,34 @@ def test_header_only_csv_uses_its_columns():
     state.df = pd.DataFrame(
         {"p.ERA5-Land": []}, index=pd.DatetimeIndex([], name="Date")
     )
-    names = _short_names(cv.caveats_for_state(state))
+    names = _short_names(
+        cv.caveats_for_dataset(state.polygon_geojson or None, state.df)
+    )
     assert not any(n.startswith("CRUTS") for n in names)
+
+
+def test_clay_writes_caveats_json(tmp_path, monkeypatch):
+    """CLAY's output step writes the matched caveats and lists them in config.json."""
+    import pandas as pd
+    from shapely.geometry import box
+
+    import GLHE.CLAY.globals as g
+    from GLHE.CALCITE import events
+    from GLHE.CLAY import combined_data_functions as cdf
+
+    monkeypatch.setitem(g.config, "LAKE_NAME", "Test_Lake")
+    monkeypatch.setitem(g.config["DIRECTORIES"], "OUTPUT_DIRECTORY", str(tmp_path))
+    seen = {}
+    monkeypatch.setattr(
+        cdf.pubsub.EventBus,
+        "Publish",
+        lambda bus, ev: seen.setdefault(ev.LIME_file_type, ev.file_path),
+        raising=False,
+    )
+    dates = pd.date_range("2022-01-31", "2024-12-31", freq="ME", name="Date")
+    df = pd.DataFrame({"p.ERA5-Land": 1.0}, index=dates)
+    cdf.write_caveats(box(-112.6, 41.0, -112.2, 41.4), df)
+    out = tmp_path / "Test_Lake_caveats.json"
+    names = _short_names(json.loads(out.read_text()))
+    assert "ERA5LAND001" in names
+    assert seen[events.TypeOfFileLIME.CAVEATS_DATA] == str(out)

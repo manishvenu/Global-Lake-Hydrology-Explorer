@@ -216,6 +216,7 @@ class CLAY_driver:
         )
         combined_data_functions.compute_trend_statistics(self.pandas_dataset)
         combined_data_functions.compute_water_balance(self.pandas_dataset)
+        combined_data_functions.write_caveats(self.lake_polygon, self.pandas_dataset)
         self.export_data_product_config()
         combined_data_functions.write_and_output_README(self.read_me_information)
         combined_data_functions.write_lake_polygon(self.lake_polygon)

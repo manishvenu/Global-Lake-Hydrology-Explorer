@@ -35,7 +35,8 @@ from pathlib import Path
 import panel as pn
 import param
 
-from GLHE.LIME import catalog, caveats, jobs, lake_lookup, public, theme
+from GLHE.CLAY import caveats
+from GLHE.LIME import catalog, jobs, lake_lookup, public, theme
 from GLHE.LIME.components import sidebar as sb
 from GLHE.LIME.components.caveats_panel import make_caveats
 from GLHE.LIME.components.globe import LakeGlobe, lake_tiles_url, read_points
@@ -640,7 +641,9 @@ class LimeApp:
             self.state.caveats = []
             return
         try:
-            self.state.caveats = caveats.caveats_for_state(self.state)
+            self.state.caveats = caveats.caveats_for_dataset(
+                self.state.polygon_geojson or None, self.state.df
+            )
         except Exception:  # a bad rule must never break loading a lake
             logger.exception("Could not compute caveats")
             self.state.caveats = []

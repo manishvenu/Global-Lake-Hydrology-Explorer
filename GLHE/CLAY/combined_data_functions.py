@@ -297,6 +297,42 @@ def write_lake_polygon(polygon) -> None:
     logger.info("Wrote lake polygon to: " + path)
 
 
+def write_caveats(polygon, dataset: pd.DataFrame) -> None:
+    """
+    Write the known data caveats for this lake to ``{lake}_caveats.json``.
+
+    The caveats come from the queryearth rules in ``GLHE/CLAY/caveat_rules/``,
+    matched on the lake polygon, the data period and the products in
+    ``dataset`` (see ``GLHE/CLAY/caveats.py``). Never fails the run.
+    """
+    import json
+
+    from GLHE.CLAY import caveats
+
+    try:
+        found = caveats.caveats_for_dataset(polygon, dataset)
+    except Exception:
+        logger.exception("Could not work out the data caveats")
+        return
+    filename = GLHE.CLAY.globals.config["LAKE_NAME"] + "_caveats.json"
+    out_path = (
+        GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"] + "/" + filename
+    )
+    with open(out_path, "w") as f:
+        json.dump(found, f, indent=2, default=str)
+    logger.info("Wrote %d data caveats to %s", len(found), out_path)
+    pubsub.EventBus.Publish(
+        pubsub.EventBus,
+        events.OutputFileEvent(
+            filename,
+            out_path,
+            ".json",
+            "Known data caveats for this lake (queryearth rules matched on place, period and products)",
+            events.TypeOfFileLIME.CAVEATS_DATA,
+        ),
+    )
+
+
 def write_and_output_LIME_CONFIG(config_information: dict, hylak_id: int) -> None:
     """
     Create a CONFIG file that points to all exported data in LIME-readable format
@@ -314,6 +350,7 @@ def write_and_output_LIME_CONFIG(config_information: dict, hylak_id: int) -> Non
         "WATER_BALANCE_DATA": events.TypeOfFileLIME.WATER_BALANCE_DATA,
         "TREND_STATS_DATA": events.TypeOfFileLIME.TREND_STATS_DATA,
         "HYPSOMETRY_DATA": events.TypeOfFileLIME.HYPSOMETRY_DATA,
+        "CAVEATS_DATA": events.TypeOfFileLIME.CAVEATS_DATA,
     }
     ribbit = {
         "CLAY_OUTPUT_FOLDER_LOCATION": GLHE.CLAY.globals.config["DIRECTORIES"][

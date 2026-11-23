@@ -82,7 +82,7 @@ class AppState(param.Parameterized):
         default="idle", objects=["idle", "running", "done", "failed"]
     )
     job_log = param.String(default="", doc="Text log of the current CLAY job")
-    caveats = param.List(default=[], doc="Caveat dicts from caveats.find_caveats")
+    caveats = param.List(default=[], doc="Caveat dicts from GLHE.CLAY.caveats")
 
     # -- helpers -----------------------------------------------------------
 

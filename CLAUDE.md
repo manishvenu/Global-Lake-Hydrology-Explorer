@@ -90,7 +90,7 @@ LIME (panel serve GLHE/LIME/app.py, or GLHE.LIME.app.serve(output_dir))
   └─> app.py LimeApp: sidebar (find lake, run CLAY, processed lakes), globe, tabs
   └─> state.AppState   — loaded lake (reads config.json + CSV + polygon)
   └─> jobs.ClayJob     — runs `python -m GLHE.LIME.run_clay <id>` in a subprocess
-  └─> catalog / lake_lookup / caveats (queryearth rules in LIME/rules/)
+  └─> catalog / lake_lookup  (caveats come from GLHE/CLAY/caveats.py)
   └─> components/      — globe (only JS: MapLibre), overview, series, water_balance, gridded, table, caveats
 ```
 
@@ -106,7 +106,7 @@ LIME (panel serve GLHE/LIME/app.py, or GLHE.LIME.app.serve(output_dir))
 - CLAY runs in a subprocess, one job per server (kept in `pn.state.cache`); the page polls it every 500 ms. `run_clay` prints `GLHE_OUTPUT_DIR=<path>` on success and the app loads that folder.
 - HydroLAKES is a GeoParquet file read by `GLHE/CLAY/hydrolakes.py` (shared by CLAY and LIME's `lake_lookup`): a local copy in `LocalData/` if present, else `s3://glhe/HydroLAKES/HydroLAKES_polys_v10.parquet`, fetching only the rows needed. Override with env `GLHE_HYDROLAKES`. Rebuild it from the shapefile with `data_access/aws_zarr_templates/hydrolakes_to_parquet.py`. No GDAL Python bindings are needed.
 - Lake picker: the sidebar search box uses `hydrolakes.search()` (an in-memory index of every lake's ID, name, country and area, preloaded by `app.warm_hydrolakes()`). The globe draws every lake from vector tiles (`HydroLAKES_polys_v10.pmtiles`, built by `aws_zarr_templates/hydrolakes_to_pmtiles.py`, URL from env `GLHE_LAKE_TILES_URL`, `""` = off); clicking a tile lake sets `LakeGlobe.picked` and selects it at once. Outlines are fetched in the background (`app.in_background`).
-- Caveats: queryearth rule files in `LIME/rules/` (`era5-land.geojson` vendored from vizqueryearth, `glhe.geojson` our own). See `rules/README.md` to add rules.
+- Caveats belong to CLAY: queryearth rule files in `GLHE/CLAY/caveat_rules/` (`era5-land.geojson` vendored from vizqueryearth, `glhe.geojson` our own), matched by `GLHE/CLAY/caveats.py`. CLAY writes `{lake}_caveats.json` (`CAVEATS_DATA`); LIME recomputes them with the same module so rule edits apply to lakes already run. See `caveat_rules/README.md` to add rules.
 - Public mode (`GLHE_PUBLIC=1`, `public.py`): run time limit, lake size cap, per-visitor cooldown, no reruns of processed lakes, cancel only by the starter, banner, no `/admin`. Deploy details in `deploy/README.md`.
 - Dev data: `tests/LIME/fixtures/Fixture_Lake` is a synthetic CLAY output (regenerate with `make_fixture.py`).
 
@@ -121,7 +121,8 @@ pytest                        # all tests
 pytest -m "not slow"          # skip network/data tests
 pytest tests/CLAY/            # CLAY tests only
 pytest tests/test_CALCITE.py  # event bus tests
-pytest tests/LIME/            # LIME app, views, caveats, jobs (no browser needed)
+pytest tests/LIME/            # LIME app, views, jobs (no browser needed)
+pytest tests/CLAY/test_caveats.py  # caveat rules
 ```
 
 Test markers (`pytest.ini`): `slow`, `subsetting_data`. The slow tests hit real data downloads — skip them in normal dev cycles.
@@ -139,6 +140,7 @@ CLAY writes all outputs to a per-lake directory under the configured output root
 | `{lake}_all_data.png` | Multi-panel P/E/R plot |
 | `Gridded_Data_{product}.zip` | GeoTIFF + metadata per product |
 | `{lake}_NWM_lake_point.shp` | Lake center point shapefile |
+| `{lake}_caveats.json` | Known data caveats matched for this lake (queryearth rules in `GLHE/CLAY/caveat_rules/`) |
 | `Lake_Polygon.shp` | Lake boundary (EPSG:4326), written by CLAY; LIME uses it for the outline, area and region caveats |
 | `GLHE_root.log` | Root logger |
 | `{Product}_driver.log` | Per-product log |
@@ -153,7 +155,7 @@ CLAY writes all outputs to a per-lake directory under the configured output root
 | `GLHE/CLAY/config/data_products.json` | Which data products are enabled |
 | `GLHE/CLAY/data_access_config/input_data.json` | Source URLs / access methods per product |
 | `GLHE/LIME/theme.py` | LIME colours, fonts, CSS, chart defaults |
-| `GLHE/LIME/rules/*.geojson` | queryearth caveat rules shown in the Caveats tab |
+| `GLHE/CLAY/caveat_rules/*.geojson` | queryearth caveat rules (written per lake by CLAY, shown in LIME's Caveats tab) |
 | env `GLHE_OUTPUT_DIR` | Lake folder LIME opens at start-up |
 | env `GLHE_OUTPUT_ROOTS` | Extra folders (`:`-separated) LIME scans for processed lakes |
 | env `GLHE_LAKE_TILES_URL` | Lake vector tiles (PMTiles) drawn on the globe; default the S3 copy, `""` = none |

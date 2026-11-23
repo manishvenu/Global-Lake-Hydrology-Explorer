@@ -2,8 +2,8 @@
 Caveats tab: one card per known data caveat that applies to the lake.
 
 The cards are built from ``state.caveats`` (a list of dicts made by
-``GLHE.LIME.caveats.find_caveats``) and re-render whenever that list changes.
-This module only displays caveats; finding them is ``caveats.py``'s job.
+``GLHE.CLAY.caveats.find_caveats``) and re-render whenever that list changes.
+This module only displays caveats; finding them is CLAY's job.
 
 Everything is plain HTML generated in Python. All text from the rule files is
 HTML-escaped, and only http/https links are shown.

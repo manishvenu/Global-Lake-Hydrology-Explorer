@@ -65,3 +65,11 @@ GLHE.CLAY.data_access
 :undoc-members:
 :show-inheritance:
 ```
+
+### GLHE.CLAY.caveats
+
+```{automodule} GLHE.CLAY.caveats
+:members:
+:undoc-members:
+:show-inheritance:
+```

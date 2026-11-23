@@ -55,7 +55,8 @@ where = ["."]
 include = ["GLHE*"]
 
 [tool.setuptools.package-data]
-"GLHE.LIME" = ["rules/*.geojson", "rules/*.md", "components/*.js"]
+"GLHE.LIME" = ["components/*.js"]
+"GLHE.CLAY" = ["caveat_rules/*.geojson", "caveat_rules/*.md"]
 
 [tool.black]
 line-length = 88

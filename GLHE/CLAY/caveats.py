@@ -4,11 +4,15 @@ Known data caveats for a lake, found with queryearth.
 A *caveat* is a documented issue with a data product that applies to some
 place, some period and/or some products: for example "ERA5-Land monthly
 accumulations are wrong from Sep 2022 to Feb 2024". The caveats live as
-queryearth rule files (GeoJSON) in ``GLHE/LIME/rules/``; see the README there.
+queryearth rule files (GeoJSON) in ``GLHE/CLAY/caveat_rules/``; see the README
+there.
 
-This module is pure Python (no Panel). The main entry point is
-:func:`find_caveats`; :func:`caveats_for_state` is a convenience wrapper that
-reads the lake polygon, dates and products from an ``AppState``.
+CLAY writes the caveats for each lake to ``{lake}_caveats.json`` in its output
+folder (``CAVEATS_DATA`` in config.json). LIME shows them, recomputing them
+with this module so edits to the rules apply to lakes that were already run.
+
+The main entry point is :func:`find_caveats`; :func:`caveats_for_dataset`
+takes the lake polygon and CLAY's merged monthly DataFrame.
 
 Example
 -------
@@ -32,8 +36,8 @@ from queryearth import space as sp
 
 logger = logging.getLogger(__name__)
 
-#: Folder holding the rule files shipped with LIME.
-RULES_DIR = Path(__file__).parent / "rules"
+#: Folder holding the caveat rule files.
+RULES_DIR = Path(__file__).parent / "caveat_rules"
 
 #: Which rule files to load, and which GLHE products each one is about.
 #: ``products=None`` means the file scopes its rules by the ``product``
@@ -252,7 +256,7 @@ def find_caveats(
 
         try:
             matched = load_registry(rule_file).query(**file_query)
-        except Exception:  # a broken rule file must not break the app
+        except Exception:  # a broken rule file must not break a run or the app
             logger.exception("Could not query caveat rules in %s", rule_file)
             continue
         for rule in matched:
@@ -265,7 +269,7 @@ def find_caveats(
                 matched = load_registry(rule_file).query(
                     **query, product=list(KNOWN_PRODUCTS)
                 )
-            except Exception:  # a broken rule file must not break the app
+            except Exception:  # a broken rule file must not break a run or the app
                 logger.exception("Could not query caveat rules in %s", rule_file)
                 continue
             for rule in matched:
@@ -278,23 +282,22 @@ def find_caveats(
     )
 
 
-def caveats_for_state(state) -> list[dict]:
+def caveats_for_dataset(polygon, dataset) -> list[dict]:
     """
-    :func:`find_caveats` for the lake currently loaded in an ``AppState``.
+    :func:`find_caveats` for a lake polygon and its merged monthly data.
 
-    Uses ``state.polygon_geojson``, the first/last date in ``state.df`` and
-    the products in its column names. Does not modify ``state``; the caller
-    sets ``state.caveats`` with the result.
+    ``dataset`` is CLAY's merged DataFrame (date index, columns like
+    ``p.ERA5-Land``); the period and products come from it. Either argument
+    may be None.
     """
-    df = state.df
     start = end = None
     products = None
-    if df is not None:
+    if dataset is not None:
         # Products come from the column names, even if there are no rows yet.
-        products = products_from_columns(df.columns) or None
-        if len(df.index):
-            start, end = df.index.min(), df.index.max()
-    return find_caveats(state.polygon_geojson or None, start, end, products)
+        products = products_from_columns(dataset.columns) or None
+        if len(dataset.index):
+            start, end = dataset.index.min(), dataset.index.max()
+    return find_caveats(polygon, start, end, products)
 
 
 def caveats_to_geojson(caveats: list[dict]) -> dict:
@@ -315,7 +318,7 @@ def caveats_to_geojson(caveats: list[dict]) -> dict:
     return {"type": "FeatureCollection", "features": features} if features else {}
 
 
-if __name__ == "__main__":  # quick manual check: python -m GLHE.LIME.caveats
+if __name__ == "__main__":  # quick manual check: python -m GLHE.CLAY.caveats
     from shapely.geometry import box
 
     for c in find_caveats(box(-112.6, 41.0, -112.2, 41.4), "2022-01", "2024-12"):

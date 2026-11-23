@@ -58,14 +58,6 @@
 :show-inheritance:
 ```
 
-### GLHE.LIME.caveats
-
-```{automodule} GLHE.LIME.caveats
-:members:
-:undoc-members:
-:show-inheritance:
-```
-
 ### GLHE.LIME.components.globe
 
 ```{automodule} GLHE.LIME.components.globe
