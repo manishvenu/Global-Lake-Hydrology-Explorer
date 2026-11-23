@@ -93,6 +93,22 @@ Tailscale Funnel is no longer used.
   `cloudflared tunnel route dns glhe glhe.venumuddula.com`, then the config
   file and the user service above.
 
+## Where the data lives on this server
+
+Everything CLAY reads is on gram's disk, so nothing needs S3; the `s3://glhe` copies can be deleted to save money (copied down on 2026-11-23).
+
+| What | On gram | Inside the container | Size |
+|---|---|---|---|
+| HydroLAKES (search, outlines, every CLAY run) | `~/glhe-data/LocalData/HydroLAKES_polys_v10.parquet` | `/app/GLHE/CLAY/LocalData/HydroLAKES_polys_v10.parquet` | 0.9 GB |
+| ERA5-Land monthly (tp, e, ro) | `~/glhe-data/LocalData/zarr/ERA5.zarr` | `/app/GLHE/CLAY/LocalData/zarr/ERA5.zarr` | 13 GB |
+| CRU TS 4.07 (pre, pet) | `~/glhe-data/LocalData/zarr/CRUTS.zarr` | `/app/GLHE/CLAY/LocalData/zarr/CRUTS.zarr` | 0.4 GB |
+| Lake tiles for the globe | `~/glhe-tiles/HydroLAKES_polys_v10.pmtiles` | `/tiles/...` (read-only) | 0.9 GB |
+| CLAY results (one folder per lake) | `~/glhe-data/LakeOutputDirectory/` | `/data/LakeOutputDirectory/` | grows |
+
+CLAY checks `LocalData/` first and only falls back to S3 if a file is missing there, so with these files in place S3 is never used. `run.sh` mounts `~/glhe-data/LocalData` into the container read-write.
+
+**Back these up** if you care about them: re-creating them means re-downloading from the original sources (HydroLAKES shapefile, CDS for ERA5-Land, CRU) and re-running the converters in `GLHE/CLAY/data_access/aws_zarr_templates/`. `~/glhe-data/s3_copy.py` is the script that copied them down from S3.
+
 ## Lake tiles (every lake on the globe)
 
 The globe draws all 1.4 million HydroLAKES lakes from one vector-tile file,
@@ -126,7 +142,7 @@ clicks look the lake up in HydroLAKES instead.
 
 - **Cockpit** (https://cockpit.venumuddula.com, tailnet only, log in as `manishrv`): CPU, memory, disk and network for the whole machine; *Services* shows `container-glhe`; *Podman containers* lists containers.
 - **Panel admin** (`http://localhost:5006/admin` over `ssh -L 5006:127.0.0.1:5006 gram`; private mode only): who is using the app right now, per-session CPU/memory, and app logs.
-- **Disk**: Cockpit's *Storage* page shows the whole disk. Big GLHE files: `~/glhe-tiles/HydroLAKES_polys_v10.pmtiles` (~0.9 GB, lake tiles served at `/tiles`), `~/glhe-data` (`du -sh ~/glhe-data/*`).
+- **Disk**: Cockpit's *Storage* page shows the whole disk. Big GLHE files: see "Where the data lives on this server" (about 15 GB of inputs in `~/glhe-data/LocalData` plus the 0.9 GB tiles); `du -sh ~/glhe-data/* ~/glhe-data/LocalData/*`.
 - **Tailscale admin console**: which devices are connected.
 
 ## Security
