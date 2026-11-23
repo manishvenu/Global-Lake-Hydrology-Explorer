@@ -5,7 +5,7 @@ development in GLHE.
 
 ## Web Dashboard
 
-The LIME dashboard (built on Plotly/Dash) is planned to include:
+The LIME web app (built on Panel) includes or is planned to include:
 
 - User-friendly lake selection interface
 - Summary and overview section per lake

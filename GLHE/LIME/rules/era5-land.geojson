@@ -1,0 +1,343 @@
+{
+  "type": "FeatureCollection",
+  "queryearth": "0.8",
+  "vizqueryearth": {
+    "title": "ERA5-Land: known issues",
+    "description": "Known issues of ERA5-Land (ECMWF / Copernicus Climate Change Service land-surface reanalysis, 9 km, hourly, 1950 to present) that its producers document, gathered by Claude: every rule quotes its source page, and the quote was checked to be on that page, but no person has reviewed the periods and regions. Draw your area and give your dates to see which issues apply."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "ERA5LAND/ERA5LAND001",
+      "geometry": null,
+      "time": {
+        "interval": [
+          "2022-09-01",
+          "2024-02-29"
+        ]
+      },
+      "properties": {
+        "name": "ERA5LAND/ERA5LAND001",
+        "title": "Wrong monthly-mean accumulations, Sep 2022 to Feb 2024",
+        "message": "In the ERA5-Land monthly averaged reanalysis product, all accumulated variables are incorrect worldwide for September 2022 to February 2024. The bad files will not be replaced on CDS discs or MARS tapes. They are no longer offered in the CDS web download form but can still be fetched through the CDS API and MARS.",
+        "level": "warning",
+        "instruction": "For September 2022 to February 2024, take accumulated fields from the 'monthly averaged reanalysis by hour of day' product at 00:00 instead of the 'monthly averaged reanalysis' product.",
+        "variables": [
+          "all accumulated variables"
+        ],
+        "references": [
+          {
+            "title": "ERA5-Land: data documentation (Copernicus Knowledge Base, ECMWF Confluence), Known issues",
+            "url": "https://confluence.ecmwf.int/spaces/CKB/pages/140385202/ERA5-Land+data+documentation"
+          }
+        ],
+        "evidence": [
+          {
+            "quote": "Incorrect data from September 2022 to February 2024 will not be replaced on CDS discs nor MARS tapes. Instead users can recover the same (and correct) data using the product monthly averaged reanalysis by hour of day at 00:00.",
+            "url": "https://confluence.ecmwf.int/spaces/CKB/pages/140385202/ERA5-Land+data+documentation"
+          }
+        ],
+        "gathered_by": "Claude, from the source page, whose quote was checked to be on it; the period and region were not reviewed by a person"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ERA5LAND/ERA5LAND002",
+      "geometry": null,
+      "time": null,
+      "properties": {
+        "name": "ERA5LAND/ERA5LAND002",
+        "title": "Three evaporation components have swapped values",
+        "message": "Three components of total evapotranspiration hold each other's values: 'Evaporation from bare soil' (228101, evabs) holds vegetation transpiration, 'Evaporation from open water surfaces excluding oceans' (228102, evaow) holds bare-soil evaporation, and 'Evaporation from vegetation transpiration' (228103, evavt) holds open-water evaporation.",
+        "level": "warning",
+        "instruction": "Relabel these fields before use. True bare-soil evaporation is in evaow (228102), true open-water evaporation is in evavt (228103), and true vegetation transpiration is in evabs (228101).",
+        "variables": [
+          "Evaporation from bare soil",
+          "Evaporation from open water surfaces excluding oceans",
+          "Evaporation from vegetation transpiration"
+        ],
+        "references": [
+          {
+            "title": "ERA5-Land: data documentation (Copernicus Knowledge Base, ECMWF Confluence), Known issues",
+            "url": "https://confluence.ecmwf.int/spaces/CKB/pages/140385202/ERA5-Land+data+documentation"
+          }
+        ],
+        "evidence": [
+          {
+            "quote": "Three components of the total evapotranspiration have values swapped as follows:",
+            "url": "https://confluence.ecmwf.int/spaces/CKB/pages/140385202/ERA5-Land+data+documentation"
+          }
+        ],
+        "gathered_by": "Claude, from the source page, whose quote was checked to be on it; the period and region were not reviewed by a person"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ERA5LAND/ERA5LAND003",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-63.0, -67.0],
+            [-57.0, -67.0],
+            [-57.0, -62.5],
+            [-63.0, -62.5],
+            [-63.0, -67.0]
+          ]
+        ]
+      },
+      "time": null,
+      "properties": {
+        "name": "ERA5LAND/ERA5LAND003",
+        "title": "Low snow cover and depth on eastern Antarctic ice sheet",
+        "message": "Snow cover and snow depth are unrealistically low on a patch on the eastern side of the Antarctic ice sheet. An old glacier mask classes the patch as land with no initial ice mass instead of glacier (10 m snow water equivalent), so the low precipitation and possible excess sublimation give unrealistically low values.",
+        "level": "warning",
+        "instruction": "Do not trust ERA5-Land snow cover or snow depth in this patch.",
+        "variables": [
+          "snow cover",
+          "snow depth"
+        ],
+        "references": [
+          {
+            "title": "ERA5-Land: data documentation (Copernicus Knowledge Base, ECMWF Confluence), Known issues",
+            "url": "https://confluence.ecmwf.int/spaces/CKB/pages/140385202/ERA5-Land+data+documentation"
+          }
+        ],
+        "evidence": [
+          {
+            "quote": "Low values of snow cover and snow depth were found on the eastern side of the Antarctic ice sheet, as shown in Fig. 1. The issue is due to the application of an old glacier mask to the Antarctica, which excludes the patch shown in the figure as glacier.",
+            "url": "https://confluence.ecmwf.int/spaces/CKB/pages/140385202/ERA5-Land+data+documentation"
+          }
+        ],
+        "gathered_by": "Claude, from the source page, whose quote was checked to be on it; the period and region were not reviewed by a person"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ERA5LAND/ERA5LAND004",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [118.0, 38.5],
+              [135.5, 38.5],
+              [135.5, 53.6],
+              [118.0, 53.6],
+              [118.0, 38.5]
+            ]
+          ],
+          [
+            [
+              [116.0, 4.5],
+              [127.0, 4.5],
+              [127.0, 21.5],
+              [116.0, 21.5],
+              [116.0, 4.5]
+            ]
+          ],
+          [
+            [
+              [112.0, -23.5],
+              [154.0, -23.5],
+              [154.0, -10.0],
+              [112.0, -10.0],
+              [112.0, -23.5]
+            ]
+          ],
+          [
+            [
+              [46.5, -25.7],
+              [50.6, -25.7],
+              [50.6, -11.9],
+              [46.5, -11.9],
+              [46.5, -25.7]
+            ]
+          ]
+        ]
+      },
+      "time": {
+        "interval": [
+          "1950-01-01",
+          "1978-12-31"
+        ]
+      },
+      "properties": {
+        "name": "ERA5LAND/ERA5LAND004",
+        "title": "Overstrong tropical cyclones in 1950-1978 forcing",
+        "message": "From 1950 to 1978, ERA5-Land is forced by the preliminary ERA5 back extension, which over-estimates a number of tropical cyclones. ECMWF expects a much smaller impact over land than over the oceans. Large differences are very localized, over some areas of North Australia, East Madagascar, the Philippines and Northeast China, and affect only a few cases.",
+        "level": "info",
+        "instruction": "In these areas before 1979, treat absolute extremes such as record minimum pressure or maximum daily precipitation with care; the page says percentiles and means show a much smaller impact.",
+        "variables": [
+          "total precipitation",
+          "pressure"
+        ],
+        "references": [
+          {
+            "title": "ERA5-Land: data documentation (Copernicus Knowledge Base, ECMWF Confluence), Known issues",
+            "url": "https://confluence.ecmwf.int/spaces/CKB/pages/140385202/ERA5-Land+data+documentation"
+          }
+        ],
+        "evidence": [
+          {
+            "quote": "Large differences that are likely related to anomalously strong tropical cyclones are very localized, such as for some areas over North Australia, East Madagascar, Philippines and Northeast China. Note again that these affect a few cases only in the 29-year dataset.",
+            "url": "https://confluence.ecmwf.int/spaces/CKB/pages/140385202/ERA5-Land+data+documentation"
+          }
+        ],
+        "gathered_by": "Claude, from the source page, whose quote was checked to be on it; the period and region were not reviewed by a person"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ERA5LAND/ERA5LAND005",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-180.0, -23.5],
+            [0.0, -23.5],
+            [180.0, -23.5],
+            [180.0, 23.5],
+            [0.0, 23.5],
+            [-180.0, 23.5],
+            [-180.0, -23.5]
+          ]
+        ]
+      },
+      "time": null,
+      "properties": {
+        "name": "ERA5LAND/ERA5LAND005",
+        "title": "ERA5 tropical precipitation biases pass into ERA5-Land",
+        "message": "ERA5-Land applies no correction to the ERA5 precipitation that forces it; only air temperature, humidity and pressure are adjusted for altitude. The producers note that ERA5 still has large precipitation biases, especially in tropical regions, and that systematic precipitation biases can spread into the land state estimates.",
+        "level": "warning",
+        "instruction": "For hydrological work in the tropics, consider checking against a bias-adjusted ERA5-based forcing such as WFDE5, which the producers cite as adding value to large-scale hydrological modelling.",
+        "variables": [
+          "precipitation",
+          "land state estimates"
+        ],
+        "references": [
+          {
+            "title": "ERA5-Land: a state-of-the-art global reanalysis dataset for land applications (Muñoz-Sabater et al., 2021, Earth Syst. Sci. Data 13, 4349-4383)",
+            "url": "https://essd.copernicus.org/articles/13/4349/2021/"
+          }
+        ],
+        "evidence": [
+          {
+            "quote": "However, ERA5 still has large precipitation biases, especially in tropical regions.",
+            "url": "https://essd.copernicus.org/articles/13/4349/2021/"
+          }
+        ],
+        "gathered_by": "Claude, from the source page, whose quote was checked to be on it; the period and region were not reviewed by a person"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ERA5LAND/ERA5LAND006",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [5.0, 43.5],
+            [16.5, 43.5],
+            [16.5, 48.5],
+            [5.0, 48.5],
+            [5.0, 43.5]
+          ]
+        ]
+      },
+      "time": null,
+      "properties": {
+        "name": "ERA5LAND/ERA5LAND006",
+        "title": "Weaker snow, flux and discharge skill in the Alps",
+        "message": "In the producers' evaluation, ERA5 gave better turbulent fluxes than ERA5-Land in the Alpine region, and ERA5-Land also did worse than ERA5 there for snow and river discharge against in situ data. A possible cause is overestimated snow depth on high peaks, since ERA5-Land has no snow data assimilation, which may delay snowmelt.",
+        "level": "warning",
+        "instruction": "In high Alpine terrain, compare ERA5-Land snow and surface fluxes with ERA5 or station data before relying on them.",
+        "variables": [
+          "snow depth",
+          "turbulent fluxes",
+          "river discharge"
+        ],
+        "references": [
+          {
+            "title": "ERA5-Land: a state-of-the-art global reanalysis dataset for land applications (Muñoz-Sabater et al., 2021, Earth Syst. Sci. Data 13, 4349-4383)",
+            "url": "https://essd.copernicus.org/articles/13/4349/2021/"
+          }
+        ],
+        "evidence": [
+          {
+            "quote": "Nonetheless, the fluxes in the Alpine region are better in ERA5. This result coincides with a lower performance of ERA5-Land (compared to ERA5) in terms of snow and river discharge estimates in this area when compared to in situ measurements.",
+            "url": "https://essd.copernicus.org/articles/13/4349/2021/"
+          }
+        ],
+        "gathered_by": "Claude, from the source page, whose quote was checked to be on it; the period and region were not reviewed by a person"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ERA5LAND/ERA5LAND007",
+      "geometry": null,
+      "time": {
+        "interval": [
+          "1981-01-01",
+          "2001-01-01"
+        ]
+      },
+      "properties": {
+        "name": "ERA5LAND/ERA5LAND007",
+        "title": "Possible soil moisture jumps at 1981 and 2001 stream joins",
+        "message": "ERA5-Land was produced in three independent streams (1950-1980, 1981-2000, 2001 onward), each started from its own initial state with a spin-up. The producers say this gives satisfactory results over most land, but discontinuities are still possible where soil moisture varies very little, such as deserts and polar regions.",
+        "level": "warning",
+        "instruction": "For long-term trends in slow variables such as root-zone soil moisture in deserts or polar regions, check for jumps at 1 January 1981 and 1 January 2001.",
+        "variables": [
+          "soil moisture"
+        ],
+        "references": [
+          {
+            "title": "ERA5-Land: a state-of-the-art global reanalysis dataset for land applications (Muñoz-Sabater et al., 2021, Earth Syst. Sci. Data 13, 4349-4383)",
+            "url": "https://essd.copernicus.org/articles/13/4349/2021/"
+          }
+        ],
+        "evidence": [
+          {
+            "quote": "While this strategy provides satisfactory results for most continental masses around the world, discontinuities are still possible at areas with very low variability of soil moisture (deserts and polar regions).",
+            "url": "https://essd.copernicus.org/articles/13/4349/2021/"
+          }
+        ],
+        "gathered_by": "Claude, from the source page, whose quote was checked to be on it; the period and region were not reviewed by a person"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ERA5LAND/ERA5LAND008",
+      "geometry": null,
+      "time": {
+        "interval": [
+          "1950-01-01",
+          "1950-01-01"
+        ]
+      },
+      "properties": {
+        "name": "ERA5LAND/ERA5LAND008",
+        "title": "Forecast fields missing at 1950-01-01 00 UTC",
+        "message": "ERA5-Land forecast parameters are missing for the validity time 1 January 1950 00 UTC, the first time step of the record.",
+        "level": "info",
+        "variables": [
+          "forecast parameters"
+        ],
+        "references": [
+          {
+            "title": "ERA5-Land: data documentation (Copernicus Knowledge Base, ECMWF Confluence), Known issues",
+            "url": "https://confluence.ecmwf.int/spaces/CKB/pages/140385202/ERA5-Land+data+documentation"
+          }
+        ],
+        "evidence": [
+          {
+            "quote": "ERA5-Land forecast parameters are missing for the validity time of 1st January 1950 00 UTC.",
+            "url": "https://confluence.ecmwf.int/spaces/CKB/pages/140385202/ERA5-Land+data+documentation"
+          }
+        ],
+        "gathered_by": "Claude, from the source page, whose quote was checked to be on it; the period and region were not reviewed by a person"
+      }
+    }
+  ]
+}

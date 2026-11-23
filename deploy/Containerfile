@@ -1,0 +1,27 @@
+# GLHE web app (LIME) + CLAY, for rootless Podman on the server.
+# Build and run with deploy/run.sh (see deploy/README.md).
+FROM docker.io/mambaorg/micromamba:1.5.10
+
+# Conda env from the repo's environment.yml, minus the editable dev install.
+COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yml /tmp/environment.yml
+RUN sed -i '/-e \.\[dev\]/d; s/^name: .*/name: base/' /tmp/environment.yml \
+ && micromamba install -y -n base -f /tmp/environment.yml \
+ && micromamba clean -a -y
+
+# The code. Installed editable so GLHE/CLAY/LocalData stays at /app/GLHE/CLAY/LocalData,
+# where run.sh mounts the data folder.
+COPY --chown=$MAMBA_USER:$MAMBA_USER . /app
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+RUN pip install --no-deps --no-cache-dir -e /app
+
+# Runtime: CLAY writes LakeOutputDirectory/ and .temp/ under the working dir (/data).
+# HOME and caches point at /tmp because the root file system is read-only.
+ENV HOME=/tmp \
+    MPLCONFIGDIR=/tmp/matplotlib \
+    XDG_CACHE_HOME=/tmp/cache \
+    PYTHONUNBUFFERED=1 \
+    GLHE_ORIGIN=localhost:5006
+WORKDIR /data
+EXPOSE 5006
+
+CMD ["sh", "-c", "exec panel serve /app/GLHE/LIME/app.py --address 0.0.0.0 --port 5006 --index app --admin --allow-websocket-origin \"$GLHE_ORIGIN\" --allow-websocket-origin localhost:5006"]

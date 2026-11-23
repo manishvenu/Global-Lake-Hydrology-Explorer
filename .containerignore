@@ -1,0 +1,9 @@
+.git
+.idea
+**/__pycache__
+GLHE.egg-info
+GLHE/CLAY/LocalData
+LakeOutputDirectory
+.temp
+docs/_build
+*.log

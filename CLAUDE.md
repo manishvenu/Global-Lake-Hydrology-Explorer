@@ -5,7 +5,7 @@
 GLHE is a Python package for fetching, processing, and visualizing lake-scale hydrology data (precipitation, evapotranspiration, runoff) for any lake in the world, identified by its HydroLAKES ID (HYLAK_ID). It is structured as three subpackages:
 
 - **CLAY** — data access and processing (the core). Downloads and spatially averages global datasets over a lake polygon.
-- **LIME** — interactive Plotly/Dash web dashboard for visualization (secondary, still rough).
+- **LIME** — Panel web app: pick a lake, run CLAY, and explore the results (globe, charts, gridded data, caveats).
 - **CALCITE** — internal pub/sub event bus that decouples CLAY and LIME.
 
 The project is prototype-stage research software. It has not been scientifically validated.
@@ -36,8 +36,17 @@ HYLAK_ID = 67  # Great Salt Lake
 clay = GLHE.CLAY.CLAY_driver.CLAY_driver()
 output_dir = clay.main(HYLAK_ID)
 
-# Optional: launch the web dashboard
-# lime = GLHE.LIME.LIME_sample_dashboard.LIME_driver(output_dir)
+# Optional: launch the web app on this lake
+# GLHE.LIME.app.serve(output_dir)
+```
+
+**Web app (LIME)**:
+
+```bash
+panel serve GLHE/LIME/app.py --show                       # local
+# open a lake directly: http://localhost:5006/app?output_dir=/path/to/lake/folder
+# or: GLHE_OUTPUT_DIR=/path/to/lake/folder panel serve GLHE/LIME/app.py
+# on the server (rootless Podman + tailscale serve): see deploy/README.md
 ```
 
 See `sample_script.py` for the canonical example. The first run downloads data; subsequent runs use local cache (pickle files in the output directory).
@@ -75,15 +84,27 @@ HYLAK_ID
         ├─> combined_data_functions.py                  — merge, plot, export
         └─> outputs: CSV, PNG, shapefiles, config.json
 
-LIME_driver(output_dir)
-  └─> Reads config.json written by CLAY
-  └─> Dash app on localhost:8050
+LIME (panel serve GLHE/LIME/app.py, or GLHE.LIME.app.serve(output_dir))
+  └─> app.py LimeApp: sidebar (find lake, run CLAY, processed lakes), globe, tabs
+  └─> state.AppState   — loaded lake (reads config.json + CSV + polygon)
+  └─> jobs.ClayJob     — runs `python -m GLHE.LIME.run_clay <id>` in a subprocess
+  └─> catalog / lake_lookup / caveats (queryearth rules in LIME/rules/)
+  └─> components/      — globe (only JS: MapLibre), overview, series, gridded, table, caveats
 ```
 
 **Data products** are registered in `GLHE/CLAY/config/data_products.json` and their source URLs in `GLHE/CLAY/data_access_config/input_data.json`. Adding a new data source means:
 1. Add a class in `GLHE/CLAY/data_access/` that subclasses `DataAccess`
 2. Implement `verify_inputs()`, `attach_geodata()`, `product_driver(polygon, debug, run_cleanly)`
 3. Register it in both JSON config files
+
+**LIME** (`GLHE/LIME/`) is Python-first; the only JavaScript is `components/globe.js`.
+- `app.py` builds the page (`build_app()`); `app.serve(output_dir)` serves it from Python.
+- Every tab is a `make_*(state)` factory that watches `AppState` and redraws itself; components never talk to each other directly. Cross-component wiring (globe, caveats, header, CLAY job) lives in `LimeApp`.
+- Colours/fonts/CSS come only from `theme.py`. Dark/light is chosen at page load (`?theme=light`); the header switch reloads the page.
+- CLAY runs in a subprocess, one job per server (kept in `pn.state.cache`); the page polls it every 500 ms. `run_clay` prints `GLHE_OUTPUT_DIR=<path>` on success and the app loads that folder.
+- Never import `GLHE.CLAY.lake_extraction`/`CLAY_driver` at LIME import time (they need GDAL); `lake_lookup` reads HydroLAKES with geopandas and returns None when it is missing.
+- Caveats: queryearth rule files in `LIME/rules/` (`era5-land.geojson` vendored from vizqueryearth, `glhe.geojson` our own). See `rules/README.md` to add rules.
+- Dev data: `tests/LIME/fixtures/Fixture_Lake` is a synthetic CLAY output (regenerate with `make_fixture.py`).
 
 **CALCITE pub/sub** — `OutputFileEvent` fires when CLAY writes a file; `DataProductRunEvent` fires per data product. The event bus is a singleton (`CALCITE/pubsub.py`). Subscribers register by event class name string.
 
@@ -96,6 +117,7 @@ pytest                        # all tests
 pytest -m "not slow"          # skip network/data tests
 pytest tests/CLAY/            # CLAY tests only
 pytest tests/test_CALCITE.py  # event bus tests
+pytest tests/LIME/            # LIME app, views, caveats, jobs (no browser, no GDAL needed)
 ```
 
 Test markers (`pytest.ini`): `slow`, `subsetting_data`. The slow tests hit real data downloads — skip them in normal dev cycles.
@@ -113,7 +135,7 @@ CLAY writes all outputs to a per-lake directory under the configured output root
 | `{lake}_all_data.png` | Multi-panel P/E/R plot |
 | `Gridded_Data_{product}.zip` | GeoTIFF + metadata per product |
 | `{lake}_NWM_lake_point.shp` | Lake center point shapefile |
-| `Lake_Polygon.shp` | Lake boundary shapefile |
+| `Lake_Polygon.shp` | Lake boundary (EPSG:4326), written by CLAY; LIME uses it for the outline, area and region caveats |
 | `GLHE_root.log` | Root logger |
 | `{Product}_driver.log` | Per-product log |
 
@@ -126,8 +148,10 @@ CLAY writes all outputs to a per-lake directory under the configured output root
 | `GLHE/CLAY/globals.py` | Debug flags, directory paths, SLC mappings, pint unit registry |
 | `GLHE/CLAY/config/data_products.json` | Which data products are enabled |
 | `GLHE/CLAY/data_access_config/input_data.json` | Source URLs / access methods per product |
-| `GLHE/LIME/config/config.json` | Path to CLAY output dir (written by CLAY) |
-| `GLHE/LIME/config/local_data_files.json` | Mapbox token |
+| `GLHE/LIME/theme.py` | LIME colours, fonts, CSS, chart defaults |
+| `GLHE/LIME/rules/*.geojson` | queryearth caveat rules shown in the Caveats tab |
+| env `GLHE_OUTPUT_DIR` | Lake folder LIME opens at start-up |
+| env `GLHE_OUTPUT_ROOTS` | Extra folders (`:`-separated) LIME scans for processed lakes |
 
 ---
 

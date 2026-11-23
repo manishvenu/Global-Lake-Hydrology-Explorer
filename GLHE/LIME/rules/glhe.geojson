@@ -1,0 +1,160 @@
+{
+  "type": "FeatureCollection",
+  "queryearth": "0.8",
+  "vizqueryearth": {
+    "title": "GLHE: notes on the data products it uses",
+    "description": "Caveats written by the GLHE team about how GLHE fetches and averages ERA5-Land, CRU TS and the National Water Model. Each rule is scoped by product (dimension 'product') and, where resolution matters, by lake area in km2 (dimension 'lake_area'). These are notes, not a validation."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "GLHE/NWM001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-125, 24], [-66.5, 24], [-66.5, 49.5], [-125, 49.5], [-125, 24]]]
+      },
+      "time": null,
+      "properties": {
+        "name": "GLHE/NWM001",
+        "title": "NWM inflow and outflow are model output for one NWM lake",
+        "message": "GLHE reads inflow and outflow from the NOAA National Water Model v3.0 retrospective (CONUS lakeout store). These are simulated values, not gauge observations, and they come from the single NWM lake or reservoir whose point is nearest the lake centroid.",
+        "level": "info",
+        "instruction": "Open the NWM lake point shapefile in the output folder and check that the point sits on this lake before using the i/o series.",
+        "dimensions": {"product": ["NWM"]},
+        "references": [
+          {"title": "NOAA National Water Model CONUS Retrospective Dataset (AWS Open Data Registry)", "url": "https://registry.opendata.aws/nwm-archive/"},
+          {"title": "National Water Model (NOAA Office of Water Prediction)", "url": "https://water.noaa.gov/about/nwm"}
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "GLHE/NWM002",
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [[[-180, -90], [-125, -90], [-125, 90], [-180, 90], [-180, -90]]],
+          [[[-66.5, -90], [0, -90], [0, 90], [-66.5, 90], [-66.5, -90]]],
+          [[[0, -90], [180, -90], [180, 90], [0, 90], [0, -90]]],
+          [[[-125, -90], [-66.5, -90], [-66.5, 24], [-125, 24], [-125, -90]]],
+          [[[-125, 49.5], [-66.5, 49.5], [-66.5, 90], [-125, 90], [-125, 49.5]]]
+        ]
+      },
+      "time": null,
+      "properties": {
+        "name": "GLHE/NWM002",
+        "title": "NWM covers the contiguous United States only",
+        "message": "The NWM store GLHE reads covers the contiguous United States (roughly 125W to 66.5W, 24N to 49.5N). For a lake outside it, CLAY finds no NWM lake and writes no inflow or outflow series; for a lake near the edge, the nearest NWM lake may be a different water body.",
+        "level": "warning",
+        "instruction": "Expect no i.NWM / o.NWM columns for lakes outside the contiguous US. Near the border, check the NWM lake point.",
+        "dimensions": {"product": ["NWM"]},
+        "references": [
+          {"title": "NOAA National Water Model CONUS Retrospective Dataset (AWS Open Data Registry)", "url": "https://registry.opendata.aws/nwm-archive/"}
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "GLHE/NWM003",
+      "geometry": null,
+      "time": {"interval": ["2023-02-01", ".."]},
+      "properties": {
+        "name": "GLHE/NWM003",
+        "title": "NWM retrospective ends in early 2023",
+        "message": "The NWM v3.0 retrospective run is described as covering February 1979 to January 2023. Months after that have no NWM values in GLHE.",
+        "level": "info",
+        "instruction": "Treat missing NWM values after January 2023 as the end of the record, not as zero flow.",
+        "dimensions": {"product": ["NWM"]},
+        "references": [
+          {"title": "NOAA National Water Model CONUS Retrospective Dataset (AWS Open Data Registry)", "url": "https://registry.opendata.aws/nwm-archive/"}
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "GLHE/ERA5LAND-RES001",
+      "geometry": null,
+      "time": null,
+      "properties": {
+        "name": "GLHE/ERA5LAND-RES001",
+        "title": "Small lake on the ERA5-Land grid",
+        "message": "ERA5-Land has a 0.1 degree grid (about 9 km, so a cell is roughly 80 km2 or less). A lake smaller than about 100 km2 covers about one grid cell or less, so its spatial average mostly reflects the surrounding land rather than the lake itself.",
+        "level": "info",
+        "instruction": "Look at the gridded ERA5-Land layer in the Gridded tab to see how many cells overlap the lake before reading much into the series.",
+        "dimensions": {"product": ["ERA5-Land"], "lake_area": {"lt": 100, "unit": "km2"}},
+        "references": [
+          {"title": "ERA5-Land monthly averaged data from 1950 to present (Copernicus Climate Data Store)", "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land-monthly-means"}
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "GLHE/CRUTS001",
+      "geometry": null,
+      "time": null,
+      "properties": {
+        "name": "GLHE/CRUTS001",
+        "title": "Lake smaller than one CRU TS grid cell",
+        "message": "CRU TS has a 0.5 degree grid (about 55 km at the equator, a cell of up to roughly 3000 km2). For a lake smaller than that, the CRU TS series is a regional value from one or a few cells, not a lake-scale estimate.",
+        "level": "info",
+        "instruction": "Read p.CRUTS and e.CRUTS as regional climate; compare them with ERA5-Land rather than treating them as independent lake measurements.",
+        "dimensions": {"product": ["CRUTS"], "lake_area": {"lt": 3000, "unit": "km2"}},
+        "references": [
+          {"title": "Harris et al. (2020), Version 4 of the CRU TS monthly high-resolution gridded multivariate climate dataset, Scientific Data", "url": "https://doi.org/10.1038/s41597-020-0453-3"}
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "GLHE/CRUTS002",
+      "geometry": null,
+      "time": null,
+      "properties": {
+        "name": "GLHE/CRUTS002",
+        "title": "e.CRUTS is potential evapotranspiration",
+        "message": "GLHE uses the CRU TS 'pet' variable for evapotranspiration. That is potential evapotranspiration (Penman-Monteith, for a reference crop), not actual evapotranspiration and not open-water lake evaporation, so it is not directly comparable with ERA5-Land total evaporation.",
+        "level": "warning",
+        "instruction": "Do not difference e.CRUTS against e.ERA5-Land as if both measured the same quantity.",
+        "dimensions": {"product": ["CRUTS"]},
+        "references": [
+          {"title": "Harris et al. (2020), Version 4 of the CRU TS monthly high-resolution gridded multivariate climate dataset, Scientific Data", "url": "https://doi.org/10.1038/s41597-020-0453-3"}
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "GLHE/CRUTS003",
+      "geometry": null,
+      "time": null,
+      "properties": {
+        "name": "GLHE/CRUTS003",
+        "title": "CRU TS relaxes to climatology where stations are sparse",
+        "message": "CRU TS is interpolated from weather stations. Where no station lies within reach of a grid cell, its values fall back towards the 1961-1990 climatology, so the series can show too little year-to-year variation in data-sparse regions.",
+        "level": "info",
+        "instruction": "In remote regions, check CRU TS station counts for the lake's cells before trusting its interannual variability.",
+        "dimensions": {"product": ["CRUTS"]},
+        "references": [
+          {"title": "Harris et al. (2020), Version 4 of the CRU TS monthly high-resolution gridded multivariate climate dataset, Scientific Data", "url": "https://doi.org/10.1038/s41597-020-0453-3"},
+          {"title": "CRU TS (Climatic Research Unit, University of East Anglia)", "url": "https://crudata.uea.ac.uk/cru/data/hrg/"}
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "GLHE/CRUTS004",
+      "geometry": null,
+      "time": {"interval": ["2023-01-01", ".."]},
+      "properties": {
+        "name": "GLHE/CRUTS004",
+        "title": "GLHE's CRU TS file ends in December 2022",
+        "message": "GLHE reads CRU TS 4.07 (cruts_pet_pre_4.07_1901_2022.nc), which ends in December 2022. Months after that have no CRU TS values.",
+        "level": "info",
+        "instruction": "Treat missing CRU TS values from 2023 on as the end of the record.",
+        "dimensions": {"product": ["CRUTS"]},
+        "references": [
+          {"title": "CRU TS (Climatic Research Unit, University of East Anglia)", "url": "https://crudata.uea.ac.uk/cru/data/hrg/"}
+        ]
+      }
+    }
+  ]
+}

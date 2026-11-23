@@ -282,7 +282,23 @@ def write_and_output_README(read_me_information: dict) -> None:
     return
 
 
-def write_and_output_LIME_CONFIG(config_information: dict) -> None:
+def write_lake_polygon(polygon) -> None:
+    """Write the lake outline to Lake_Polygon.shp (EPSG:4326) for LIME's globe."""
+    import geopandas as gpd
+
+    path = (
+        GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
+        + "/Lake_Polygon.shp"
+    )
+    gpd.GeoDataFrame(
+        {"LAKE_NAME": [GLHE.CLAY.globals.config["LAKE_NAME"]]},
+        geometry=[polygon],
+        crs="EPSG:4326",
+    ).to_file(path)
+    logger.info("Wrote lake polygon to: " + path)
+
+
+def write_and_output_LIME_CONFIG(config_information: dict, hylak_id: int) -> None:
     """
     Create a CONFIG file that points to all exported data in LIME-readable format
     """
@@ -298,8 +314,11 @@ def write_and_output_LIME_CONFIG(config_information: dict) -> None:
         "NWM_LAKE_POINT_SHAPEFILENAME": events.TypeOfFileLIME.NWM_LAKE_POINT_SHAPEFILENAME,
     }
     ribbit = {
-        "CLAY_OUTPUT_FOLDER_LOCATION": GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"],
+        "CLAY_OUTPUT_FOLDER_LOCATION": GLHE.CLAY.globals.config["DIRECTORIES"][
+            "OUTPUT_DIRECTORY"
+        ],
         "LAKE_NAME": GLHE.CLAY.globals.config["LAKE_NAME"],
+        "HYLAK_ID": int(hylak_id),
     }
     for json_key, event_key in optional_keys.items():
         if event_key in config_information:
@@ -309,12 +328,6 @@ def write_and_output_LIME_CONFIG(config_information: dict) -> None:
 
     with open(CONFIG_Name, "w") as fp:
         json.dump(ribbit, fp)
-    # config_pointer_file_name = r"..\LIME\config\config.json"
-    # with open(config_pointer_file_name, "r") as f:
-    #     config_pointer = json.load(f)
-    # config_pointer["CLAY_OUTPUT_FOLDER_LOCATION"] = GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
-    # with open(config_pointer_file_name, "w") as fp:
-    #     json.dump(config_pointer, fp)
     logger.info("Wrote CONFIG file to: " + CONFIG_Name)
     return
 

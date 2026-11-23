@@ -28,12 +28,12 @@ dependencies:
   # Visualization
   - holoviews
   - hvplot
-  - panel
-  - plotly
+  - panel>=1.5
   # Dev tools
   - ipykernel
   - pytest
   - black
   - pip
   - pip:
+      - queryearth>=0.8,<0.9
       - -e .[dev]

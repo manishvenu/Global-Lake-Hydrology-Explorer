@@ -44,13 +44,19 @@ HYLAK_ID = 67  # Great Salt Lake
 clay = GLHE.CLAY.CLAY_driver.CLAY_driver()
 output_dir = clay.main(HYLAK_ID)
 
-# Step 2 (optional): launch the web dashboard (LIME)
-# lime = GLHE.LIME.LIME_sample_dashboard.LIME_driver(output_dir)
+# Step 2 (optional): launch the web app (LIME) on this lake
+# GLHE.LIME.app.serve(output_dir)
+```
+
+Or start the web app on its own and pick (or run) lakes from its sidebar:
+
+```bash
+panel serve GLHE/LIME/app.py --show
 ```
 
 See `sample_script.py` in the repository root for the full runnable example.
 
-The LIME dashboard (when enabled) is served at `http://localhost:8050`.
+The LIME web app is served at `http://localhost:5006/app`.
 
 ## Configuration
 
@@ -81,7 +87,7 @@ After a successful run the output directory contains:
 | `{lake}_all_data.png` | Multi-panel precipitation / evapotranspiration / runoff plot |
 | `Gridded_Data_{product}.zip` | GeoTIFF + metadata for each data product |
 | `{lake}_NWM_lake_point.shp` | Lake centre point shapefile |
-| `Lake_Polygon.shp` | Lake boundary shapefile |
+| `Lake_Polygon.shp` | Lake boundary (EPSG:4326), written by CLAY; LIME uses it for the outline, area and region caveats |
 | `GLHE_root.log` | Root logger output |
 | `{Product}_driver.log` | Per-data-product log |
 

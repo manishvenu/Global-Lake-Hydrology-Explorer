@@ -119,6 +119,7 @@ class CLAY_driver:
         # Access lake information#
         lake_extraction_object = lake_extraction.LakeExtraction()
         lake_extraction_object.extract_lake_information(HYLAK_ID)
+        self.hylak_id = int(HYLAK_ID)
         GLHE.CLAY.globals.config["LAKE_NAME"] = lake_extraction_object.get_lake_name()
 
         helpers.setup_output_directory(GLHE.CLAY.globals.config["LAKE_NAME"])
@@ -215,7 +216,10 @@ class CLAY_driver:
         )
         self.export_data_product_config()
         combined_data_functions.write_and_output_README(self.read_me_information)
-        combined_data_functions.write_and_output_LIME_CONFIG(self.output_file_config)
+        combined_data_functions.write_lake_polygon(self.lake_polygon)
+        combined_data_functions.write_and_output_LIME_CONFIG(
+            self.output_file_config, self.hylak_id
+        )
 
     def export_data_product_config(self) -> None:
         data_products_temp = self.data_products.copy()

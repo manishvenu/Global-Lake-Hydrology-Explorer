@@ -15,9 +15,10 @@ HYLAK_ID (lake identifier)
         ├─> combined_data_functions         — merge, plot, export
         └─> outputs: CSV, PNG, shapefiles, config.json
 
-LIME_driver(output_dir)
+LIME (panel serve GLHE/LIME/app.py, or GLHE.LIME.app.serve(output_dir))
   └─> Reads config.json produced by CLAY
-  └─> Dash web app on localhost:8050
+  └─> Panel web app on localhost:5006: globe, charts, gridded data,
+      caveats (queryearth), and a button that runs CLAY in a subprocess
 ```
 
 ## CLAY — data access layer
@@ -66,15 +67,21 @@ described in the README as "the hard (useful) part."
 
 ## LIME — visualization layer
 
-A Plotly/Dash web application. It reads the `config.json` written by
-CLAY and renders:
+A Panel web application (`panel serve GLHE/LIME/app.py`). It is Python
+apart from one small MapLibre globe component. It shows:
 
-- Lake location map (Folium)
-- Time-series table of monthly P/E/R
-- Gridded data validation maps (Holoviews)
-- Lake point validation overlay
+- A 3D globe with the lake outline, the NWM lake point, gridded cells and
+  caveat areas; clicking the globe picks a lake (when HydroLAKES is on the
+  machine)
+- Overview tiles (area, record period, mean annual totals, P − E)
+- Linked time-series charts per variable and product
+- A gridded-data viewer for the GeoTIFFs CLAY writes
+- Caveats: known data issues from queryearth rule files that match the
+  lake's location, dates and products
+- The data table with CSV/zip downloads
 
-Currently described as "a mess" and is lower priority than CLAY.
+The sidebar can also start CLAY for a new lake (in a subprocess) and stream
+its log. LIME reads the `config.json` written by CLAY for each lake.
 
 ## CALCITE — message bus
 

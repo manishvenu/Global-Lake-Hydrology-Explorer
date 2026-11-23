@@ -16,9 +16,9 @@ def main():
     print("Running CLAY Driver with lake ID...")
     output_files_dir = clay_driver_obj.main(HYLAK_ID)
 
-    # Run the visualization, which is not OOP (yet). Add output_files_dir to the LIME/config/config.json file or pass as shown here.
+    # Open the results in the LIME web app (or run: panel serve GLHE/LIME/app.py).
     # print("Running LIME Driver...")
-    # lime_driver_obj = GLHE.LIME.LIME_sample_dashboard.LIME_driver(output_files_dir)
+    # GLHE.LIME.app.serve(output_files_dir)
 
     # Open the output website, because we run a website, this function won't finish, it'll just point to somewhere on the local host.
 

@@ -31,11 +31,11 @@ dependencies = [
     "dask",
     "zarr",
     "requests",
-    "plotly",
     "holoviews",
     "hvplot",
-    "panel",
+    "panel>=1.5",  # LIME uses pn.custom.JSComponent (globe)
     "snakemd",
+    "queryearth>=0.8,<0.9",
 ]
 
 [project.optional-dependencies]
@@ -53,6 +53,9 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["GLHE*"]
+
+[tool.setuptools.package-data]
+"GLHE.LIME" = ["rules/*.geojson", "rules/*.md", "components/*.js"]
 
 [tool.black]
 line-length = 88

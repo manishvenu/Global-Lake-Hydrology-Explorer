@@ -1,0 +1,8 @@
+{
+  "CLAY_OUTPUT_FOLDER_LOCATION": ".",
+  "LAKE_NAME": "Fixture_Lake",
+  "HYLAK_ID": 999999,
+  "SERIES_DATA": "Fixture_Lake_Data.csv",
+  "GRIDDED_DATA_FOLDER": "Fixture_Lake_gridded_data_layers_on_20000101.zip",
+  "NWM_LAKE_POINT_SHAPEFILENAME": "Fixture_Lake_NWM_lake_point.shp"
+}

@@ -25,7 +25,7 @@ import os
 from pathlib import Path
 
 import GLHE.CLAY.CLAY_driver
-import GLHE.LIME.LIME_sample_dashboard
+import GLHE.LIME.app
 
 # ── pick your lake ──────────────────────────────────────────────────────────
 HYLAK_ID = 5000
@@ -52,7 +52,7 @@ def run_lime(output_dir: str) -> None:
     print(f"  Launching LIME dashboard")
     print(f"  Reading from: {output_dir}")
     print(f"{'='*60}\n")
-    GLHE.LIME.LIME_sample_dashboard.LIME_driver(output_dir)
+    GLHE.LIME.app.serve(output_dir)
 
 
 def _summarise_outputs(output_dir: str) -> None:

@@ -13,7 +13,7 @@ It is not intended to be used for any serious research because it hasn't been va
 - **WARNING:** Haven't implemented comeplete remote file acces so some things are downloaded. The Local Data Folder is not uploaded to GitHub. When you run the code, it downloads the necessary data! Shouldn't take too long!
 - **In development:** The tool is currently in development. The current version is a protoype.
 - **Coordinate System:** I don't know what coordinate systems are, but the goal is WCS_1984 for projection.
-- **Package Status:** LIME is a mess, it's more about CLAY working right now because that's the hard (useful) part.
+- **Package Status:** CLAY is the hard (useful) part. LIME is now a Panel web app for running CLAY and exploring its results; it is new and still being tested on real CLAY output.
 
 ## Getting Started
 
@@ -39,6 +39,21 @@ You will need your lakes' HYLAK ID, you can find it
 here: https://glhe-fe.projects.earthengine.app/view/globallakehydrologyexplorer. Ignore all the demo links, which only work in a supervised environment, and are basically deprecated now.
 
 Import GLHE, call the CLAY_driver, which will download all the required data the first time, run the CLAY_driver, and then pass the output folder location of CLAY_driver to LIME. You can change the output folder location in GLHE.CLAY.globals!
+
+#### LIME web app
+
+LIME is the web interface: find a lake by HYLAK_ID (or by clicking the globe), run CLAY for it, and explore the results in tabs (Overview, Time series, Gridded, Caveats, Data). The Caveats tab lists known data issues that match the lake's place, dates and products, using [queryearth](https://github.com/CROCODILE-CESM/queryearth) rule files (including [vizqueryearth](https://github.com/CROCODILE-CESM/vizqueryearth)'s ERA5-Land notes).
+
+```bash
+panel serve GLHE/LIME/app.py --show
+# open one lake directly:
+#   http://localhost:5006/app?output_dir=/path/to/LakeOutputDirectory/Great_Salt_Lake
+# from Python:
+#   GLHE.LIME.app.serve(output_dir)
+# on the server (rootless Podman + tailscale serve): see deploy/README.md
+```
+
+The globe loads MapLibre and its basemap from the internet, so the browser needs network access. Running CLAY from the app needs GDAL and the CLAY data on the machine serving it.
 
 This is tested to work on Linux and Windows, but Mac shouldn't be a problem. We're not using OS-specific packages yet. 
 
