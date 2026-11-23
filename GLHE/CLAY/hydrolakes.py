@@ -17,7 +17,7 @@ Where the file is read from (first that applies):
 3. the public bucket, ``s3://glhe/HydroLAKES/HydroLAKES_polys_v10.parquet``.
 
 Used by CLAY (``lake_extraction``) and the LIME web app (``lake_lookup``).
-Needs pyarrow, shapely and geopandas, plus s3fs for S3; no GDAL bindings.
+Needs pyarrow, shapely and geopandas; no GDAL bindings.
 """
 
 from __future__ import annotations
@@ -49,24 +49,52 @@ def source() -> str:
     return S3_URL
 
 
-def _filesystem(src: str):
-    """(filesystem, path) for pyarrow: anonymous s3fs for s3:// URLs, else local."""
-    if src.startswith("s3://"):
-        import s3fs
+@functools.lru_cache(maxsize=8)
+def _s3(bucket: str):
+    """Anonymous pyarrow S3 client for a bucket (its region looked up once).
 
-        return s3fs.S3FileSystem(anon=True), src[len("s3://") :]
+    pyarrow's own S3 client fetches the many small Parquet pieces in parallel,
+    roughly 10x faster here than going through s3fs.
+    """
+    import pyarrow.fs as pafs
+
+    return pafs.S3FileSystem(anonymous=True, region=pafs.resolve_s3_region(bucket))
+
+
+def _filesystem(src: str):
+    """(filesystem, path) for pyarrow: anonymous S3 for s3:// URLs, else local."""
+    if src.startswith("s3://"):
+        path = src[len("s3://") :]
+        return _s3(path.split("/", 1)[0]), path
     return None, src
 
 
-@functools.lru_cache(maxsize=8)
+_AVAILABLE: set[str] = set()
+
+
 def available(src: str | None = None) -> bool:
-    """True if the HydroLAKES file can be opened (checked once per source)."""
+    """True if the HydroLAKES file can be opened.
+
+    Success is remembered; failures are not, so a network blip at start-up
+    does not disable lookups for the life of the server.
+    """
+    import pyarrow.fs as pafs
+
     src = src or source()
+    if src in _AVAILABLE:
+        return True
     try:
         fs, path = _filesystem(src)
-        return fs.exists(path) if fs else Path(path).exists()
+        ok = (
+            fs.get_file_info(path).type == pafs.FileType.File
+            if fs
+            else Path(path).exists()
+        )
     except Exception:
-        return False
+        ok = False
+    if ok:
+        _AVAILABLE.add(src)
+    return ok
 
 
 def read_lakes(hylak_ids, src: str | None = None):
