@@ -1,11 +1,14 @@
 import cdsapi
 import xarray as xr
 from GLHE.CALCITE import events
-from GLHE.CLAY import lake_extraction, helpers, xarray_helpers
+from GLHE.CLAY import data_sources, lake_extraction, helpers, xarray_helpers
 from GLHE.CLAY.data_access import data_access_parent_class
 from GLHE.CLAY.helpers import MVSeries
 import os
 from pathlib import Path
+
+#: ERA5 Zarr's path on the GLHE data server and in S3 (see data_sources).
+ERA5_ZARR = "zarr/ERA5.zarr"
 
 
 class ERA5_Land(data_access_parent_class.DataAccess):
@@ -242,11 +245,8 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         """Calls ERA5 Land Dataset Access Functions and returns the dataset"""
         self.logger.info("Getting ERA5 Land Dataset")
         local_zarr = Path(__file__).parent.parent / "LocalData" / "zarr" / "ERA5.zarr"
-        if local_zarr.exists():
-            self.logger.info("Reading ERA5 data from local cache")
-            return xr.open_dataset(str(local_zarr), engine="zarr")
-        try:
-            dataset = self.get_dataset_from_cloud()
+        try:  # this machine, else the GLHE data server, else S3
+            return data_sources.open_zarr(ERA5_ZARR, local_zarr)
         except Exception:
             try:
                 dataset = self.get_total_dataset()
@@ -257,15 +257,9 @@ class ERA5_Land(data_access_parent_class.DataAccess):
         return dataset
 
     def get_dataset_from_cloud(self) -> xr.Dataset:
-        """Access dataset from the S3 Bucket in Zarr form"""
-        self.logger.info("Reading in ERA5 data from AWS S3 Bucket")
-        zarr_s3_path = "s3://glhe/zarr/ERA5.zarr"
-
-        self.xarray_dataset = xr.open_dataset(
-            zarr_s3_path,
-            engine="zarr",
-            backend_kwargs={"storage_options": {"anon": True}},
-        )
+        """The ERA5 Zarr from the GLHE data server, else the S3 bucket."""
+        self.logger.info("Reading in ERA5 data from the data server or S3")
+        self.xarray_dataset = data_sources.open_zarr(ERA5_ZARR, None)
         return self.xarray_dataset
 
     def get_total_dataset(self) -> xr.Dataset:

@@ -27,8 +27,9 @@ local_path : str
     server: ``~/glhe-data/LocalData``). A glob such as ``"IMERG/*.nc"`` works
     for many NetCDF files.
 cloud : str, optional
-    Fallback Zarr path in the public ``glhe`` S3 bucket, read anonymously
-    when the local copy is missing.
+    The Zarr store's path on the GLHE data server and in the ``glhe`` S3
+    bucket (e.g. ``"zarr/CRUTS.zarr"``), used when the local copy is missing:
+    ``https://glhe.venumuddula.com/<cloud>``, then ``s3://glhe/<cloud>``.
 variables : dict
     ``{name in the file: single-letter code}``. Only ``"p"`` and ``"e"`` are
     supported (they are converted to mm/month); inflow and outflow need a
@@ -51,7 +52,7 @@ from pathlib import Path
 import xarray as xr
 
 from GLHE.CALCITE import events
-from GLHE.CLAY import lake_extraction, xarray_helpers
+from GLHE.CLAY import data_sources, lake_extraction, xarray_helpers
 from GLHE.CLAY.data_access import data_access_parent_class, data_check
 from GLHE.CLAY.helpers import MVSeries
 
@@ -59,7 +60,6 @@ from GLHE.CLAY.helpers import MVSeries
 #: in GLHE.CLAY.globals.SLC_MAPPING, so the MVSeries get the right code.
 STANDARD_NAMES = {"p": "precip", "e": "evap"}
 OUTPUT_UNIT = "mm/month"
-S3_BUCKET = "glhe"
 
 
 class GriddedProduct(data_access_parent_class.DataAccess):
@@ -102,23 +102,19 @@ class GriddedProduct(data_access_parent_class.DataAccess):
         return Path(data_check._LOCAL_DATA_DIR) / self.spec["local_path"]
 
     def open_dataset(self) -> xr.Dataset:
-        """The product's data: the local copy if present, else the S3 copy."""
+        """The product's data: local NetCDF files, or a Zarr store from this
+        machine, else the GLHE data server, else S3 (see data_sources)."""
         path = self.local_path()
-        if path.suffix == ".zarr" and path.exists():
-            self.logger.info("Reading %s from %s", self.product_name, path)
-            return xr.open_dataset(str(path), engine="zarr")
-        files = sorted(glob.glob(str(path)))
-        if files and path.suffix != ".zarr":
-            self.logger.info(
-                "Reading %s from %d file(s)", self.product_name, len(files)
-            )
-            return xr.open_mfdataset(files, combine="by_coords")
-        if self.spec.get("cloud"):
-            url = f"s3://{S3_BUCKET}/{self.spec['cloud']}"
-            self.logger.info("Reading %s from %s", self.product_name, url)
-            return xr.open_dataset(
-                url, engine="zarr", backend_kwargs={"storage_options": {"anon": True}}
-            )
+        if path.suffix != ".zarr":
+            files = sorted(glob.glob(str(path)))
+            if files:
+                self.logger.info(
+                    "Reading %s from %d file(s)", self.product_name, len(files)
+                )
+                return xr.open_mfdataset(files, combine="by_coords")
+        if path.suffix == ".zarr" or self.spec.get("cloud"):
+            local = path if path.suffix == ".zarr" else None
+            return data_sources.open_zarr(self.spec.get("cloud"), local)
         raise FileNotFoundError(f"{self.product_name} data not found at {path}")
 
     def prepare(self, dataset: xr.Dataset) -> xr.Dataset:

@@ -7,6 +7,8 @@ from botocore import UNSIGNED
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
+from GLHE.CLAY import data_sources
+
 logger = logging.getLogger(__name__)
 
 _LOCAL_DATA_DIR = Path(__file__).parents[1] / "LocalData"
@@ -38,6 +40,12 @@ def check_data_and_download_missing_data_or_files() -> None:
                     "it will be skipped"
                 )
                 continue
+            if data_sources.on_server(cloud_path):
+                logger.info(
+                    f"Found {name} on the GLHE data server "
+                    f"({data_sources.server_url(cloud_path)})"
+                )
+                continue
             try:
                 on_s3 = s3_object_or_folder_exists(_BUCKET, cloud_path)
             except Exception as exc:  # offline, DNS, S3 outage...
@@ -47,8 +55,9 @@ def check_data_and_download_missing_data_or_files() -> None:
                 logger.info(f"Found {name} in S3")
             else:
                 logger.warning(
-                    f"{name} not found locally ({local_path}) or in S3 "
-                    f"(s3://{_BUCKET}/{cloud_path}); it will be skipped"
+                    f"{name} not found locally ({local_path}), on the data "
+                    f"server or in S3 (s3://{_BUCKET}/{cloud_path}); "
+                    "it will be skipped"
                 )
 
         elif code == "api":

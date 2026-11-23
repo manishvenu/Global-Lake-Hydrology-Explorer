@@ -23,6 +23,7 @@ dependencies:
   - zarr
   - s3fs
   - fsspec
+  - aiohttp
   - boto3
   # Data access
   - cdsapi

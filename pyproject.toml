@@ -26,6 +26,7 @@ dependencies = [
     "boto3",
     "pyproj",
     "fsspec",
+    "aiohttp",  # fsspec over HTTP: data from the GLHE data server
     "s3fs",
     "netCDF4",
     "dask",
