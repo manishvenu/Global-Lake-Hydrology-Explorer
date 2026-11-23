@@ -29,7 +29,14 @@ from GLHE.CLAY import caveats, hydrolakes
 from GLHE.LIME import catalog, gridded, jobs, public
 from GLHE.LIME.globe import LakeGlobe, lake_tiles_url
 
-pn.extension("tabulator")
+# Wider, darker scrollbars so the scrollable sidebar and main area are obvious.
+SCROLLBAR_CSS = """
+* { scrollbar-width: auto; scrollbar-color: #888 #e6e6e6; }
+::-webkit-scrollbar { width: 14px; height: 14px; }
+::-webkit-scrollbar-track { background: #e6e6e6; }
+::-webkit-scrollbar-thumb { background: #888; border-radius: 7px; }
+"""
+pn.extension("tabulator", raw_css=[SCROLLBAR_CSS])
 logger = logging.getLogger(__name__)
 
 SLC_LABELS = {
@@ -96,9 +103,13 @@ def series_view(df) -> pn.Column:
     for slc, label in SLC_LABELS.items():
         cols = [c for c in df.columns if c.startswith(slc + ".")]
         if cols:
-            plots.append(
-                df[cols].hvplot.line(ylabel=label, responsive=True, height=260)
+            plot = df[cols].hvplot.line(ylabel=label, responsive=True, height=260)
+            # Mouse wheel scrolls the page (zoom is still in the toolbar), and
+            # plain canvas drawing: WebGL plots next to the WebGL map can stay blank.
+            plot = plot.opts(
+                active_tools=["pan"], backend_opts={"plot.output_backend": "canvas"}
             )
+            plots.append(plot)
     return pn.Column(*plots, sizing_mode="stretch_width", name="Time series")
 
 
