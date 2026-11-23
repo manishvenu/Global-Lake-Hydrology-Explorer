@@ -1,4 +1,4 @@
-from GLHE.CLAY.data_access import ERA5_Land, NWM, CRUTS, data_check
+from GLHE.CLAY.data_access import ERA5_Land, NWM, data_check, gridded_product
 import pytest
 import shapely.geometry
 import GLHE.CLAY.lake_extraction as lake_extraction
@@ -21,8 +21,9 @@ class TestDataAccessInitialization:
         assert nwm.verify_inputs() == True
 
     def test_CRUTS(self):
-        cruts = CRUTS.CRUTS()
-        assert cruts.verify_inputs() == True
+        spec = {"product_name": "CRUTS", "local_path": "zarr/CRUTS.zarr",
+                "variables": {"pre": "p", "pet": "e"}}
+        assert gridded_product.GriddedProduct(spec).verify_inputs() == True
 
 
 class TestERA5Land:
