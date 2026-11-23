@@ -204,7 +204,7 @@ When adding a new data source, decide upfront:
 
 ## Common tasks
 
-**Add a new data source**: for a gridded p/e product, add a `GriddedProduct` spec entry to `data_products.json` (see above). Otherwise subclass `DataAccess` (see `GLHE/CLAY/data_access/data_access_parent_class.py`), then register in the two JSON config files. Use `ERA5_Land.py` or `CRUTS.py` as reference.
+**Add a new data source**: for a gridded p/e product, add a `GriddedProduct` spec entry to `data_products.json` (see above). Otherwise subclass `DataAccess` (see `GLHE/CLAY/data_access/data_access_parent_class.py`), then register in the two JSON config files. Use `ERA5_Land.py` or `GLEAM.py` as reference; CRU TS is a `GriddedProduct` spec.
 
 **Change output directory**: Edit `GLHE/CLAY/globals.py` (`config["DIRECTORIES"]["OUTPUT_DIRECTORY"]`).
 

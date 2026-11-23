@@ -2,9 +2,9 @@
 
 ## Submodules
 
-### GLHE.CLAY.data_access.CRUTS
+### GLHE.CLAY.data_access.gridded_product
 
-```{automodule} GLHE.CLAY.data_access.CRUTS
+```{automodule} GLHE.CLAY.data_access.gridded_product
 :members:
 :undoc-members:
 :show-inheritance:

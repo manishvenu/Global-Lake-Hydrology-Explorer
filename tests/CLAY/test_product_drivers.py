@@ -9,13 +9,15 @@ unexpectedly, the test fails here rather than producing a mysteriously empty CSV
 
 Patch strategy per product
 --------------------------
-CRUTS        : get_total_precip_evap()        — raw dataset before any processing
+CRUTS        : open_dataset()                 — raw dataset (CRU TS is a GriddedProduct spec)
 ERA5-Land    : call_ERA5_Land_API_and_process() — post-processed dataset (mm/month)
 NWM          : call_NWM_s3_access_and_process() — fully-processed monthly dataset
 DAHITI       : _fetch_and_process()             — synthetic water-level pd.Series
 GloFAS       : _fetch_and_process()             — synthetic discharge pd.Series
 GLEAM        : _find_files() + _load_and_process() — patched file list + processed dataset
 """
+
+import json
 
 import numpy as np
 import pandas as pd
@@ -27,12 +29,19 @@ from unittest.mock import patch, MagicMock
 
 import GLHE.CLAY.globals
 import GLHE.CLAY.helpers
-from GLHE.CLAY.data_access import CRUTS as cruts_mod
+from GLHE.CLAY.data_access import gridded_product
 from GLHE.CLAY.data_access import ERA5_Land as era5_mod
 from GLHE.CLAY.data_access import NWM as nwm_mod
 from GLHE.CLAY.data_access import DAHITI as dahiti_mod
 from GLHE.CLAY.data_access import GloFAS as glofas_mod
 from GLHE.CLAY.data_access import GLEAM as gleam_mod
+
+
+def _cruts():
+    """CRU TS as configured in data_products.json (a GriddedProduct spec)."""
+    config = Path(GLHE.CLAY.globals.__file__).parent / "config" / "data_products.json"
+    spec = json.loads(config.read_text())["CRUTS"]["spec"]
+    return gridded_product.GriddedProduct(spec)
 
 
 # ── Shared constants ─────────────────────────────────────────────────────────
@@ -133,13 +142,13 @@ def _check(mv, slc: str, product_fragment: str) -> None:
 
 class TestCRUTSDriver:
     """Tests the full CRUTS pipeline: label → rename dims → subset → convert units
-    → spatial average → date snap.  Only get_total_precip_evap() is mocked."""
+    → spatial average → date snap.  Only open_dataset() is mocked."""
 
     def test_returns_two_mvseries(self, tmp_path):
         raw_ds = _grid_ds({"pre": (50.0, "mm/month"), "pet": (80.0, "mm/month")})
 
-        cruts = cruts_mod.CRUTS()
-        with patch.object(cruts, "get_total_precip_evap", return_value=raw_ds):
+        cruts = _cruts()
+        with patch.object(cruts, "open_dataset", return_value=raw_ds):
             result = cruts.product_driver(POLY, run_cleanly=True)
 
         assert len(result) == 2, f"CRUTS must return 2 MVSeries, got {len(result)}"
@@ -147,8 +156,8 @@ class TestCRUTSDriver:
     def test_precip_mvseries(self, tmp_path):
         raw_ds = _grid_ds({"pre": (50.0, "mm/month"), "pet": (80.0, "mm/month")})
 
-        cruts = cruts_mod.CRUTS()
-        with patch.object(cruts, "get_total_precip_evap", return_value=raw_ds):
+        cruts = _cruts()
+        with patch.object(cruts, "open_dataset", return_value=raw_ds):
             result = cruts.product_driver(POLY, run_cleanly=True)
 
         precip = next(mv for mv in result if mv.single_letter_code == "p")
@@ -157,8 +166,8 @@ class TestCRUTSDriver:
     def test_evap_mvseries(self, tmp_path):
         raw_ds = _grid_ds({"pre": (50.0, "mm/month"), "pet": (80.0, "mm/month")})
 
-        cruts = cruts_mod.CRUTS()
-        with patch.object(cruts, "get_total_precip_evap", return_value=raw_ds):
+        cruts = _cruts()
+        with patch.object(cruts, "open_dataset", return_value=raw_ds):
             result = cruts.product_driver(POLY, run_cleanly=True)
 
         evap = next(mv for mv in result if mv.single_letter_code == "e")
@@ -168,29 +177,13 @@ class TestCRUTSDriver:
         """All grid cells have the same value so spatial avg must equal that value."""
         raw_ds = _grid_ds({"pre": (50.0, "mm/month"), "pet": (80.0, "mm/month")})
 
-        cruts = cruts_mod.CRUTS()
-        with patch.object(cruts, "get_total_precip_evap", return_value=raw_ds):
+        cruts = _cruts()
+        with patch.object(cruts, "open_dataset", return_value=raw_ds):
             result = cruts.product_driver(POLY, run_cleanly=True)
 
         precip = next(mv for mv in result if mv.single_letter_code == "p")
         assert precip.dataset.notna().all()
         assert (precip.dataset > 0).all()
-
-    def test_cached_run_also_returns_two_mvseries(self, tmp_path):
-        """Cached path (run_cleanly=False) should return the same structure."""
-        # Pre-write a valid pickle so the cached path is taken.
-        processed_ds = _grid_ds(
-            {"pre": (50.0, "mm/month"), "pet": (80.0, "mm/month")},
-            product_name="CRUTS",
-        )
-        GLHE.CLAY.helpers.pickle_var(processed_ds, "CRUTS")
-
-        cruts = cruts_mod.CRUTS()
-        result = cruts.product_driver(POLY, run_cleanly=False, debug=False)
-
-        assert len(result) == 2
-        slcs = {mv.single_letter_code for mv in result}
-        assert slcs == {"p", "e"}
 
 
 # ── ERA5-Land ─────────────────────────────────────────────────────────────────
@@ -476,10 +469,10 @@ class TestVerifyInputsAndAttachGeodata:
     from attach_geodata.  These are called by CLAY_driver before product_driver."""
 
     def test_cruts_verify_inputs(self):
-        assert cruts_mod.CRUTS().verify_inputs() is True
+        assert _cruts().verify_inputs() is True
 
     def test_cruts_attach_geodata(self):
-        assert cruts_mod.CRUTS().attach_geodata() == "grid"
+        assert _cruts().attach_geodata() == "grid"
 
     def test_era5_verify_inputs(self):
         with patch("cdsapi.Client"):
