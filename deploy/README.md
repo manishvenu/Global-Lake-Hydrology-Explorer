@@ -19,8 +19,11 @@ browser ──tailnet──► tailscale serve :8443 ──► 127.0.0.1:5006 �
 
 One-time root steps (already done on gram): `loginctl enable-linger manishrv`, the `dbus-user-session` package, and `tailscale set --operator=manishrv`.
 
+The server runs from its own clean clone, `~/glhe-deploy`, so a work-in-progress checkout (`~/glhe`) never affects the live app.
+
 ```bash
-cd ~/glhe && git pull
+git clone https://github.com/manishvenu/Global-Lake-Hydrology-Explorer.git ~/glhe-deploy
+cd ~/glhe-deploy
 deploy/run.sh                                        # build image, start service (first build: ~10 min)
 tailscale serve --bg --https=8443 http://127.0.0.1:5006
 ```
@@ -30,7 +33,7 @@ Data lives in `~/glhe-data` (override with `GLHE_DATA`). CLAY downloads what is 
 ## Updating
 
 ```bash
-cd ~/glhe && git pull && deploy/run.sh
+cd ~/glhe-deploy && git pull && deploy/run.sh
 ```
 
 `deploy/run.sh --no-build` restarts without rebuilding. Settings are environment variables at the top of `run.sh` (`GLHE_PORT`, `GLHE_MEMORY`, `GLHE_ORIGIN`, ...).

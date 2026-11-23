@@ -23,7 +23,8 @@ mkdir -p "$DATA/LakeOutputDirectory" "$DATA/.temp/logging" "$DATA/LocalData"
 
 if [[ "${1:-}" != "--no-build" ]]; then
   echo "==> Building $IMAGE (first build takes several minutes)"
-  podman build -t "$IMAGE" -f "$REPO/deploy/Containerfile" "$REPO"
+  # docker format: the micromamba base image needs SHELL, which OCI format ignores
+  podman build --format docker -t "$IMAGE" -f "$REPO/deploy/Containerfile" "$REPO"
 fi
 
 secret_args=()
