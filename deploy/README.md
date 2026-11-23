@@ -105,7 +105,16 @@ Everything CLAY reads is on gram's disk, so nothing needs S3; the `s3://glhe` co
 | Lake tiles for the globe | `~/glhe-tiles/HydroLAKES_polys_v10.pmtiles` | `/tiles/...` (read-only) | 0.9 GB |
 | CLAY results (one folder per lake) | `~/glhe-data/LakeOutputDirectory/` | `/data/LakeOutputDirectory/` | grows |
 
-CLAY checks `LocalData/` first and only falls back to S3 if a file is missing there, so with these files in place S3 is never used. `run.sh` mounts `~/glhe-data/LocalData` into the container read-write.
+CLAY checks `LocalData/` first, so on gram the server and S3 are never used. `run.sh` mounts `~/glhe-data/LocalData` into the container read-write.
+
+**Served to other GLHE installs** (`GLHE_SERVE_DATA=1`, the default; set `GLHE_SERVE_DATA=0` in `~/.config/glhe/deploy.env` to stop). The layout mirrors the old S3 bucket, and CLAY elsewhere reads it automatically (`GLHE/CLAY/data_sources.py`: local, then this server, then S3):
+
+| Served at | From |
+|---|---|
+| `https://glhe.venumuddula.com/zarr/<name>.zarr/...` | everything in `~/glhe-data/LocalData/zarr/` |
+| `https://glhe.venumuddula.com/HydroLAKES/HydroLAKES_polys_v10.parquet` | that one file only |
+
+Only those are served: anything else in `LocalData/` (e.g. GLEAM, which may not be redistributed) stays private, so **never put non-shareable data in `LocalData/zarr/`**. Reading through Cloudflare is slower than local: about 2 s per lake for most HydroLAKES IDs, about 30 s for IDs under about 5,000 (big lakes share a 151 MB row group), and a few seconds for a lake's full ERA5 or CRU TS series.
 
 **Back these up** if you care about them: re-creating them means re-downloading from the original sources (HydroLAKES shapefile, CDS for ERA5-Land, CRU) and re-running the converters in `GLHE/CLAY/data_access/aws_zarr_templates/`. `~/glhe-data/s3_copy.py` is the script that copied them down from S3.
 

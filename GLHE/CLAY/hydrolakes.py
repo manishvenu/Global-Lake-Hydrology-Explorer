@@ -14,9 +14,13 @@ per lake. That layout lets us read only what we need, straight from S3:
 
 Where the file is read from (first that applies):
 
-1. the ``GLHE_HYDROLAKES`` environment variable (a local path or ``s3://`` URL);
+1. the ``GLHE_HYDROLAKES`` environment variable (a local path, ``https://``
+   or ``s3://`` URL);
 2. ``GLHE/CLAY/LocalData/HydroLAKES_polys_v10.parquet`` if it exists;
-3. the public bucket, ``s3://glhe/HydroLAKES/HydroLAKES_polys_v10.parquet``.
+3. the GLHE data server,
+   ``https://glhe.venumuddula.com/HydroLAKES/HydroLAKES_polys_v10.parquet``
+   (see ``GLHE.CLAY.data_sources``);
+4. the S3 bucket, ``s3://glhe/HydroLAKES/HydroLAKES_polys_v10.parquet``.
 
 Used by CLAY (``lake_extraction``) and the LIME web app (search and lake outlines).
 Needs pyarrow, shapely and geopandas; no GDAL bindings.
@@ -34,7 +38,8 @@ from pathlib import Path
 import numpy as np
 
 FILENAME = "HydroLAKES_polys_v10.parquet"
-S3_URL = "s3://glhe/HydroLAKES/" + FILENAME
+RELATIVE_PATH = "HydroLAKES/" + FILENAME  # on the data server and in S3
+S3_URL = "s3://glhe/" + RELATIVE_PATH
 LOCAL_PATH = Path(__file__).resolve().parent / "LocalData" / FILENAME
 ENV_VAR = "GLHE_HYDROLAKES"
 
@@ -50,7 +55,11 @@ def source() -> str:
         return os.environ[ENV_VAR]
     if LOCAL_PATH.exists():
         return str(LOCAL_PATH)
-    return S3_URL
+    from GLHE.CLAY import data_sources
+
+    if data_sources.on_server(RELATIVE_PATH):
+        return data_sources.server_url(RELATIVE_PATH)
+    return data_sources.s3_url(RELATIVE_PATH)
 
 
 @functools.lru_cache(maxsize=8)
@@ -65,11 +74,22 @@ def _s3(bucket: str):
     return pafs.S3FileSystem(anonymous=True, region=pafs.resolve_s3_region(bucket))
 
 
+@functools.lru_cache(maxsize=1)
+def _http():
+    """pyarrow filesystem for http(s) URLs (via fsspec; reads byte ranges)."""
+    import fsspec
+    import pyarrow.fs as pafs
+
+    return pafs.PyFileSystem(pafs.FSSpecHandler(fsspec.filesystem("https")))
+
+
 def _filesystem(src: str):
-    """(filesystem, path) for pyarrow: anonymous S3 for s3:// URLs, else local."""
+    """(filesystem, path) for pyarrow: anonymous S3, HTTP(S), or local."""
     if src.startswith("s3://"):
         path = src[len("s3://") :]
         return _s3(path.split("/", 1)[0]), path
+    if src.startswith(("http://", "https://")):
+        return _http(), src
     return None, src
 
 
