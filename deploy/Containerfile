@@ -27,4 +27,6 @@ EXPOSE 5006
 
 # The /admin page (sessions, logs) is only served in private mode: with
 # GLHE_PUBLIC=1 the app is on the internet and /admin must not be.
-CMD ["sh", "-c", "if [ \"$GLHE_PUBLIC\" = 1 ]; then ADMIN=; else ADMIN=--admin; fi; exec panel serve /app/GLHE/LIME/app.py --address 0.0.0.0 --port 5006 --index app $ADMIN --allow-websocket-origin \"$GLHE_ORIGIN\" --allow-websocket-origin localhost:5006"]
+# GLHE_STATIC_TILES=1: serve the lake tiles mounted at /tiles (run.sh does this
+# until the tiles are on S3) at /tiles/..., with HTTP Range support.
+CMD ["sh", "-c", "if [ \"$GLHE_PUBLIC\" = 1 ]; then ADMIN=; else ADMIN=--admin; fi; if [ \"$GLHE_STATIC_TILES\" = 1 ]; then TILES='--static-dirs tiles=/tiles'; else TILES=; fi; exec panel serve /app/GLHE/LIME/app.py --address 0.0.0.0 --port 5006 --index app $ADMIN $TILES --allow-websocket-origin \"$GLHE_ORIGIN\" --allow-websocket-origin localhost:5006"]

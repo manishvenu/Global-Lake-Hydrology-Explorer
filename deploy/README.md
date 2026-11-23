@@ -67,6 +67,35 @@ Limits are set in the same `deploy.env` (`GLHE_MAX_RUN_MINUTES`, `GLHE_MAX_LAKE_
 
 **Never funnel Cockpit (`:9090`).**
 
+## Lake tiles (every lake on the globe)
+
+The globe draws all 1.4 million HydroLAKES lakes from one vector-tile file,
+`HydroLAKES_polys_v10.pmtiles` (~0.9 GB, layer `lakes`). Build it (about 30
+minutes) with `GLHE/CLAY/data_access/aws_zarr_templates/hydrolakes_to_pmtiles.py`.
+
+Where the browser gets it:
+
+- **From this server (current setup):** if `~/glhe-tiles/HydroLAKES_polys_v10.pmtiles`
+  exists and `GLHE_LAKE_TILES_URL` is not set, `run.sh` mounts just that file
+  read-only and the app serves it at `/tiles/HydroLAKES_polys_v10.pmtiles`.
+- **From S3 (better: no load on this server):**
+  1. Upload it next to the parquet file:
+     `aws s3 cp ~/glhe-tiles/HydroLAKES_polys_v10.pmtiles s3://glhe/HydroLAKES/`
+     (or through the S3 website).
+  2. Let the site read it: S3 console → `glhe` → Permissions → CORS, paste
+     ```json
+     [{"AllowedOrigins":["https://gram-wsl.tailbc2832.ts.net:8443"],"AllowedMethods":["GET","HEAD"],"AllowedHeaders":["Range","If-Match"],"ExposeHeaders":["ETag","Content-Length","Content-Range"],"MaxAgeSeconds":3000}]
+     ```
+     (add `"http://localhost:5006"` to `AllowedOrigins` for local development).
+  3. Switch the app to it:
+     ```bash
+     echo GLHE_LAKE_TILES_URL=https://glhe.s3.us-east-1.amazonaws.com/HydroLAKES/HydroLAKES_polys_v10.pmtiles >> ~/.config/glhe/deploy.env
+     cd ~/glhe-deploy && deploy/run.sh --no-build
+     ```
+
+Without tiles (or with `GLHE_LAKE_TILES_URL=` empty) the globe works as before:
+clicks look the lake up in HydroLAKES instead.
+
 ## Monitoring
 
 - **Cockpit** (`:9090`, log in as `manishrv`): CPU, memory, disk and network for the whole machine; *Services* shows `container-glhe`; *Podman containers* lists containers.

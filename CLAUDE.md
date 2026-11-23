@@ -105,6 +105,7 @@ LIME (panel serve GLHE/LIME/app.py, or GLHE.LIME.app.serve(output_dir))
 - Colours/fonts/CSS come only from `theme.py`. Dark/light is chosen at page load (`?theme=light`); the header switch reloads the page.
 - CLAY runs in a subprocess, one job per server (kept in `pn.state.cache`); the page polls it every 500 ms. `run_clay` prints `GLHE_OUTPUT_DIR=<path>` on success and the app loads that folder.
 - HydroLAKES is a GeoParquet file read by `GLHE/CLAY/hydrolakes.py` (shared by CLAY and LIME's `lake_lookup`): a local copy in `LocalData/` if present, else `s3://glhe/HydroLAKES/HydroLAKES_polys_v10.parquet`, fetching only the rows needed. Override with env `GLHE_HYDROLAKES`. Rebuild it from the shapefile with `data_access/aws_zarr_templates/hydrolakes_to_parquet.py`. No GDAL Python bindings are needed.
+- Lake picker: the sidebar search box uses `hydrolakes.search()` (an in-memory index of every lake's ID, name, country and area, preloaded by `app.warm_hydrolakes()`). The globe draws every lake from vector tiles (`HydroLAKES_polys_v10.pmtiles`, built by `aws_zarr_templates/hydrolakes_to_pmtiles.py`, URL from env `GLHE_LAKE_TILES_URL`, `""` = off); clicking a tile lake sets `LakeGlobe.picked` and selects it at once. Outlines are fetched in the background (`app.in_background`).
 - Caveats: queryearth rule files in `LIME/rules/` (`era5-land.geojson` vendored from vizqueryearth, `glhe.geojson` our own). See `rules/README.md` to add rules.
 - Public mode (`GLHE_PUBLIC=1`, `public.py`): run time limit, lake size cap, per-visitor cooldown, no reruns of processed lakes, cancel only by the starter, banner, no `/admin`. Deploy details in `deploy/README.md`.
 - Dev data: `tests/LIME/fixtures/Fixture_Lake` is a synthetic CLAY output (regenerate with `make_fixture.py`).
@@ -155,6 +156,7 @@ CLAY writes all outputs to a per-lake directory under the configured output root
 | `GLHE/LIME/rules/*.geojson` | queryearth caveat rules shown in the Caveats tab |
 | env `GLHE_OUTPUT_DIR` | Lake folder LIME opens at start-up |
 | env `GLHE_OUTPUT_ROOTS` | Extra folders (`:`-separated) LIME scans for processed lakes |
+| env `GLHE_LAKE_TILES_URL` | Lake vector tiles (PMTiles) drawn on the globe; default the S3 copy, `""` = none |
 
 ---
 

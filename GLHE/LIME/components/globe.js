@@ -8,14 +8,27 @@
 // (model.clicked = {...}) sends a value back to Python.
 //
 // Map layers, drawn bottom to top:
+//   lakes   - every HydroLAKES lake, from vector tiles (model.lake_tiles_url);
+//             hover shows a tooltip, click sends model.picked to Python
 //   cells   - gridded data cells, filled by their "value" property (or "color")
 //   caveat  - caveat areas, dashed outline coloured by their "level"
 //   lake    - the lake polygon: accent fill plus a soft glow outline
 //   points  - NWM lake point(s)
 // ---------------------------------------------------------------------------
 
-// Pinned version. Keep it in step with MAPLIBRE_VERSION in globe.py (the CSS).
+// Pinned versions. Keep them in step with MAPLIBRE_VERSION / PMTILES_VERSION
+// in globe.py.
 import maplibregl from "https://esm.sh/maplibre-gl@5.6.0";
+import { Protocol } from "https://esm.sh/pmtiles@4.3.0";
+
+// PMTiles is one big file of map tiles that the browser reads piece by piece
+// (HTTP Range requests), so no tile server is needed. Registering the
+// protocol lets sources use URLs like "pmtiles://https://.../lakes.pmtiles".
+// It is global to the page, so only register it once.
+if (!window.__glhePmtiles) {
+  maplibregl.addProtocol("pmtiles", new Protocol().tile);
+  window.__glhePmtiles = true;
+}
 
 // Free basemaps that need no API token (CARTO vector styles).
 const BASEMAPS = {
@@ -66,6 +79,25 @@ function valueRange(fc) {
   return lo === hi ? [lo, lo + 1] : [lo, hi];
 }
 
+// Small HTML escape for the tooltip (lake names come from data).
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (ch) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+}
+
+// "6,479 km²" for big lakes, "0.13 km²" for small ones.
+function areaText(a) {
+  const n = Number(a);
+  if (!isFinite(n) || n <= 0) return "";
+  return (n >= 10 ? Math.round(n).toLocaleString() : n.toPrecision(2)) + " km²";
+}
+
+// The lake tiles URL as pmtiles://<absolute URL> ("/tiles/x.pmtiles" works too).
+function tilesSource(url) {
+  if (!url) return null;
+  return "pmtiles://" + new URL(url, window.location.href).href;
+}
+
 export function render({ model, el }) {
   // The map needs a sized <div> to draw into.
   const container = document.createElement("div");
@@ -98,6 +130,7 @@ export function render({ model, el }) {
       "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 1, 5, 1, 7, 0],
     });
     if (map.getLayer("lake-fill")) return; // already added for this style
+    addLakeTiles(c);
     for (const id of SOURCES) {
       if (!map.getSource(id)) map.addSource(id, { type: "geojson", data: EMPTY });
     }
@@ -125,6 +158,61 @@ export function render({ model, el }) {
                "circle-stroke-color": accent, "circle-stroke-width": 2 } });
     for (const id of SOURCES) setData(id);
   }
+
+  // ---- every lake, from vector tiles --------------------------------------
+  // The tiles hold one polygon per lake (layer "lakes") with the properties
+  // Lake_name, Country and Lake_area, and Hylak_id as the feature id (set by
+  // tippecanoe; hover highlighting needs it). Small lakes appear as you zoom in.
+  const TILE_LAYERS = ["lakes-fill", "lakes-line"];
+  function addLakeTiles(c) {
+    hoverId = null; // a new style has no hover state
+    const url = tilesSource(model.lake_tiles_url);
+    if (!url || map.getSource("lakes")) return;
+    map.addSource("lakes", { type: "vector", url });
+    const accent = c.accent || "#2dd4bf";
+    const hovered = ["boolean", ["feature-state", "hover"], false];
+    map.addLayer({ id: "lakes-fill", type: "fill", source: "lakes", "source-layer": "lakes",
+      paint: { "fill-color": accent, "fill-opacity": ["case", hovered, 0.45, 0.12] } });
+    map.addLayer({ id: "lakes-line", type: "line", source: "lakes", "source-layer": "lakes",
+      paint: { "line-color": accent, "line-opacity": ["case", hovered, 0.95, 0.35],
+               "line-width": ["case", hovered, 1.6, 0.5] } });
+  }
+  const hasTiles = () => TILE_LAYERS.every((id) => map.getLayer(id));
+
+  // Hover: highlight the lake under the mouse and show a small tooltip.
+  const tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false,
+    className: "glhe-tip", offset: 12, maxWidth: "260px" });
+  let hoverId = null;
+  function setHover(id) {
+    if (hoverId !== null && map.getSource("lakes")) {
+      map.setFeatureState({ source: "lakes", sourceLayer: "lakes", id: hoverId }, { hover: false });
+    }
+    hoverId = id;
+    if (id !== null) {
+      map.setFeatureState({ source: "lakes", sourceLayer: "lakes", id }, { hover: true });
+    }
+  }
+  map.on("mousemove", "lakes-fill", (e) => {
+    const f = e.features && e.features[0];
+    if (!f) return;
+    map.getCanvas().style.cursor = "pointer";
+    if (f.id !== hoverId) setHover(f.id);
+    const p = f.properties || {};
+    const c = colors();
+    const area = areaText(p.Lake_area);
+    tip.setLngLat(e.lngLat).setHTML(
+      `<div style="color:${c.text};"><b>${esc(p.Lake_name || "Unnamed lake")}</b>` +
+      `<div style="color:${c.muted};">${[p.Country, area, "#" + (p.Hylak_id ?? f.id)]
+        .filter(Boolean).map(esc).join(" · ")}</div></div>`
+    ).addTo(map);
+    const box = tip.getElement() && tip.getElement().querySelector(".maplibregl-popup-content");
+    if (box) box.style.background = c.surface || "#111a2e";
+  });
+  map.on("mouseleave", "lakes-fill", () => {
+    map.getCanvas().style.cursor = "";
+    setHover(null);
+    tip.remove();
+  });
 
   // Push the current Python value of `<id>_geojson` into map source `id`.
   function setData(id) {
@@ -184,7 +272,19 @@ export function render({ model, el }) {
   map.on("wheel", stopSpin);
 
   // ---- events: map -> Python ----------------------------------------------
+  // A click on a lake drawn from the tiles sends that lake straight to Python
+  // (model.picked); anywhere else sends the position (model.clicked), and
+  // Python looks for a lake near it. "t" makes clicking the same lake twice
+  // still count as a change.
   map.on("click", (e) => {
+    const hit = hasTiles() ? map.queryRenderedFeatures(e.point, { layers: ["lakes-fill"] }) : [];
+    if (hit.length) {
+      const p = hit[0].properties || {};
+      model.picked = { hylak_id: Number(p.Hylak_id ?? hit[0].id), name: p.Lake_name || null,
+        country: p.Country || null, area_km2: p.Lake_area == null ? null : Number(p.Lake_area),
+        t: Date.now() };
+      return;
+    }
     model.clicked = { lon: e.lngLat.lng, lat: e.lngLat.lat };
   });
 
@@ -205,6 +305,7 @@ export function render({ model, el }) {
   model.on("caveat_geojson", () => setData("caveat"));
   model.on("dark", () => map.setStyle(BASEMAPS[theme()], { diff: false }));
   model.on("colors", () => map.setStyle(BASEMAPS[theme()], { diff: false }));
+  model.on("lake_tiles_url", () => map.setStyle(BASEMAPS[theme()], { diff: false }));
 
   // Keep the canvas sized to the Panel layout; free GPU memory on removal.
   model.on("after_layout", () => map.resize());

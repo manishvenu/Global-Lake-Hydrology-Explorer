@@ -77,43 +77,81 @@ def log_html(lines: list[str], max_lines: int = 300) -> str:
     return f'<pre class="glhe-log"><span>{text}</span></pre>'
 
 
-def lake_info_html(selected: dict | None, lookup_available: bool) -> str:
+def lake_info_html(
+    selected: dict | None, lookup_available: bool, loading: bool = False
+) -> str:
     """
-    Describe the lake picked by ID or by clicking the globe.
+    Describe the lake picked by search or by clicking the globe.
 
-    ``selected`` is a ``lake_lookup`` result (``hylak_id``, ``name``,
-    ``area_km2``) or just ``{"hylak_id": ...}`` when HydroLAKES is missing.
+    ``selected`` holds ``hylak_id`` and, when known, ``name``, ``country`` and
+    ``area_km2``. ``loading`` says the outline is still being fetched.
     """
     if not selected:
         return (
-            '<div class="glhe-muted">Type a HYLAK_ID or click a lake on the '
-            "globe. IDs: "
-            '<a href="https://glhe-fe.projects.earthengine.app/view/'
-            'globallakehydrologyexplorer" target="_blank" rel="noopener">'
-            "lake ID lookup</a></div>"
+            '<div class="glhe-muted">Search by name, country or HYLAK_ID, '
+            "or click a lake on the globe.</div>"
         )
     hylak_id = selected.get("hylak_id")
     name = selected.get("name")
     head = '<div class="glhe-section" style="margin:0 0 2px">Selected lake</div>'
     id_txt = f"HYLAK_ID {hylak_id}" if hylak_id is not None else "HYLAK_ID unknown"
+    wait = (
+        '<br><span class="glhe-muted">Loading outline&hellip;</span>' if loading else ""
+    )
     if name:
+        if str(name) == str(hylak_id):  # HydroLAKES has no name for it
+            name = "Unnamed lake"
         area = selected.get("area_km2")
         area_txt = f" &middot; {area:,.1f} km&sup2;" if area else ""
+        country = selected.get("country")
+        country_txt = (
+            f' <span class="glhe-muted">&middot; {html.escape(str(country))}</span>'
+            if country
+            else ""
+        )
         return (
             f'<div class="glhe-info">{head}'
-            f'<b>{html.escape(str(name).replace("_", " "))}'
-            f'</b><br><span class="glhe-muted">{id_txt}{area_txt}'
-            "</span></div>"
+            f'<b>{html.escape(str(name).replace("_", " "))}</b>{country_txt}'
+            f'<br><span class="glhe-muted">{id_txt}{area_txt}'
+            f"</span>{wait}</div>"
         )
-    note = (
-        "Not found in HydroLAKES."
-        if lookup_available
-        else "HydroLAKES could not be read, so the name is unknown " "until CLAY runs."
-    )
+    if loading:
+        note = "Looking it up in HydroLAKES&hellip;"
+    elif lookup_available:
+        note = "Not found in HydroLAKES."
+    else:
+        note = "HydroLAKES could not be read, so the name is unknown until CLAY runs."
     return (
         f'<div class="glhe-info">{head}<b>{id_txt}</b><br>'
         f'<span class="glhe-muted">{note}</span></div>'
     )
+
+
+#: Suggestion buttons: left-aligned, one line, ellipsis when too long.
+SUGGESTION_CSS = """
+.bk-btn { justify-content: flex-start; text-align: left; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; font-size: 0.82rem; }
+"""
+
+
+def suggestion_label(lake: dict) -> str:
+    """
+    One search suggestion, e.g. 'Great Salt — United States · 6,479 km² · #67'.
+
+    Plain text (Panel escapes button labels). Lakes without a name show their ID.
+    """
+    hylak_id = lake["hylak_id"]
+    name = lake.get("name")
+    if not name or str(name) == str(hylak_id):
+        name = "Unnamed lake" if lake.get("country") else f"HYLAK_ID {hylak_id}"
+    parts = [str(name).replace("_", " ")]
+    if lake.get("country"):
+        parts[0] += f" — {lake['country']}"
+    area = lake.get("area_km2")
+    if area:
+        parts.append(f"{area:,.0f} km²" if area >= 10 else f"{area:.2g} km²")
+    parts.append(f"#{hylak_id}")
+    return " · ".join(parts)
 
 
 def header_title_html(display_name: str, hylak_id: int | None) -> str:

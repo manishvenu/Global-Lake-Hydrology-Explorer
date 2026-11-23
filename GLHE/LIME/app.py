@@ -29,6 +29,7 @@ from __future__ import annotations
 import html
 import logging
 import os
+import threading
 from pathlib import Path
 
 import panel as pn
@@ -37,7 +38,7 @@ import param
 from GLHE.LIME import catalog, caveats, jobs, lake_lookup, public, theme
 from GLHE.LIME.components import sidebar as sb
 from GLHE.LIME.components.caveats_panel import make_caveats
-from GLHE.LIME.components.globe import LakeGlobe, read_points
+from GLHE.LIME.components.globe import LakeGlobe, lake_tiles_url, read_points
 from GLHE.LIME.components.gridded import make_gridded
 from GLHE.LIME.components.overview import make_overview
 from GLHE.LIME.components.series import make_series
@@ -60,7 +61,9 @@ GRIDDED_TAB = 3
 CAVEATS_TAB = 4
 
 #: Largest HYLAK_ID in HydroLAKES v1.0.
-MAX_HYLAK_ID = 1427688
+MAX_HYLAK_ID = lake_lookup.MAX_HYLAK_ID
+#: Most suggestions shown under the search box.
+MAX_SUGGESTIONS = 8
 
 #: Tab bar: wrap onto two lines on narrow screens instead of hiding tabs.
 TABS_CSS = """
@@ -140,6 +143,37 @@ def cells_caption_html(cells: dict) -> str:
     )
 
 
+def in_background(work, then) -> None:
+    """
+    Run ``work()`` off the page's thread, then ``then(result)`` back on it.
+
+    Slow lookups (an outline from S3) go through here so the page stays
+    responsive; widgets are only touched in ``then``, on the page's own
+    thread. Outside a live page (tests, scripts) both run right away.
+    """
+    doc = pn.state.curdoc
+    if doc is None or getattr(doc, "session_context", None) is None:
+        then(work())
+        return
+
+    def run():
+        try:
+            result = work()
+        except Exception:
+            logger.exception("Background lookup failed")
+            result = None
+
+        def apply():
+            from panel.io.state import set_curdoc
+
+            with set_curdoc(doc):
+                then(result)
+
+        doc.add_next_tick_callback(apply)
+
+    threading.Thread(target=run, daemon=True).start()
+
+
 def _notify(kind: str, message: str) -> None:
     """Show a toast if the page supports it; otherwise just log the message."""
     logger.info("%s: %s", kind, message)
@@ -177,8 +211,11 @@ class LimeApp:
         self._last_status = self.job.status
         self._started_here = False  # did *this* page start the current run?
 
-        self.globe = LakeGlobe(dark=dark, height=460, min_height=320)
+        self.globe = LakeGlobe(
+            dark=dark, height=460, min_height=320, lake_tiles_url=lake_tiles_url()
+        )
         self.globe.param.watch(self._on_globe_click, "clicked")
+        self.globe.param.watch(self._on_globe_pick, "picked")
         self.cells = CellsRelay()
         self.cells_caption = pn.pane.HTML(
             "", stylesheets=[CELLS_CAPTION_CSS], margin=(0, 10), visible=False
@@ -218,19 +255,18 @@ class LimeApp:
     def _build_sidebar(self) -> None:
         """Create the sidebar widgets (laid out in :meth:`sidebar`)."""
         css = [sb.SIDEBAR_CSS]
-        self.id_input = pn.widgets.IntInput(
-            label="HYLAK_ID",
-            value=None,
-            start=1,
-            end=MAX_HYLAK_ID,
-            placeholder="e.g. 67",
+        # One search box: suggestions appear as you type (name, country or
+        # ID); Enter picks the first one, or the typed HYLAK_ID.
+        self.search_input = pn.widgets.TextInput(
+            placeholder="Lake name, country or HYLAK_ID",
+            sizing_mode="stretch_width",
         )
-        self.find_button = pn.widgets.Button(
-            label="Find", icon="search", color="primary", align="end", width=90
+        self.search_input.param.watch(self._on_search_typed, "value_input")
+        self.search_input.param.watch(self._on_search_enter, "enter_pressed")
+        self.suggestions = pn.Column(
+            sizing_mode="stretch_width", margin=(0, 5), visible=False
         )
-        self.find_button.on_click(lambda _: self._on_find())
-        # Pressing Enter (or leaving the box) after typing an ID also finds it.
-        self.id_input.param.watch(self._on_id_typed, "value")
+        self._suggested: list[dict] = []
         self.lake_info = pn.pane.HTML(
             sb.lake_info_html(None, self._lookup_available), stylesheets=css
         )
@@ -275,7 +311,8 @@ class LimeApp:
         css = [sb.SIDEBAR_CSS]
         return [
             pn.pane.HTML(sb.section("Find a lake"), stylesheets=css),
-            pn.Row(self.id_input, self.find_button),
+            self.search_input,
+            self.suggestions,
             self.lake_info,
             pn.pane.HTML(sb.section("Run CLAY"), stylesheets=css),
             self.run_button,
@@ -344,51 +381,156 @@ class LimeApp:
         """True when HydroLAKES can be read (local copy or S3)."""
         return lake_lookup.available()
 
-    def _on_find(self) -> None:
-        if self.id_input.value:
-            self.select_lake(int(self.id_input.value))
+    def _on_search_typed(self, event) -> None:
+        """Show matching lakes under the search box as the user types."""
+        text = (event.new or "").strip()
+        results = lake_lookup.search(text, MAX_SUGGESTIONS) if text else []
+        self._suggested = results or []
+        css = [sb.SIDEBAR_CSS]
+        if not text:
+            self.suggestions.objects = []
+        elif results is None:
+            self.suggestions.objects = [
+                pn.pane.HTML(
+                    '<div class="glhe-muted">Loading the lake list&hellip; '
+                    "type a HYLAK_ID meanwhile.</div>",
+                    stylesheets=css,
+                )
+            ]
+        elif not results:
+            self.suggestions.objects = [
+                pn.pane.HTML(
+                    '<div class="glhe-muted">No lake matches.</div>', stylesheets=css
+                )
+            ]
         else:
-            _notify("warning", "Type a HYLAK_ID first.")
+            buttons = []
+            for lake in results:
+                button = pn.widgets.Button(
+                    label=sb.suggestion_label(lake),
+                    variant="outline",
+                    sizing_mode="stretch_width",
+                    margin=(2, 0),
+                    stylesheets=[sb.SUGGESTION_CSS],
+                )
+                button.on_click(lambda _, lake=lake: self.pick(lake))
+                buttons.append(button)
+            self.suggestions.objects = buttons
+        self.suggestions.visible = bool(self.suggestions.objects)
 
-    def _on_id_typed(self, event) -> None:
-        current = (self.selected or {}).get("hylak_id")
-        if event.new and event.new != current:
-            self.select_lake(int(event.new))
+    def _on_search_enter(self, _event=None) -> None:
+        """Enter: a typed number is a HYLAK_ID; otherwise take the top suggestion."""
+        text = (self.search_input.value_input or "").strip().lstrip("#")
+        if text.isdigit():
+            hylak_id = int(text)
+            if 1 <= hylak_id <= MAX_HYLAK_ID:
+                hit = next(
+                    (r for r in self._suggested if r["hylak_id"] == hylak_id), None
+                )
+                self.pick(hit or {"hylak_id": hylak_id})
+            else:
+                _notify("warning", f"HYLAK_IDs go from 1 to {MAX_HYLAK_ID:,}.")
+        elif self._suggested:
+            self.pick(self._suggested[0])
+        elif text:
+            _notify("info", "No lake matches that name.")
+
+    def pick(self, lake: dict) -> None:
+        """Select a lake from the suggestions and close the list."""
+        self.suggestions.objects = []
+        self.suggestions.visible = False
+        self._suggested = []
+        info = lake if lake.get("name") else None
+        self.select_lake(lake["hylak_id"], info)
 
     def select_lake(self, hylak_id: int, info: dict | None = None) -> None:
         """
-        Pick a lake (by typed ID or a globe click).
+        Pick a lake (from search, the globe, or code).
 
-        Shows its name and outline when HydroLAKES is available, enables
-        "Run CLAY", and opens its results right away if CLAY already
-        processed it.
+        Shows what is already known at once (name, country and area from the
+        search index or the globe's lake tiles), enables "Run CLAY", opens the
+        results if CLAY already processed it, and fetches the outline from
+        HydroLAKES in the background.
         """
-        info = info or lake_lookup.lookup_by_id(hylak_id) or {}
-        self.selected = {"hylak_id": int(hylak_id), **info}
-        self.id_input.value = int(hylak_id)  # no-op for _on_id_typed: same ID
-        self.lake_info.object = sb.lake_info_html(self.selected, self._lookup_available)
-        if info.get("geojson") and self.state.hylak_id != hylak_id:
+        hylak_id = int(hylak_id)
+        info = dict(info or lake_lookup.quick_info(hylak_id) or {})
+        info.pop("hylak_id", None)
+        self.selected = {"hylak_id": hylak_id, **info}
+        has_outline = bool(info.get("geojson"))
+        self.lake_info.object = sb.lake_info_html(
+            self.selected, self._lookup_available, loading=not has_outline
+        )
+        if has_outline and self.state.hylak_id != hylak_id:
             self.globe.lake_geojson = info["geojson"]
         self._update_run_button()
 
         entry = next((e for e in self._catalog if e["hylak_id"] == hylak_id), None)
         if entry and self.state.output_dir != entry["output_dir"]:
             self.load(entry["output_dir"], hylak_id=hylak_id)
+        loaded_outline = self.state.hylak_id == hylak_id and self.state.polygon_geojson
+        if not has_outline and not loaded_outline:
+            self._fetch_outline(hylak_id)
+        elif not has_outline:
+            self.lake_info.object = sb.lake_info_html(
+                self.selected, self._lookup_available
+            )
+
+    def _fetch_outline(self, hylak_id: int) -> None:
+        """Get the lake's outline (and area) from HydroLAKES without blocking."""
+
+        def done(result):
+            current = self.selected or {}
+            if current.get("hylak_id") != hylak_id:
+                return  # the user has picked another lake meanwhile
+            if result:
+                known = {k: v for k, v in current.items() if v is not None}
+                self.selected = {**result, **known, "geojson": result["geojson"]}
+                if self.state.hylak_id != hylak_id:
+                    self.globe.lake_geojson = result["geojson"]
+                elif not self.state.polygon_geojson:
+                    self.state.polygon_geojson = result["geojson"]
+            self.lake_info.object = sb.lake_info_html(
+                self.selected, self._lookup_available
+            )
+            self._update_run_button()
+
+        in_background(lambda: lake_lookup.lookup_by_id(hylak_id), done)
+
+    def _on_globe_pick(self, event) -> None:
+        """A lake drawn from the vector tiles was clicked: select it at once."""
+        lake = event.new or {}
+        if lake.get("hylak_id") is None:
+            return
+        self.select_lake(
+            lake["hylak_id"],
+            lake_lookup.display_info(
+                lake["hylak_id"],
+                lake.get("name"),
+                lake.get("country"),
+                lake.get("area_km2"),
+            ),
+        )
 
     def _on_globe_click(self, event) -> None:
+        """A click where no tile lake is drawn: search HydroLAKES around it."""
         click = event.new or {}
         if "lon" not in click or "lat" not in click:
             return
-        info = lake_lookup.lookup_by_point(click["lon"], click["lat"])
-        if info is None:
-            msg = (
-                "No lake found there."
-                if self._lookup_available
-                else "HydroLAKES could not be read; type a HYLAK_ID instead."
-            )
-            _notify("info", msg)
-            return
-        self.select_lake(info["hylak_id"], info)
+
+        def done(info):
+            if info is None:
+                msg = (
+                    "No lake found there."
+                    if self._lookup_available
+                    else "HydroLAKES could not be read; search by name or ID instead."
+                )
+                _notify("info", msg)
+                return
+            self.select_lake(info["hylak_id"], info)
+
+        in_background(
+            lambda: lake_lookup.lookup_by_point(click["lon"], click["lat"]), done
+        )
 
     # ------------------------------------------------------- loading results
     def load(self, output_dir, hylak_id: int | None = None) -> bool:
@@ -420,14 +562,12 @@ class LimeApp:
                 self.state.polygon_geojson = info["geojson"]
             info.setdefault("name", self.state.lake_name)  # known from the folder
             self.selected = info
-            self.id_input.value = hylak_id  # same ID: does not re-trigger
             self.lake_info.object = sb.lake_info_html(info, self._lookup_available)
         else:
             # The folder does not say which lake it is (true of real CLAY
             # output): forget the previous selection so "Run CLAY" cannot
             # re-run the wrong lake, and say the ID is unknown.
             self.selected = None
-            self.id_input.value = None
             self.lake_info.object = sb.lake_info_html(
                 {"name": self.state.lake_name, "hylak_id": None},
                 self._lookup_available,
@@ -709,8 +849,8 @@ def serve(output_dir=None, port: int = 5006, address: str | None = None, show=Tr
 # `panel serve GLHE/LIME/app.py` runs this file with a __name__ like
 # "bokeh_app_<hash>"; build one page per browser session.
 def warm_hydrolakes() -> None:
-    """Load HydroLAKES' bounding-box index in the background, once per server,
-    so the first globe click is fast even when HydroLAKES is read from S3."""
+    """Load HydroLAKES' search index and bounding-box index in the background,
+    once per server, so search and globe clicks are fast even from S3."""
     if pn.state.cache.get("glhe_hydrolakes_warm"):
         return
     pn.state.cache["glhe_hydrolakes_warm"] = True
@@ -720,7 +860,8 @@ def warm_hydrolakes() -> None:
             from GLHE.CLAY import hydrolakes
 
             if hydrolakes.available():
-                hydrolakes._bbox_index(hydrolakes.source())
+                hydrolakes.lake_index()  # search box
+                hydrolakes._bbox_index(hydrolakes.source())  # clicks off the tiles
         except Exception as exc:  # the app still works; clicks just start slower
             logger.warning("Could not preload HydroLAKES: %s", exc)
 

@@ -1,5 +1,5 @@
 """
-Look up a lake in HydroLAKES, by ID or by a map click.
+Look up a lake in HydroLAKES: by ID, by a map click, or by searching names.
 
 A thin layer over ``GLHE.CLAY.hydrolakes``, which reads the HydroLAKES
 GeoParquet file (a local copy if present, else straight from S3, fetching only
@@ -11,6 +11,10 @@ or nothing matches. On success they return::
 
 ``name`` uses underscores for spaces, matching CLAY's folder names, and falls
 back to the ID when HydroLAKES has no name.
+
+``search()`` and ``quick_info()`` use an in-memory index (no outline, no
+network once loaded) and return ``{"hylak_id", "name", "country",
+"area_km2"}`` with the same ``name`` convention.
 """
 
 from __future__ import annotations
@@ -27,6 +31,9 @@ logger = logging.getLogger(__name__)
 
 #: Half-width (degrees) of the box searched around a clicked point.
 CLICK_RADIUS_DEG = 0.05
+
+#: Largest HYLAK_ID in HydroLAKES v1.0.
+MAX_HYLAK_ID = 1427688
 
 
 def available(source: str | None = None) -> bool:
@@ -95,3 +102,55 @@ def lookup_by_point(lon: float, lat: float, source: str | None = None) -> dict |
             return _to_result(inside.loc[[inside.geometry.area.idxmin()]])
         distances = gdf.geometry.distance(pt)
     return _to_result(gdf.loc[[distances.idxmin()]])
+
+
+def display_info(hylak_id, name=None, country=None, area_km2=None) -> dict:
+    """The lake dict LIME uses, from raw HydroLAKES values (name may be None)."""
+    hylak_id = int(hylak_id)
+    name = "" if name is None or pd.isna(name) else str(name).strip()
+    try:
+        area = None if area_km2 is None or pd.isna(area_km2) else float(area_km2)
+    except (TypeError, ValueError):
+        area = None
+    country = None if country is None or pd.isna(country) else str(country)
+    return {
+        "hylak_id": hylak_id,
+        "name": (name or str(hylak_id)).replace(" ", "_"),
+        "country": country or None,
+        "area_km2": area,
+    }
+
+
+def index_ready(source: str | None = None) -> bool:
+    """True once the search index is in memory (see ``app.warm_hydrolakes``)."""
+    return hydrolakes.index_ready(source)
+
+
+def quick_info(hylak_id: int, source: str | None = None) -> dict | None:
+    """Name, country and area from the index, or None if it is not loaded yet."""
+    if not index_ready(source):
+        return None
+    hit = hydrolakes.lake_index(source).info(hylak_id)
+    return display_info(**hit) if hit else None
+
+
+def search(text: str, limit: int = 8, source: str | None = None) -> list[dict] | None:
+    """
+    Lakes matching ``text`` (a name, a country or a HYLAK_ID), best first.
+
+    Returns None while the index is still loading (except for a plain number,
+    which is offered as an ID so typing an ID always works), and [] when
+    nothing matches or HydroLAKES cannot be read.
+    """
+    text = str(text or "").strip().lstrip("#")
+    if not text:
+        return []
+    if not index_ready(source):
+        if text.isdigit() and 1 <= int(text) <= MAX_HYLAK_ID:
+            return [{"hylak_id": int(text), "name": None}]
+        return None
+    try:
+        return [display_info(**hit) for hit in hydrolakes.search(text, limit, source)]
+    except Exception as exc:
+        logger.warning("HydroLAKES search failed: %s", exc)
+        return []

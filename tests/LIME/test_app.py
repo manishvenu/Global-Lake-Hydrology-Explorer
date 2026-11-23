@@ -110,11 +110,50 @@ def test_select_lake_without_hydrolakes(idle_job, monkeypatch, tmp_path):
     assert "could not be read" in app.lake_info.object
 
 
-def test_typing_an_id_selects_it(idle_job, tmp_path):
+def test_typing_an_id_and_enter_selects_it(idle_job, tmp_path):
     app = lime_app.build_app(job=idle_job, roots=[tmp_path]).lime
-    app.id_input.value = 42  # what pressing Enter in the box does
+    app.search_input.value_input = "42"
+    # The index is not loaded (offline tests), but a number is offered as an ID.
+    assert app.suggestions.visible and "#42" in app.suggestions[0].label
+    app.search_input.param.trigger("enter_pressed")
     assert app.selected["hylak_id"] == 42
     assert app.run_button.label == "Run CLAY for #42"
+    assert not app.suggestions.visible
+
+
+def test_search_while_index_loading_says_so(idle_job, tmp_path):
+    app = lime_app.build_app(job=idle_job, roots=[tmp_path]).lime
+    app.search_input.value_input = "superior"
+    assert "Loading the lake list" in app.suggestions[0].object
+    app.search_input.value_input = ""
+    assert not app.suggestions.visible
+
+
+def test_search_suggestions_select_with_known_info(idle_job, tmp_path, monkeypatch):
+    hits = [
+        {
+            "hylak_id": 67,
+            "name": "Great_Salt",
+            "country": "United States",
+            "area_km2": 4360.0,
+        },
+        {"hylak_id": 68, "name": "68", "country": "Canada", "area_km2": 1.5},
+    ]
+    monkeypatch.setattr(lake_lookup, "search", lambda text, limit=8, source=None: hits)
+    app = lime_app.build_app(job=idle_job, roots=[tmp_path]).lime
+    app.search_input.value_input = "sal"
+    labels = [b.label for b in app.suggestions]
+    assert labels[0] == "Great Salt — United States · 4,360 km² · #67"
+    assert labels[1].startswith("Unnamed lake — Canada")
+    app.suggestions[0].clicks += 1
+    assert app.selected["hylak_id"] == 67
+    assert "Great Salt" in app.lake_info.object
+    assert "United States" in app.lake_info.object
+    assert not app.suggestions.visible
+    # Enter takes the top suggestion.
+    app.search_input.value_input = "sal"
+    app.search_input.param.trigger("enter_pressed")
+    assert app.selected["hylak_id"] == 67
 
 
 def test_select_known_lake_loads_results(idle_job):
@@ -200,7 +239,6 @@ def test_folder_without_id_clears_previous_selection(idle_job, tmp_path):
     assert app.run_button.disabled and app.run_button.label == "Run CLAY"
     assert "Other Lake" in app.lake_info.object
     assert "unknown" in app.lake_info.object
-    assert app.id_input.value is None
 
 
 def test_real_clay_shaped_folder_loads(idle_job, tmp_path):
@@ -227,9 +265,72 @@ def test_cells_only_on_globe_while_gridded_tab_is_open(idle_job):
     assert app.globe.cells_geojson == {}
 
 
-def test_hylak_id_upper_bound(idle_job):
+def test_out_of_range_id_is_refused(idle_job):
     app = lime_app.build_app(job=idle_job).lime
-    assert app.id_input.end == lime_app.MAX_HYLAK_ID
+    app.search_input.value_input = str(lime_app.MAX_HYLAK_ID + 1)
+    app.search_input.param.trigger("enter_pressed")
+    assert app.selected is None
+
+
+def test_globe_pick_selects_without_lookup(idle_job, monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(
+        lake_lookup, "lookup_by_id", lambda i, source=None: calls.append(i)
+    )
+    app = lime_app.build_app(job=idle_job, roots=[tmp_path]).lime
+    app.globe.picked = {
+        "hylak_id": 67,
+        "name": "Great Salt",
+        "country": "United States",
+        "area_km2": 4360.0,
+        "t": 1,
+    }
+    assert app.selected["name"] == "Great_Salt"
+    assert app.selected["area_km2"] == 4360.0
+    assert "Great Salt" in app.lake_info.object
+    assert app.run_button.label == "Run CLAY for #67"
+    assert calls == [67]  # the outline is fetched (in the background when live)
+
+
+def test_outline_arrives_and_moves_globe(idle_job, monkeypatch, tmp_path):
+    outline = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": [0, 0]},
+                "properties": {},
+            }
+        ],
+    }
+    monkeypatch.setattr(
+        lake_lookup,
+        "lookup_by_id",
+        lambda i, source=None: {
+            "hylak_id": i,
+            "name": "From_S3",
+            "area_km2": 9.0,
+            "geojson": outline,
+        },
+    )
+    app = lime_app.build_app(job=idle_job, roots=[tmp_path]).lime
+    app.select_lake(5, {"name": "Known", "area_km2": None})
+    assert app.globe.lake_geojson == outline
+    assert app.selected["name"] == "Known"  # what we knew wins
+    assert app.selected["area_km2"] == 9.0  # gaps filled from HydroLAKES
+    assert "Loading outline" not in app.lake_info.object
+
+
+def test_globe_gets_tiles_url(idle_job, monkeypatch):
+    from GLHE.LIME.components import globe
+
+    monkeypatch.setenv(globe.TILES_ENV, "/tiles/x.pmtiles")
+    app = lime_app.build_app(job=idle_job).lime
+    assert app.globe.lake_tiles_url == "/tiles/x.pmtiles"
+    monkeypatch.delenv(globe.TILES_ENV)
+    assert globe.lake_tiles_url() == globe.DEFAULT_TILES_URL
+    monkeypatch.setenv(globe.TILES_ENV, "")
+    assert globe.lake_tiles_url() == ""
 
 
 def test_run_clay_failure_is_reported(tmp_path):

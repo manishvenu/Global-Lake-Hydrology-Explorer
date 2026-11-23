@@ -23,6 +23,11 @@ All ``*_geojson`` params are GeoJSON FeatureCollections as plain dicts
   follows ``properties["level"]`` ("warning" default, "error"/"danger",
   "info").
 
+Every HydroLAKES lake is drawn from vector tiles (a PMTiles file, see
+``lake_tiles_url()``; ``""`` turns this off). Hovering shows a lake's name and
+area; clicking one sets ``picked`` to ``{"hylak_id", "name", "country",
+"area_km2"}``. A click anywhere else sets ``clicked`` to ``{"lon", "lat"}``.
+
 Run this file directly for a demo using the test fixture lake::
 
     python -m panel serve GLHE/LIME/components/globe.py --show
@@ -31,6 +36,7 @@ Run this file directly for a demo using the test fixture lake::
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 
 import panel as pn
@@ -43,6 +49,27 @@ MAPLIBRE_VERSION = "5.6.0"
 MAPLIBRE_CSS = (
     f"https://cdn.jsdelivr.net/npm/maplibre-gl@{MAPLIBRE_VERSION}/dist/maplibre-gl.css"
 )
+
+#: PMTiles JS version (protocol for reading the lake tiles straight from a file).
+PMTILES_VERSION = "4.3.0"  # keep equal to the import in globe.js
+
+#: Environment variable with the URL of the lake vector tiles ("" = none).
+TILES_ENV = "GLHE_LAKE_TILES_URL"
+DEFAULT_TILES_URL = (
+    "https://glhe.s3.us-east-1.amazonaws.com/HydroLAKES/HydroLAKES_polys_v10.pmtiles"
+)
+
+
+def lake_tiles_url() -> str:
+    """
+    Where the browser loads the lake tiles from: ``$GLHE_LAKE_TILES_URL`` if
+    set (an http(s) URL or a path on this server such as
+    ``/tiles/HydroLAKES_polys_v10.pmtiles``; empty turns the layer off), else
+    the public S3 copy. The file is built by
+    ``data_access/aws_zarr_templates/hydrolakes_to_pmtiles.py``.
+    """
+    return os.environ.get(TILES_ENV, DEFAULT_TILES_URL).strip()
+
 
 # CSS applied inside the component (Panel components live in a shadow DOM, so
 # page-level CSS does not reach in here).
@@ -57,6 +84,12 @@ _GLOBE_CSS = """
   background: radial-gradient(circle at 50% 45%, #13213d 0%, #05080f 75%);
 }
 .maplibregl-ctrl-attrib { font-size: 10px; }
+.glhe-tip .maplibregl-popup-content {
+  padding: 6px 10px; border-radius: 8px; font: 12px/1.35 system-ui, sans-serif;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+.glhe-tip .maplibregl-popup-tip { display: none; }
+.glhe-tip b { font-weight: 600; }
 """
 
 
@@ -70,6 +103,9 @@ def globe_colors(dark: bool = True) -> dict:
         "danger": c["danger"],
         "info": theme.slc_color("p", dark),
         "point": "#ffffff" if dark else c["text"],
+        "text": c["text"],
+        "muted": c["text_muted"],
+        "surface": c["surface"],
         # Sequential ramp for gridded cells (low -> high value).
         "ramp_low": "#0c2a4d" if dark else "#e0f2fe",
         "ramp_high": "#7ee8fa" if dark else "#0c4a6e",
@@ -87,6 +123,14 @@ class LakeGlobe(pn.custom.JSComponent):
     caveat_geojson = param.Dict(default={}, doc="Caveat areas (dashed outline)")
     clicked = param.Dict(
         default={}, doc="Last map click as {'lon', 'lat'}; set from the browser"
+    )
+    picked = param.Dict(
+        default={},
+        doc="Lake clicked on the tiles: {'hylak_id', 'name', 'country', "
+        "'area_km2'}; set from the browser",
+    )
+    lake_tiles_url = param.String(
+        default="", doc="PMTiles URL of all lakes (layer 'lakes'); '' = none"
     )
     dark = param.Boolean(default=True, doc="Dark basemap (True) or light")
     colors = param.Dict(default={}, doc="Colour tokens; filled from theme.py")

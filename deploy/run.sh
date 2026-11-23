@@ -27,6 +27,9 @@ PUBLIC="${GLHE_PUBLIC:-0}"                       # 1 = public mode (see GLHE/LIM
 MAX_RUN_MINUTES="${GLHE_MAX_RUN_MINUTES:-45}"      # public mode: stop runs after this
 MAX_LAKE_AREA_KM2="${GLHE_MAX_LAKE_AREA_KM2:-10000}"  # public mode: largest lake visitors can run
 COOLDOWN_MINUTES="${GLHE_COOLDOWN_MINUTES:-10}"    # public mode: per-visitor wait between runs
+# Lake tiles for the globe. GLHE_LAKE_TILES_URL (e.g. the S3 copy) wins; if it
+# is unset and the file exists locally, the app serves it at /tiles/.
+TILES_FILE="${GLHE_TILES_FILE:-$HOME/glhe-tiles/HydroLAKES_polys_v10.pmtiles}"
 IMAGE=localhost/glhe:latest
 NAME=glhe
 
@@ -50,6 +53,15 @@ if [[ -f "$SECRETS" ]]; then
   secret_args+=(--env-file "$SECRETS")
 fi
 
+tile_args=()
+if [[ -n "${GLHE_LAKE_TILES_URL+set}" ]]; then
+  tile_args=(-e "GLHE_LAKE_TILES_URL=$GLHE_LAKE_TILES_URL")
+elif [[ -f "$TILES_FILE" ]]; then
+  # Only the one file is mounted, so nothing else in that folder is served.
+  tile_args=(-v "$TILES_FILE:/tiles/$(basename "$TILES_FILE"):ro"
+             -e GLHE_STATIC_TILES=1 -e "GLHE_LAKE_TILES_URL=/tiles/$(basename "$TILES_FILE")")
+fi
+
 echo "==> Replacing container $NAME"
 systemctl --user stop "container-$NAME.service" 2>/dev/null || true
 podman rm -f "$NAME" >/dev/null 2>&1 || true
@@ -65,6 +77,7 @@ podman create --name "$NAME" \
   -v "$DATA:/data:rw,Z" \
   -v "$DATA/LocalData:/app/GLHE/CLAY/LocalData:rw,Z" \
   "${secret_args[@]}" \
+  "${tile_args[@]}" \
   -e GLHE_ORIGIN="$ORIGIN" \
   -e GLHE_PUBLIC="$PUBLIC" \
   -e GLHE_MAX_RUN_MINUTES="$MAX_RUN_MINUTES" \
@@ -88,6 +101,7 @@ echo "==> Waiting for the app"
 for _ in $(seq 1 60); do
   if curl -fsS -o /dev/null "http://127.0.0.1:$PORT/app"; then
     echo "GLHE is up on http://127.0.0.1:$PORT (https://$ORIGIN, public mode: $PUBLIC)"
+    if [[ ${#tile_args[@]} -gt 0 ]]; then echo "Lake tiles: ${tile_args[-1]#GLHE_LAKE_TILES_URL=}"; fi
     exit 0
   fi
   sleep 2

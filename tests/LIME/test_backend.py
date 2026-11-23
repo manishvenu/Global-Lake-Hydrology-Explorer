@@ -64,11 +64,16 @@ def mini_hydrolakes(tmp_path):
 
     gdf = gpd.GeoDataFrame(
         {
-            "Hylak_id": [67, 68],
-            "Lake_name": ["Great Salt Lake", None],
-            "Lake_area": [4360.0, 1.5],
+            "Hylak_id": [67, 68, 69],
+            "Lake_name": ["Great Salt Lake", None, "Lac Léman"],
+            "Country": ["United States", "United States", "Switzerland"],
+            "Lake_area": [4360.0, 1.5, 580.0],
         },
-        geometry=[box(-112.9, 40.7, -112.0, 41.6), box(-111.0, 40.0, -110.99, 40.01)],
+        geometry=[
+            box(-112.9, 40.7, -112.0, 41.6),
+            box(-111.0, 40.0, -110.99, 40.01),
+            box(6.1, 46.2, 6.9, 46.5),
+        ],
         crs=4326,
     )
     from GLHE.CLAY import hydrolakes
@@ -204,3 +209,52 @@ def test_resolve_path_handles_windows_paths(tmp_path):
     assert resolve_path(win, tmp_path) == tmp_path / "X_Data.csv"
     posix = "/somewhere/else/X_Data.csv"
     assert resolve_path(posix, tmp_path) == tmp_path / "X_Data.csv"
+
+
+# ------------------------------------------------------------- lake search
+def test_get_lake_reads_one_row_group_and_caches(mini_hydrolakes, monkeypatch):
+    from GLHE.CLAY import hydrolakes
+
+    pf = hydrolakes._parquet_file(mini_hydrolakes)
+    # IDs 67-69 are in row group 0 of this one-group file.
+    assert hydrolakes._row_group_for(pf, 67) == 0
+    assert hydrolakes._row_group_for(pf, 12345) is None
+    lake = hydrolakes.get_lake(69, mini_hydrolakes)
+    assert lake["Lake_name"].iloc[0] == "Lac Léman"
+    # Cached: a second call does not read the file again.
+    monkeypatch.setattr(pf, "read_row_group", None)
+    assert hydrolakes.get_lake(69, mini_hydrolakes)["Hylak_id"].iloc[0] == 69
+    # Unknown IDs fall back to the filter path and give None.
+    assert hydrolakes.get_lake(5_000_000, mini_hydrolakes) is None
+
+
+def test_search_by_name_country_and_id(mini_hydrolakes):
+    assert lake_lookup.search("leman", source=mini_hydrolakes) is None  # not loaded
+    from GLHE.CLAY import hydrolakes
+
+    hydrolakes.lake_index(mini_hydrolakes)
+    assert lake_lookup.index_ready(mini_hydrolakes)
+    hit = lake_lookup.search("LÉMAN", source=mini_hydrolakes)
+    assert [r["hylak_id"] for r in hit] == [69]
+    assert hit[0]["name"] == "Lac_Léman" and hit[0]["country"] == "Switzerland"
+    # "great" is a name prefix; "salt" is a word inside a name.
+    assert lake_lookup.search("great", source=mini_hydrolakes)[0]["hylak_id"] == 67
+    assert lake_lookup.search("salt", source=mini_hydrolakes)[0]["hylak_id"] == 67
+    # Country: largest lakes first, unnamed ones included (name = ID).
+    usa = lake_lookup.search("united", source=mini_hydrolakes)
+    assert [r["hylak_id"] for r in usa] == [67, 68]
+    assert usa[1]["name"] == "68"
+    # IDs.
+    assert lake_lookup.search("#68", source=mini_hydrolakes)[0]["area_km2"] == 1.5
+    assert lake_lookup.search("12345", source=mini_hydrolakes) == []
+    assert lake_lookup.search("zzz", source=mini_hydrolakes) == []
+    assert (
+        lake_lookup.quick_info(69, source=mini_hydrolakes)["country"] == "Switzerland"
+    )
+
+
+def test_search_limit(mini_hydrolakes):
+    from GLHE.CLAY import hydrolakes
+
+    assert len(hydrolakes.search("united", limit=1, src=mini_hydrolakes)) == 1
+    assert hydrolakes.normalize("  Lac_LÉMAN ") == "lac leman"
