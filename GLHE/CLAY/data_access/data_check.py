@@ -14,7 +14,11 @@ _BUCKET = "glhe"
 
 
 def check_data_and_download_missing_data_or_files() -> None:
-    """Verify all required data is accessible — locally cached or on S3."""
+    """Check which data products are reachable (locally cached or on S3).
+
+    Never stops the run: a product whose data is missing is only logged here,
+    and its own driver then fails and is skipped by CLAY_driver.
+    """
     _LOCAL_DATA_DIR.mkdir(exist_ok=True)
 
     for product in _load_products():
@@ -34,11 +38,17 @@ def check_data_and_download_missing_data_or_files() -> None:
                     "it will be skipped"
                 )
                 continue
-            if s3_object_or_folder_exists(_BUCKET, cloud_path):
+            try:
+                on_s3 = s3_object_or_folder_exists(_BUCKET, cloud_path)
+            except Exception as exc:  # offline, DNS, S3 outage...
+                logger.warning(f"Could not check S3 for {name}: {exc}")
+                on_s3 = False
+            if on_s3:
                 logger.info(f"Found {name} in S3")
             else:
-                raise RuntimeError(
-                    f"{name} not found locally or in S3 (s3://{_BUCKET}/{cloud_path})"
+                logger.warning(
+                    f"{name} not found locally ({local_path}) or in S3 "
+                    f"(s3://{_BUCKET}/{cloud_path}); it will be skipped"
                 )
 
         elif code == "api":
@@ -47,8 +57,9 @@ def check_data_and_download_missing_data_or_files() -> None:
             if script_path.exists():
                 logger.info(f"Found {name} api access script")
             else:
-                raise RuntimeError(
-                    f"Missing api access script for {name}: {script_path}"
+                logger.warning(
+                    f"Missing api access script for {name}: {script_path}; "
+                    "it will be skipped"
                 )
 
     logger.info("Finished checking and/or downloading required data & files")

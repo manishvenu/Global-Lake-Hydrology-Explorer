@@ -7,11 +7,17 @@
     "Product_README": "Validate this data with the gridded geodata in the zip file"
   },
   "CRUTS": {
-    "module_name": "CRUTS",
-    "class_name": "CRUTS",
+    "module_name": "gridded_product",
+    "class_name": "GriddedProduct",
     "run_on_start": true,
     "loaded": false,
-    "Product_README": "Validate this data with the gridded geodata in the zip file"
+    "Product_README": "Validate this data with the gridded geodata in the zip file",
+    "spec": {
+      "product_name": "CRUTS",
+      "local_path": "zarr/CRUTS.zarr",
+      "cloud": "zarr/CRUTS.zarr",
+      "variables": {"pre": "p", "pet": "e"}
+    }
   },
   "NWM": {
     "module_name": "NWM",
