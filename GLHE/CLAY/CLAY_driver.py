@@ -1,3 +1,4 @@
+import importlib
 import json
 import logging
 import os
@@ -6,7 +7,7 @@ import sys
 import pandas as pd
 import GLHE.CLAY.globals
 from GLHE.CLAY import combined_data_functions, lake_extraction, helpers
-from GLHE.CLAY.data_access import data_check, ERA5_Land, CRUTS, NWM, DAHITI, GloFAS, GLEAM
+from GLHE.CLAY.data_access import data_check
 from GLHE.CALCITE import pubsub, events
 from pathlib import Path
 
@@ -139,6 +140,8 @@ class CLAY_driver:
         self.data_products = self.load_data_product_list()
 
         for key in self.data_products:
+            if self.data_products[key]["object"] is None:
+                continue  # could not be set up; already logged
             if self.data_products[key]["run_on_start"]:
                 self.data_products[key]["loaded"] = True
                 try:
@@ -257,11 +260,13 @@ class CLAY_driver:
         )
         if key is None:
             return
-        self.data_products[key]["object"] = getattr(
-            globals()[self.data_products[key]["module_name"]],
-            self.data_products[key]["class_name"],
-        )()
+        self.data_products[key]["object"] = self._make_product(
+            key, self.data_products[key]
+        )
         self.data_products[key]["output_datasets"] = []
+        if self.data_products[key]["object"] is None:
+            self.data_products[key]["loaded"] = False
+            return
         try:
             self.data_products[key]["loaded"] = True
             self.data_products[key]["output_datasets"] = self.data_products[key][
@@ -290,19 +295,50 @@ class CLAY_driver:
             '"***********************Finished Product Run*************************"'
         )
 
-    def load_data_product_list(self) -> dict:
+    def _make_product(self, key: str, entry: dict):
         """
-        This function loads the data product list, and adds required fields.
+        Build one data product object from its data_products.json entry:
+        ``GLHE.CLAY.data_access.<module_name>.<class_name>``, called with the
+        entry's ``"spec"`` dict if it has one (see gridded_product.py).
+
+        Returns None (and logs why) if the product cannot be set up, e.g. a
+        missing module or credentials, so one broken product never stops the
+        others.
         """
-        with open(
-            os.path.join(Path(__file__).parent, "config", "data_products.json"), "r"
-        ) as f:
-            self.data_products = json.load(f)
+        try:
+            module = importlib.import_module(
+                "GLHE.CLAY.data_access." + entry["module_name"]
+            )
+            product_class = getattr(module, entry["class_name"])
+            if "spec" in entry:
+                return product_class(entry["spec"])
+            return product_class()
+        except Exception as e:
+            (self.root_logger or logging.getLogger(__name__)).error(
+                "Data Product: {} could not be set up and will be skipped: {}".format(
+                    key, e
+                )
+            )
+            return None
+
+    def load_data_product_list(self, products: dict | None = None) -> dict:
+        """
+        Load the data products (``config/data_products.json`` unless
+        ``products`` is given) and build an object for each one. A product
+        that cannot be set up gets ``"object": None`` and is skipped.
+        """
+        if products is None:
+            with open(
+                os.path.join(Path(__file__).parent, "config", "data_products.json"),
+                "r",
+            ) as f:
+                products = json.load(f)
+        self.data_products = products
         for key in self.data_products:
-            self.data_products[key]["object"] = getattr(
-                globals()[self.data_products[key]["module_name"]],
-                self.data_products[key]["class_name"],
-            )()
+            self.data_products[key]["object"] = self._make_product(
+                key, self.data_products[key]
+            )
+            self.data_products[key]["loaded"] = False
             self.data_products[key]["output_datasets"] = []
 
         return self.data_products

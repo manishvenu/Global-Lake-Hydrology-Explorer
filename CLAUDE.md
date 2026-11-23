@@ -94,10 +94,9 @@ LIME (panel serve GLHE/LIME/app.py, or GLHE.LIME.app.serve(output_dir))
   └─> catalog / public — processed-lake list; public-mode guards
 ```
 
-**Data products** are registered in `GLHE/CLAY/config/data_products.json` and their source URLs in `GLHE/CLAY/data_access_config/input_data.json`. Adding a new data source means:
-1. Add a class in `GLHE/CLAY/data_access/` that subclasses `DataAccess`
-2. Implement `verify_inputs()`, `attach_geodata()`, `product_driver(polygon, debug, run_cleanly)`
-3. Register it in both JSON config files
+**Data products** are registered in `GLHE/CLAY/config/data_products.json` (the driver imports `GLHE.CLAY.data_access.<module_name>.<class_name>` from it) and their source URLs in `GLHE/CLAY/data_access/data_access_config/input_data.json`. A product that cannot be set up (missing module, credentials, bad spec) or whose data is missing is logged and skipped; it never stops the run. Adding a new data source means either:
+- **A gridded precipitation/evaporation grid** (most new products): no code. Put the Zarr/NetCDF under `LocalData/` (on the server `~/glhe-data/LocalData`) and add a `data_products.json` entry with `"module_name": "gridded_product", "class_name": "GriddedProduct"` and a `"spec"` (`product_name`, `local_path`, `variables` `{name in file: "p"|"e"}`, optional `units`, optional S3 `cloud`). See `data_access/gridded_product.py`.
+- **Anything else** (APIs, per-lake tables, points): a class in `GLHE/CLAY/data_access/` that subclasses `DataAccess`, implementing `verify_inputs()`, `attach_geodata()`, `product_driver(polygon, debug, run_cleanly)`, registered in both JSON config files.
 
 **LIME** (`GLHE/LIME/`) is deliberately barebones: plain Panel widgets, default styling, no custom CSS or themes. Keep it that way. The only JavaScript is `globe.js`.
 - `app.py` holds the whole page: `load_lake(folder)` reads a CLAY output folder into a dict, `series_view`/`caveats_view`/`table_view` turn it into tabs, and `class Lime` owns the widgets and callbacks. `build_app()` builds a page; `app.serve(output_dir)` serves it from Python.
@@ -205,7 +204,7 @@ When adding a new data source, decide upfront:
 
 ## Common tasks
 
-**Add a new data source**: Subclass `DataAccess` (see `GLHE/CLAY/data_access/data_access_parent_class.py`), then register in the two JSON config files. Use `ERA5_Land.py` or `CRUTS.py` as reference.
+**Add a new data source**: for a gridded p/e product, add a `GriddedProduct` spec entry to `data_products.json` (see above). Otherwise subclass `DataAccess` (see `GLHE/CLAY/data_access/data_access_parent_class.py`), then register in the two JSON config files. Use `ERA5_Land.py` or `CRUTS.py` as reference.
 
 **Change output directory**: Edit `GLHE/CLAY/globals.py` (`config["DIRECTORIES"]["OUTPUT_DIRECTORY"]`).
 
