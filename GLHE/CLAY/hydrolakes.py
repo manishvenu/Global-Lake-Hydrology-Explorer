@@ -18,7 +18,7 @@ Where the file is read from (first that applies):
 2. ``GLHE/CLAY/LocalData/HydroLAKES_polys_v10.parquet`` if it exists;
 3. the public bucket, ``s3://glhe/HydroLAKES/HydroLAKES_polys_v10.parquet``.
 
-Used by CLAY (``lake_extraction``) and the LIME web app (``lake_lookup``).
+Used by CLAY (``lake_extraction``) and the LIME web app (search and lake outlines).
 Needs pyarrow, shapely and geopandas; no GDAL bindings.
 """
 

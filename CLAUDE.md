@@ -46,7 +46,7 @@ output_dir = clay.main(HYLAK_ID)
 panel serve GLHE/LIME/app.py --show                       # local
 # open a lake directly: http://localhost:5006/app?output_dir=/path/to/lake/folder
 # or: GLHE_OUTPUT_DIR=/path/to/lake/folder panel serve GLHE/LIME/app.py
-# on the server (rootless Podman + tailscale serve): see deploy/README.md
+# on the server (rootless Podman + Cloudflare Tunnel): see deploy/README.md
 ```
 
 See `sample_script.py` for the canonical example. The first run downloads data; subsequent runs use local cache (pickle files in the output directory).
@@ -87,11 +87,11 @@ HYLAK_ID
         └─> outputs: CSV, PNG, shapefiles, config.json
 
 LIME (panel serve GLHE/LIME/app.py, or GLHE.LIME.app.serve(output_dir))
-  └─> app.py LimeApp: sidebar (find lake, run CLAY, processed lakes), globe, tabs
-  └─> state.AppState   — loaded lake (reads config.json + CSV + polygon)
+  └─> app.py           — the whole page: load_lake(), series/caveats/table views, class Lime
+  └─> globe.py + .js   — MapLibre globe (the only JS); every lake from PMTiles
+  └─> gridded.py       — CLAY's gridded GeoTIFFs as coloured cells on the globe
   └─> jobs.ClayJob     — runs `python -m GLHE.LIME.run_clay <id>` in a subprocess
-  └─> catalog / lake_lookup  (caveats come from GLHE/CLAY/caveats.py)
-  └─> components/      — globe (only JS: MapLibre), overview, series, water_balance, gridded, table, caveats
+  └─> catalog / public — processed-lake list; public-mode guards
 ```
 
 **Data products** are registered in `GLHE/CLAY/config/data_products.json` and their source URLs in `GLHE/CLAY/data_access_config/input_data.json`. Adding a new data source means:
@@ -99,13 +99,11 @@ LIME (panel serve GLHE/LIME/app.py, or GLHE.LIME.app.serve(output_dir))
 2. Implement `verify_inputs()`, `attach_geodata()`, `product_driver(polygon, debug, run_cleanly)`
 3. Register it in both JSON config files
 
-**LIME** (`GLHE/LIME/`) is Python-first; the only JavaScript is `components/globe.js`.
-- `app.py` builds the page (`build_app()`); `app.serve(output_dir)` serves it from Python.
-- Every tab is a `make_*(state)` factory that watches `AppState` and redraws itself; components never talk to each other directly. Cross-component wiring (globe, caveats, header, CLAY job) lives in `LimeApp`.
-- Colours/fonts/CSS come only from `theme.py`. Dark/light is chosen at page load (`?theme=light`); the header switch reloads the page.
-- CLAY runs in a subprocess, one job per server (kept in `pn.state.cache`); the page polls it every 500 ms. `run_clay` prints `GLHE_OUTPUT_DIR=<path>` on success and the app loads that folder.
-- HydroLAKES is a GeoParquet file read by `GLHE/CLAY/hydrolakes.py` (shared by CLAY and LIME's `lake_lookup`): a local copy in `LocalData/` if present, else `s3://glhe/HydroLAKES/HydroLAKES_polys_v10.parquet`, fetching only the rows needed. Override with env `GLHE_HYDROLAKES`. Rebuild it from the shapefile with `data_access/aws_zarr_templates/hydrolakes_to_parquet.py`. No GDAL Python bindings are needed.
-- Lake picker: the sidebar search box uses `hydrolakes.search()` (an in-memory index of every lake's ID, name, country and area, preloaded by `app.warm_hydrolakes()`). The globe draws every lake from vector tiles (`HydroLAKES_polys_v10.pmtiles`, built by `aws_zarr_templates/hydrolakes_to_pmtiles.py`, URL from env `GLHE_LAKE_TILES_URL`, `""` = off); clicking a tile lake sets `LakeGlobe.picked` and selects it at once. Outlines are fetched in the background (`app.in_background`).
+**LIME** (`GLHE/LIME/`) is deliberately barebones: plain Panel widgets, default styling, no custom CSS or themes. Keep it that way. The only JavaScript is `globe.js`.
+- `app.py` holds the whole page: `load_lake(folder)` reads a CLAY output folder into a dict, `series_view`/`caveats_view`/`table_view` turn it into tabs, and `class Lime` owns the widgets and callbacks. `build_app()` builds a page; `app.serve(output_dir)` serves it from Python.
+- CLAY runs in a subprocess, one job per server (kept in `pn.state.cache`); each page polls it every second. `run_clay` prints `GLHE_OUTPUT_DIR=<path>` on success and the app loads that folder.
+- HydroLAKES is a GeoParquet file read by `GLHE/CLAY/hydrolakes.py` (shared by CLAY and LIME): a local copy in `LocalData/` if present, else `s3://glhe/HydroLAKES/HydroLAKES_polys_v10.parquet`, fetching only the rows needed. Override with env `GLHE_HYDROLAKES`. Rebuild it from the shapefile with `data_access/aws_zarr_templates/hydrolakes_to_parquet.py`. No GDAL Python bindings are needed.
+- Lake picker: the sidebar search box uses `hydrolakes.search()` (an in-memory index of every lake's ID, name, country and area, preloaded by `app.warm_hydrolakes()`). The globe draws every lake from vector tiles (`HydroLAKES_polys_v10.pmtiles`, built by `aws_zarr_templates/hydrolakes_to_pmtiles.py`, URL from env `GLHE_LAKE_TILES_URL`, `""` = off); clicking a tile lake sets `LakeGlobe.picked` and selects it. Outlines are fetched in the background (`app.in_background`).
 - Caveats belong to CLAY: queryearth rule files in `GLHE/CLAY/caveat_rules/` (`era5-land.geojson` vendored from vizqueryearth, `glhe.geojson` our own), matched by `GLHE/CLAY/caveats.py`. CLAY writes `{lake}_caveats.json` (`CAVEATS_DATA`); LIME recomputes them with the same module so rule edits apply to lakes already run. See `caveat_rules/README.md` to add rules.
 - Public mode (`GLHE_PUBLIC=1`, `public.py`): run time limit, lake size cap, per-visitor cooldown, no reruns of processed lakes, cancel only by the starter, banner, no `/admin`. Deploy details in `deploy/README.md`.
 - Dev data: `tests/LIME/fixtures/Fixture_Lake` is a synthetic CLAY output (regenerate with `make_fixture.py`).
@@ -154,7 +152,6 @@ CLAY writes all outputs to a per-lake directory under the configured output root
 | `GLHE/CLAY/globals.py` | Debug flags, directory paths, SLC mappings, pint unit registry |
 | `GLHE/CLAY/config/data_products.json` | Which data products are enabled |
 | `GLHE/CLAY/data_access_config/input_data.json` | Source URLs / access methods per product |
-| `GLHE/LIME/theme.py` | LIME colours, fonts, CSS, chart defaults |
 | `GLHE/CLAY/caveat_rules/*.geojson` | queryearth caveat rules (written per lake by CLAY, shown in LIME's Caveats tab) |
 | env `GLHE_OUTPUT_DIR` | Lake folder LIME opens at start-up |
 | env `GLHE_OUTPUT_ROOTS` | Extra folders (`:`-separated) LIME scans for processed lakes |

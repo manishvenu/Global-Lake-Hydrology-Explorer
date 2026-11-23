@@ -10,17 +10,17 @@
 :show-inheritance:
 ```
 
-### GLHE.LIME.state
+### GLHE.LIME.globe
 
-```{automodule} GLHE.LIME.state
+```{automodule} GLHE.LIME.globe
 :members:
 :undoc-members:
 :show-inheritance:
 ```
 
-### GLHE.LIME.theme
+### GLHE.LIME.gridded
 
-```{automodule} GLHE.LIME.theme
+```{automodule} GLHE.LIME.gridded
 :members:
 :undoc-members:
 :show-inheritance:
@@ -34,14 +34,6 @@
 :show-inheritance:
 ```
 
-### GLHE.LIME.lake_lookup
-
-```{automodule} GLHE.LIME.lake_lookup
-:members:
-:undoc-members:
-:show-inheritance:
-```
-
 ### GLHE.LIME.jobs
 
 ```{automodule} GLHE.LIME.jobs
@@ -50,73 +42,17 @@
 :show-inheritance:
 ```
 
+### GLHE.LIME.public
+
+```{automodule} GLHE.LIME.public
+:members:
+:undoc-members:
+:show-inheritance:
+```
+
 ### GLHE.LIME.run_clay
 
 ```{automodule} GLHE.LIME.run_clay
-:members:
-:undoc-members:
-:show-inheritance:
-```
-
-### GLHE.LIME.components.globe
-
-```{automodule} GLHE.LIME.components.globe
-:members:
-:undoc-members:
-:show-inheritance:
-```
-
-### GLHE.LIME.components.overview
-
-```{automodule} GLHE.LIME.components.overview
-:members:
-:undoc-members:
-:show-inheritance:
-```
-
-### GLHE.LIME.components.series
-
-```{automodule} GLHE.LIME.components.series
-:members:
-:undoc-members:
-:show-inheritance:
-```
-
-### GLHE.LIME.components.gridded
-
-```{automodule} GLHE.LIME.components.gridded
-:members:
-:undoc-members:
-:show-inheritance:
-```
-
-### GLHE.LIME.components.table
-
-```{automodule} GLHE.LIME.components.table
-:members:
-:undoc-members:
-:show-inheritance:
-```
-
-### GLHE.LIME.components.caveats_panel
-
-```{automodule} GLHE.LIME.components.caveats_panel
-:members:
-:undoc-members:
-:show-inheritance:
-```
-
-### GLHE.LIME.components.sidebar
-
-```{automodule} GLHE.LIME.components.sidebar
-:members:
-:undoc-members:
-:show-inheritance:
-```
-
-### GLHE.LIME.components.common
-
-```{automodule} GLHE.LIME.components.common
 :members:
 :undoc-members:
 :show-inheritance:

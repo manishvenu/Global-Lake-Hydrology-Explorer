@@ -6,7 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from GLHE.LIME import catalog, jobs, lake_lookup
+from GLHE.CLAY import hydrolakes
+from GLHE.LIME import catalog, jobs
+from GLHE.LIME.app import find_file
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -49,16 +51,9 @@ def test_catalog_default_roots_do_not_crash():
 
 
 # ------------------------------------------------------------ lake lookup
-def test_lookup_returns_none_when_data_missing(tmp_path):
-    missing = str(tmp_path / "nope.parquet")
-    assert lake_lookup.lookup_by_id(67, source=missing) is None
-    assert lake_lookup.lookup_by_point(-112.5, 41.1, source=missing) is None
-    assert lake_lookup.lookup_by_id("not a number") is None
-
-
 @pytest.fixture
 def mini_hydrolakes(tmp_path):
-    """A two-lake HydroLAKES GeoParquet file (same layout as the real one)."""
+    """A three-lake HydroLAKES GeoParquet file (same layout as the real one)."""
     import geopandas as gpd
     from shapely.geometry import box
 
@@ -76,31 +71,9 @@ def mini_hydrolakes(tmp_path):
         ],
         crs=4326,
     )
-    from GLHE.CLAY import hydrolakes
-
     path = tmp_path / "mini_hydrolakes.parquet"
     hydrolakes.write_parquet(gdf, path)
     return str(path)
-
-
-def test_lookup_by_id(mini_hydrolakes):
-    lake = lake_lookup.lookup_by_id(67, source=mini_hydrolakes)
-    assert lake["hylak_id"] == 67
-    assert lake["name"] == "Great_Salt_Lake"
-    assert lake["area_km2"] == pytest.approx(4360.0)
-    assert lake["geojson"]["type"] == "FeatureCollection"
-    assert lake_lookup.lookup_by_id(12345, source=mini_hydrolakes) is None
-
-
-def test_lookup_by_point(mini_hydrolakes):
-    assert (
-        lake_lookup.lookup_by_point(-112.5, 41.1, source=mini_hydrolakes)["hylak_id"]
-        == 67
-    )
-    # Just outside the small unnamed lake: nearest one is returned, name falls back to ID.
-    near = lake_lookup.lookup_by_point(-110.98, 40.005, source=mini_hydrolakes)
-    assert near["hylak_id"] == 68 and near["name"] == "68"
-    assert lake_lookup.lookup_by_point(0.0, 0.0, source=mini_hydrolakes) is None
 
 
 # ------------------------------------------------------------------- jobs
@@ -200,21 +173,17 @@ def test_job_reader_error_marks_failed(monkeypatch):
     assert not job.is_running
 
 
-def test_resolve_path_handles_windows_paths(tmp_path):
+def test_find_file_handles_windows_and_moved_paths(tmp_path):
     """Config files copied from Windows use backslashes; find the file by name."""
-    from GLHE.LIME.state import resolve_path
-
     (tmp_path / "X_Data.csv").write_text("Date\n")
     win = r"C:\Users\me\LakeOutputDirectory\X\X_Data.csv"
-    assert resolve_path(win, tmp_path) == tmp_path / "X_Data.csv"
+    assert find_file(win, tmp_path) == tmp_path / "X_Data.csv"
     posix = "/somewhere/else/X_Data.csv"
-    assert resolve_path(posix, tmp_path) == tmp_path / "X_Data.csv"
+    assert find_file(posix, tmp_path) == tmp_path / "X_Data.csv"
 
 
 # ------------------------------------------------------------- lake search
 def test_get_lake_reads_one_row_group_and_caches(mini_hydrolakes, monkeypatch):
-    from GLHE.CLAY import hydrolakes
-
     pf = hydrolakes._parquet_file(mini_hydrolakes)
     # IDs 67-69 are in row group 0 of this one-group file.
     assert hydrolakes._row_group_for(pf, 67) == 0
@@ -229,32 +198,25 @@ def test_get_lake_reads_one_row_group_and_caches(mini_hydrolakes, monkeypatch):
 
 
 def test_search_by_name_country_and_id(mini_hydrolakes):
-    assert lake_lookup.search("leman", source=mini_hydrolakes) is None  # not loaded
-    from GLHE.CLAY import hydrolakes
+    def search(text):
+        return hydrolakes.search(text, src=mini_hydrolakes)
 
-    hydrolakes.lake_index(mini_hydrolakes)
-    assert lake_lookup.index_ready(mini_hydrolakes)
-    hit = lake_lookup.search("LÉMAN", source=mini_hydrolakes)
+    hit = search("LÉMAN")
     assert [r["hylak_id"] for r in hit] == [69]
-    assert hit[0]["name"] == "Lac_Léman" and hit[0]["country"] == "Switzerland"
+    assert hit[0]["name"] == "Lac Léman" and hit[0]["country"] == "Switzerland"
     # "great" is a name prefix; "salt" is a word inside a name.
-    assert lake_lookup.search("great", source=mini_hydrolakes)[0]["hylak_id"] == 67
-    assert lake_lookup.search("salt", source=mini_hydrolakes)[0]["hylak_id"] == 67
-    # Country: largest lakes first, unnamed ones included (name = ID).
-    usa = lake_lookup.search("united", source=mini_hydrolakes)
+    assert search("great")[0]["hylak_id"] == 67
+    assert search("salt")[0]["hylak_id"] == 67
+    # Country: largest lakes first, unnamed ones included.
+    usa = search("united")
     assert [r["hylak_id"] for r in usa] == [67, 68]
-    assert usa[1]["name"] == "68"
+    assert usa[1]["name"] is None
     # IDs.
-    assert lake_lookup.search("#68", source=mini_hydrolakes)[0]["area_km2"] == 1.5
-    assert lake_lookup.search("12345", source=mini_hydrolakes) == []
-    assert lake_lookup.search("zzz", source=mini_hydrolakes) == []
-    assert (
-        lake_lookup.quick_info(69, source=mini_hydrolakes)["country"] == "Switzerland"
-    )
+    assert search("#68")[0]["area_km2"] == 1.5
+    assert search("12345") == []
+    assert search("zzz") == []
 
 
 def test_search_limit(mini_hydrolakes):
-    from GLHE.CLAY import hydrolakes
-
     assert len(hydrolakes.search("united", limit=1, src=mini_hydrolakes)) == 1
     assert hydrolakes.normalize("  Lac_LÉMAN ") == "lac leman"

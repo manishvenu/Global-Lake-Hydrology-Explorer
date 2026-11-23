@@ -68,7 +68,7 @@ def test_app_blocks_processed_and_unknown_size_lakes(public_mode, tmp_path):
     assert app.run_button.disabled and "unknown" in app.run_button.label
     app.select_lake(1235, {"hylak_id": 1235, "area_km2": 20.0})
     assert not app.run_button.disabled
-    assert public.BANNER_HTML in [getattr(o, "object", None) for o in app.main()]
+    assert public.BANNER in [getattr(o, "object", None) for o in app.main()]
 
 
 def test_app_cooldown_and_cancel_only_by_starter(public_mode):

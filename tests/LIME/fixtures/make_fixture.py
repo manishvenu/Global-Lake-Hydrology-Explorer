@@ -15,7 +15,7 @@ Notes on the format (kept identical to CLAY where possible):
 
 * ``config.json`` keys come from ``write_and_output_LIME_CONFIG``. CLAY writes
   absolute paths; here they are bare file names, and
-  ``GLHE.LIME.state.resolve_path`` resolves them relative to the folder.
+  ``GLHE.LIME.app.find_file`` resolves them relative to the folder.
   ``HYLAK_ID`` is an extra, optional key that real CLAY configs do not have yet.
 * The CSV is named ``{LAKE}_Data.csv``, Date index, columns ``{slc}.{product}``.
 * The gridded zip is ``{LAKE}_gridded_data_layers_on_{YYYYMMDD}.zip`` holding

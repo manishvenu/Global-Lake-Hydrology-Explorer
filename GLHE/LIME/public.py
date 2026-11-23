@@ -105,8 +105,7 @@ def visitor_block_reason(visitor: str, now: float | None = None) -> str | None:
     return f"You started a run recently; try again in {max(1, round(wait / 60))} min."
 
 
-BANNER_HTML = (
-    '<div class="glhe-banner">Research prototype: GLHE has not been '
-    "scientifically validated. Check results against the caveats and the "
-    "original data before using them.</div>"
+BANNER = (
+    "Research prototype: GLHE has not been scientifically validated. Check "
+    "results against the caveats and the original data before using them."
 )

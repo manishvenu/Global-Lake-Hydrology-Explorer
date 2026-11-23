@@ -6,16 +6,14 @@ from pathlib import Path
 import pytest
 
 from GLHE.CLAY import caveats as cv
-from GLHE.LIME.state import AppState
+from GLHE.LIME.app import caveats_view, load_lake
 
 FIXTURE = Path(__file__).parents[1] / "LIME" / "fixtures" / "Fixture_Lake"
 
 
 @pytest.fixture(scope="module")
-def state():
-    s = AppState()
-    s.load_output_dir(FIXTURE)
-    return s
+def lake():
+    return load_lake(FIXTURE)
 
 
 def _short_names(found):
@@ -34,10 +32,8 @@ def test_vendored_file_is_valid_geojson():
     assert data["queryearth"] == "0.8"
 
 
-def test_era5land001_found_for_2022_2024(state):
-    found = cv.find_caveats(
-        state.polygon_geojson, "2022-01-01", "2024-12-31", ["ERA5-Land"]
-    )
+def test_era5land001_found_for_2022_2024(lake):
+    found = cv.find_caveats(lake["polygon"], "2022-01-01", "2024-12-31", ["ERA5-Land"])
     assert "ERA5LAND001" in _short_names(found)
     first = next(c for c in found if c["name"].endswith("ERA5LAND001"))
     assert first["level"] == "warning"
@@ -45,28 +41,26 @@ def test_era5land001_found_for_2022_2024(state):
     assert first["source_file"] == "era5-land.geojson"
 
 
-def test_era5land001_not_found_for_2000_2010(state):
-    found = cv.find_caveats(
-        state.polygon_geojson, "2000-01-01", "2010-12-31", ["ERA5-Land"]
-    )
+def test_era5land001_not_found_for_2000_2010(lake):
+    found = cv.find_caveats(lake["polygon"], "2000-01-01", "2010-12-31", ["ERA5-Land"])
     assert "ERA5LAND001" not in _short_names(found)
 
 
-def test_shapely_polygon_and_underscore_product_name(state):
+def test_shapely_polygon_and_underscore_product_name(lake):
     from shapely.geometry import shape
 
-    poly = shape(state.polygon_geojson["features"][0]["geometry"])
+    poly = shape(lake["polygon"]["features"][0]["geometry"])
     found = cv.find_caveats(poly, "2022-01-01", "2024-12-31", ["ERA5_Land"])
     assert "ERA5LAND001" in _short_names(found)
 
 
-def test_products_filter_out_other_files(state):
-    found = cv.find_caveats(state.polygon_geojson, "2022-01-01", "2024-12-31", ["NWM"])
+def test_products_filter_out_other_files(lake):
+    found = cv.find_caveats(lake["polygon"], "2022-01-01", "2024-12-31", ["NWM"])
     assert not any(c["name"].startswith("ERA5LAND/") for c in found)
 
 
-def test_sorted_warnings_first(state):
-    found = cv.caveats_for_dataset(state.polygon_geojson or None, state.df)
+def test_sorted_warnings_first(lake):
+    found = cv.caveats_for_dataset(lake["polygon"] or None, lake["df"])
     order = [cv.LEVEL_ORDER[c["level"]] for c in found]
     assert order == sorted(order)
 
@@ -98,30 +92,12 @@ def test_vizqueryearth_url():
     assert cv.vizqueryearth_url("glhe.geojson") is None
 
 
-def test_panel_cards_and_empty_state(state):
-    from GLHE.LIME.components import caveats_panel as cp
-
-    assert cp.EMPTY_TEXT in cp.caveats_html([])
-    bad = {
-        "name": "X/1",
-        "title": "<script>alert(1)</script>",
-        "message": "m",
-        "level": "warning",
-        "references": [
-            {"title": "evil", "url": "javascript:alert(1)"},
-            {"title": "good", "url": "https://example.org"},
-        ],
-    }
-    out = cp.caveats_html([bad])
-    assert "<script>" not in out and "javascript:" not in out
-    assert "https://example.org" in out
-
-    view = cp.make_caveats(state)
-    pane = view[0]
-    assert cp.EMPTY_TEXT in pane.object
-    state.caveats = cv.caveats_for_dataset(state.polygon_geojson or None, state.df)
-    assert "ERA5LAND001" in pane.object
-    state.caveats = []
+def test_caveats_view(lake):
+    assert "issues that apply to this lake: 0" in caveats_view([]).object
+    found = cv.caveats_for_dataset(lake["polygon"] or None, lake["df"])
+    view = caveats_view(found)
+    assert "ERA5LAND001" not in view.object  # titles are shown, not rule names
+    assert view.name == f"Caveats ({len(found)})"
 
 
 def test_nwm_coverage_rule_shows_when_nwm_is_missing():
@@ -137,13 +113,8 @@ def test_header_only_csv_uses_its_columns():
     """A CSV with columns but no rows must not fall back to every product."""
     import pandas as pd
 
-    state = AppState()
-    state.df = pd.DataFrame(
-        {"p.ERA5-Land": []}, index=pd.DatetimeIndex([], name="Date")
-    )
-    names = _short_names(
-        cv.caveats_for_dataset(state.polygon_geojson or None, state.df)
-    )
+    df = pd.DataFrame({"p.ERA5-Land": []}, index=pd.DatetimeIndex([], name="Date"))
+    names = _short_names(cv.caveats_for_dataset(None, df))
     assert not any(n.startswith("CRUTS") for n in names)
 
 
