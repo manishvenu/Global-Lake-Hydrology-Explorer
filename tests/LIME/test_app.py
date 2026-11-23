@@ -56,8 +56,18 @@ def test_gridded_layer_goes_on_the_globe():
     page.layer.value = layers[0]
     cells = page.globe.cells_geojson["features"]
     assert cells and cells[0]["properties"]["color"].startswith("#")
+    assert "mm/month" in page.layer_text.object
     page.layer.value = ""
-    assert page.globe.cells_geojson == {}
+    assert page.globe.cells_geojson == {} and page.layer_text.object == ""
+
+
+def test_units_on_charts_and_table():
+    lake = lime_app.load_lake(FIXTURE)
+    assert lime_app.unit_of("i.NWM") == "m³/month"
+    assert lime_app.unit_of("p_ERA5-Land_X_20000101.tif") == "mm/month"
+    table = lime_app.table_view(lake["df"], "X")[1].value
+    assert "p.ERA5-Land (mm/month)" in table.columns
+    assert table["Month"].iloc[0] == "2000-01"
 
 
 def test_search_then_choose_a_result(monkeypatch):

@@ -26,6 +26,7 @@ import panel as pn
 from panel.io.state import set_curdoc
 
 from GLHE.CLAY import caveats, hydrolakes
+from GLHE.CLAY.globals import SLC_MAPPING_REVERSE_UNITS
 from GLHE.LIME import catalog, gridded, jobs, public
 from GLHE.LIME.globe import LakeGlobe, lake_tiles_url
 
@@ -97,13 +98,25 @@ def load_lake(folder) -> dict:
 # --------------------------------------------------------------------------
 # Result views: each takes data and returns something Panel can show
 # --------------------------------------------------------------------------
+def unit_of(name: str) -> str:
+    """Unit of a CSV column ('p.ERA5-Land') or gridded file ('p_ERA5-Land_...tif'),
+    from the letter code in front: 'mm/month', 'm³/month', ..."""
+    code = name.replace("_", ".").split(".")[0]
+    return SLC_MAPPING_REVERSE_UNITS.get(code, "").replace("^3", "³")
+
+
 def series_view(df) -> pn.Column:
     """One line chart per variable (columns are named like 'p.ERA5-Land')."""
     plots = []
     for slc, label in SLC_LABELS.items():
         cols = [c for c in df.columns if c.startswith(slc + ".")]
         if cols:
-            plot = df[cols].hvplot.line(ylabel=label, responsive=True, height=260)
+            plot = df[cols].hvplot.line(
+                xlabel="Date",
+                ylabel=f"{label} ({unit_of(slc)})",
+                responsive=True,
+                height=260,
+            )
             # Mouse wheel scrolls the page (zoom is still in the toolbar), and
             # plain canvas drawing: WebGL plots next to the WebGL map can stay blank.
             plot = plot.opts(
@@ -130,8 +143,11 @@ def table_view(df, name: str) -> pn.Column:
     download = pn.widgets.FileDownload(
         callback=lambda: io.StringIO(df.to_csv()), filename=f"{name}.csv"
     )
+    # On screen: months as "2000-01" and the unit in each column name.
+    shown = df.rename(columns=lambda c: f"{c} ({unit_of(c)})")
+    shown.index = shown.index.strftime("%Y-%m").rename("Month")
     table = pn.widgets.Tabulator(
-        df.reset_index(),
+        shown.reset_index(),
         pagination="remote",
         show_index=False,
         page_size=20,
@@ -230,6 +246,7 @@ class Lime:
         self.globe.param.watch(self.on_globe_pick, "picked")
         self.layer = pn.widgets.Select(label="Gridded layer on globe", visible=False)
         self.layer.param.watch(self.on_layer_chosen, "value")
+        self.layer_text = pn.pane.Markdown("")
         self.title = pn.pane.Markdown("")
         self.tabs = pn.Tabs(sizing_mode="stretch_width")
         self.lake = None  # the processed lake on show (from load_lake)
@@ -259,7 +276,7 @@ class Lime:
     def main(self) -> list:
         banner = [pn.pane.Alert(public.BANNER, alert_type="warning")]
         top = banner if public.enabled() else []
-        return top + [self.globe, self.layer, self.title, self.tabs]
+        return top + [self.globe, self.layer, self.layer_text, self.title, self.tabs]
 
     def template(self):
         return pn.template.BootstrapTemplate(
@@ -390,10 +407,15 @@ class Lime:
 
     def on_layer_chosen(self, event) -> None:
         zip_path = self.lake and self.lake["gridded_zip"]
-        if event.new and zip_path:
-            self.globe.cells_geojson = gridded.cells_geojson(zip_path, event.new)
-        else:
-            self.globe.cells_geojson = {}
+        cells = gridded.cells_geojson(zip_path, event.new) if event.new else {}
+        self.globe.cells_geojson = cells
+        values = [f["properties"]["value"] for f in cells.get("features", [])]
+        self.layer_text.object = (
+            f"Colours: purple = {min(values):.3g}, yellow = {max(values):.3g} "
+            f"{unit_of(event.new)}"
+            if values
+            else ""
+        )
 
     def load(self, folder) -> None:
         """Show a processed lake: outline on the globe and the result tabs."""
