@@ -161,14 +161,15 @@ export function render({ model, el }) {
 
   // ---- every lake, from vector tiles --------------------------------------
   // The tiles hold one polygon per lake (layer "lakes") with the properties
-  // Lake_name, Country and Lake_area, and Hylak_id as the feature id (set by
-  // tippecanoe; hover highlighting needs it). Small lakes appear as you zoom in.
+  // Hylak_id, Lake_name, Country and Lake_area. "promoteId" makes Hylak_id the
+  // feature id, which hover highlighting (feature-state) needs. Small lakes
+  // appear as you zoom in.
   const TILE_LAYERS = ["lakes-fill", "lakes-line"];
   function addLakeTiles(c) {
     hoverId = null; // a new style has no hover state
     const url = tilesSource(model.lake_tiles_url);
     if (!url || map.getSource("lakes")) return;
-    map.addSource("lakes", { type: "vector", url });
+    map.addSource("lakes", { type: "vector", url, promoteId: "Hylak_id" });
     const accent = c.accent || "#2dd4bf";
     const hovered = ["boolean", ["feature-state", "hover"], false];
     map.addLayer({ id: "lakes-fill", type: "fill", source: "lakes", "source-layer": "lakes",
@@ -187,8 +188,8 @@ export function render({ model, el }) {
     if (hoverId !== null && map.getSource("lakes")) {
       map.setFeatureState({ source: "lakes", sourceLayer: "lakes", id: hoverId }, { hover: false });
     }
-    hoverId = id;
-    if (id !== null) {
+    hoverId = id == null ? null : id;
+    if (hoverId !== null) {
       map.setFeatureState({ source: "lakes", sourceLayer: "lakes", id }, { hover: true });
     }
   }
@@ -196,7 +197,7 @@ export function render({ model, el }) {
     const f = e.features && e.features[0];
     if (!f) return;
     map.getCanvas().style.cursor = "pointer";
-    if (f.id !== hoverId) setHover(f.id);
+    if ((f.id ?? null) !== hoverId) setHover(f.id ?? null);
     const p = f.properties || {};
     const c = colors();
     const area = areaText(p.Lake_area);
