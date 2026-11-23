@@ -127,7 +127,9 @@ def test_driver_skips_products_that_cannot_be_set_up(local_data):
 
 def test_default_products_still_load():
     products = CLAY_driver.CLAY_driver().load_data_product_list()
-    assert "CRUTS" in products and products["CRUTS"]["object"] is not None
+    cruts = products["CRUTS"]["object"]  # CRU TS runs through the spec class
+    assert isinstance(cruts, gridded_product.GriddedProduct)
+    assert cruts.spec["variables"] == {"pre": "p", "pet": "e"}
 
 
 # ------------------------------------------------------- gridded product
