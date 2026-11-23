@@ -67,6 +67,23 @@ Limits are set in the same `deploy.env` (`GLHE_MAX_RUN_MINUTES`, `GLHE_MAX_LAKE_
 
 **Never funnel Cockpit (`:9090`).**
 
+## Custom domain (Cloudflare Tunnel)
+
+https://glhe.venumuddula.com reaches the same app through a Cloudflare Tunnel:
+`cloudflared` on gram connects *out* to Cloudflare and Cloudflare sends visitors
+down that connection to `http://127.0.0.1:5006` (no open ports, no public IP).
+The Tailscale Funnel address keeps working alongside it.
+
+- Program: `~/.local/bin/cloudflared`; settings: `~/.cloudflared/config.yml`;
+  the tunnel's secret: `~/.cloudflared/<id>.json` (never commit it).
+- Service: `systemctl --user status cloudflared-glhe` (restart / stop the same way;
+  logs: `journalctl --user -u cloudflared-glhe -f`).
+- The app must allow the address: `GLHE_ORIGIN` in run.sh lists every public
+  host, comma-separated.
+- Set up with: `cloudflared tunnel login`, `cloudflared tunnel create glhe`,
+  `cloudflared tunnel route dns glhe glhe.venumuddula.com`, then the config
+  file and the user service above.
+
 ## Lake tiles (every lake on the globe)
 
 The globe draws all 1.4 million HydroLAKES lakes from one vector-tile file,
@@ -84,7 +101,7 @@ Where the browser gets it:
      (or through the S3 website).
   2. Let the site read it: S3 console → `glhe` → Permissions → CORS, paste
      ```json
-     [{"AllowedOrigins":["https://gram-wsl.tailbc2832.ts.net:8443"],"AllowedMethods":["GET","HEAD"],"AllowedHeaders":["Range","If-Match"],"ExposeHeaders":["ETag","Content-Length","Content-Range"],"MaxAgeSeconds":3000}]
+     [{"AllowedOrigins":["https://glhe.venumuddula.com","https://gram-wsl.tailbc2832.ts.net:8443"],"AllowedMethods":["GET","HEAD"],"AllowedHeaders":["Range","If-Match"],"ExposeHeaders":["ETag","Content-Length","Content-Range"],"MaxAgeSeconds":3000}]
      ```
      (add `"http://localhost:5006"` to `AllowedOrigins` for local development).
   3. Switch the app to it:

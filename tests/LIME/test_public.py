@@ -91,3 +91,13 @@ def test_app_cooldown_and_cancel_only_by_starter(public_mode):
         assert not job.is_running
     finally:
         job.cancel()
+
+
+def test_visitor_id_prefers_cloudflare_header(monkeypatch):
+    from GLHE.LIME import public
+
+    headers = {"X-Forwarded-For": "1.1.1.1, 10.0.0.1"}
+    monkeypatch.setattr(type(pn.state), "headers", property(lambda s: headers))
+    assert public.visitor_id() == "1.1.1.1"
+    headers["CF-Connecting-IP"] = "2.2.2.2"
+    assert public.visitor_id() == "2.2.2.2"

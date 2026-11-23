@@ -53,10 +53,13 @@ _COOLDOWN_CACHE_KEY = "glhe_public_last_run"
 
 def visitor_id() -> str:
     """
-    Who is asking, as well as we can tell: the client IP that Tailscale
-    (Funnel / Serve) forwards, else this browser session's ID.
+    Who is asking, as well as we can tell: the client IP that Cloudflare
+    (``CF-Connecting-IP``) or Tailscale Funnel/Serve (``X-Forwarded-For``)
+    forwards, else this browser session's ID.
     """
     headers = {k.lower(): v for k, v in (pn.state.headers or {}).items()}
+    if headers.get("cf-connecting-ip"):
+        return headers["cf-connecting-ip"].strip()
     forwarded = headers.get("x-forwarded-for", "")
     if forwarded:
         return forwarded.split(",")[0].strip()

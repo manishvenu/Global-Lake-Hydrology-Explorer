@@ -21,7 +21,8 @@ DATA="${GLHE_DATA:-$HOME/glhe-data}"            # LakeOutputDirectory/, .temp/, 
 CDSAPIRC="${GLHE_CDSAPIRC:-$HOME/.cdsapirc}"     # ERA5 (Copernicus) API key, mounted read-only
 SECRETS="${GLHE_SECRETS:-$HOME/.config/glhe/secrets.env}"  # optional KEY=value lines, e.g. DAHITI_API_KEY
 PORT="${GLHE_PORT:-5006}"                        # bound to 127.0.0.1 only
-ORIGIN="${GLHE_ORIGIN:-gram-wsl.tailbc2832.ts.net:8443}"  # the public-facing host:port
+# Public-facing host[:port]s, comma-separated (Tailscale Funnel, Cloudflare Tunnel).
+ORIGIN="${GLHE_ORIGIN:-gram-wsl.tailbc2832.ts.net:8443,glhe.venumuddula.com}"
 MEMORY="${GLHE_MEMORY:-5g}"
 PUBLIC="${GLHE_PUBLIC:-0}"                       # 1 = public mode (see GLHE/LIME/public.py)
 MAX_RUN_MINUTES="${GLHE_MAX_RUN_MINUTES:-45}"      # public mode: stop runs after this
@@ -100,7 +101,7 @@ podman exec "$NAME" /opt/conda/bin/python -c "import GLHE.CLAY, GLHE.LIME.app" \
 echo "==> Waiting for the app"
 for _ in $(seq 1 60); do
   if curl -fsS -o /dev/null "http://127.0.0.1:$PORT/app"; then
-    echo "GLHE is up on http://127.0.0.1:$PORT (https://$ORIGIN, public mode: $PUBLIC)"
+    echo "GLHE is up on http://127.0.0.1:$PORT (https://${ORIGIN//,/ https://}, public mode: $PUBLIC)"
     if [[ ${#tile_args[@]} -gt 0 ]]; then echo "Lake tiles: ${tile_args[-1]#GLHE_LAKE_TILES_URL=}"; fi
     exit 0
   fi
