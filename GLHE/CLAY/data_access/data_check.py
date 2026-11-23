@@ -26,7 +26,14 @@ def check_data_and_download_missing_data_or_files() -> None:
             if local_path.exists():
                 logger.info(f"Found {name} locally")
                 continue
-            cloud_path = product["cloud"]
+            cloud_path = product.get("cloud")
+            if cloud_path is None:
+                # Local-only product (e.g. GLEAM): optional, its driver skips it.
+                logger.warning(
+                    f"{name} not found at {local_path} and has no cloud copy; "
+                    "it will be skipped"
+                )
+                continue
             if s3_object_or_folder_exists(_BUCKET, cloud_path):
                 logger.info(f"Found {name} in S3")
             else:
@@ -63,8 +70,13 @@ def download_for_offline() -> None:
         if local_path.exists():
             logger.info(f"{product['name']} already cached locally")
             continue
-        cloud_path = product["cloud"]
-        logger.info(f"Downloading {product['name']} from s3://{_BUCKET}/{cloud_path} ...")
+        cloud_path = product.get("cloud")
+        if cloud_path is None:
+            logger.info(f"{product['name']} has no cloud copy; skipping")
+            continue
+        logger.info(
+            f"Downloading {product['name']} from s3://{_BUCKET}/{cloud_path} ..."
+        )
         _download_from_s3(_BUCKET, cloud_path, local_path)
         logger.info(f"Downloaded {product['name']}")
 
@@ -97,7 +109,7 @@ def _download_from_s3(bucket: str, s3_path: str, local_path: Path) -> None:
     logger.info(f"  {len(objects)} files to download")
     for obj in objects:
         key = obj["Key"]
-        rel = key[len(prefix):]
+        rel = key[len(prefix) :]
         if not rel:
             continue
         dest = local_path / rel
@@ -124,9 +136,7 @@ def s3_object_or_folder_exists(bucket_name: str, s3_path: str) -> bool:
             pass
 
     try:
-        result = s3.list_objects_v2(
-            Bucket=bucket_name, Prefix=s3_path, Delimiter="/"
-        )
+        result = s3.list_objects_v2(Bucket=bucket_name, Prefix=s3_path, Delimiter="/")
         return "Contents" in result or "CommonPrefixes" in result
     except ClientError as e:
         if e.response["Error"]["Code"] == "AccessDenied":
