@@ -271,9 +271,7 @@ def write_and_output_README(read_me_information: dict) -> None:
         pubsub.EventBus,
         events.OutputFileEvent(
             READ_ME_Name,
-            GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
-            + "/"
-            + READ_ME_Name,
+            READ_ME_Name + ".md",
             ".md",
             "README FIle",
             events.TypeOfFileLIME.READ_ME,

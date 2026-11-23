@@ -171,7 +171,7 @@ def group_xarray_dataset_by_month(dataset: xr.Dataset) -> xr.Dataset:
         "Grouped the dataset {} to monthly values".format(dataset.attrs["product_name"])
     )
 
-    return dataset.resample(time="M").sum()
+    return dataset.resample(time="ME").sum()
 
 
 def label_xarray_dataset_with_product_name(
