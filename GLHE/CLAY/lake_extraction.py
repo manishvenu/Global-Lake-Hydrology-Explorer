@@ -3,9 +3,9 @@ import os
 from json import loads
 
 import xarray as xr
-from osgeo.gdal import OpenEx, OF_VECTOR, UseExceptions
 from shapely.geometry import shape, Polygon
 import GLHE.CLAY.globals
+from GLHE.CLAY import hydrolakes
 from pathlib import Path
 import os
 
@@ -49,48 +49,22 @@ class LakeExtraction:
         self.logger.addHandler(fh)
 
     def extract_lake_information(self, hylak_id: int) -> None:
-        """Extracts lake from shapefile
+        """Read one lake (polygon, name and attributes) from HydroLAKES.
 
-         Parameters
-         __________
+        Parameters
+        ----------
+        hylak_id : int
+            HydroLAKES ID of the lake (Mono Lake is 798).
 
-         hyset_id : int
-                ID of the lake (Mono is 798)
-
-        Returns
-        _______
-
-        shapely Polygon
-                polygon of specified lake
+        Reads ``hydrolakes.source()``: a local GeoParquet copy if present,
+        otherwise the file on S3 (only the matching row group is fetched).
         """
-        UseExceptions()
+        self.logger.info("Reading HYLAK_ID %s from %s", hylak_id, hydrolakes.source())
+        lake = hydrolakes.get_lake(hylak_id)
+        if lake is None:
+            raise ValueError(f"HYLAK_ID {hylak_id} is not in HydroLAKES")
 
-        # Read in the shapefile and open it with gdal.OpenEx
-        try:
-            self.logger.info("Trying Local Access")
-            hydro_lakes_shapefile_location = os.path.join(
-                Path(__file__).parent,
-                "LocalData/HydroLAKES_polys_v10_shp/HydroLAKES_polys_v10.shp",
-            )
-            hydro_lakes = OpenEx(hydro_lakes_shapefile_location, OF_VECTOR)
-        except:
-            self.logger.info(
-                "Could not open the Local Access format, trying S3 shapefile (Takes time)"
-            )
-
-            s3_hl_shp_path = "/vsis3/glhe/HydroLAKES/HydroLAKES_polys_v10_shp/HydroLAKES_polys_v10.shp"
-            hydro_lakes = OpenEx(s3_hl_shp_path, OF_VECTOR)
-
-        # Access the data layer and access the lake from the lake ID passed in (It's in SQL)
-        layer = hydro_lakes.GetLayer()
-        query = "SELECT * FROM {} WHERE hylak_id = '{}'".format(
-            layer.GetName(), hylak_id
-        )
-        result = hydro_lakes.ExecuteSQL(query)
-
-        # Get the lake polygon and export as a geoJSON
-        feature = result.GetNextFeature()
-        self.lake_information = loads(feature.ExportToJson())
+        self.lake_information = loads(lake.to_json())["features"][0]
         ln = self.lake_information["properties"]["Lake_name"]
         if ln is None:
             ln = str(hylak_id)
@@ -98,8 +72,6 @@ class LakeExtraction:
         logger.info("Extracted Lake: {}".format(self.lake_name))
         self.polygon = shape(self.lake_information["geometry"])
         self.logger.info("Extracted Polygon")
-        feature.Destroy()
-        hydro_lakes.ReleaseResultSet(result)
 
     def get_lake_polygon(self) -> Polygon:
         """Reads in the geojson and gets the lake polygon"""

@@ -76,7 +76,7 @@ See `sample_script.py` for the canonical example. The first run downloads data; 
 ```
 HYLAK_ID
   └─> CLAY_driver.main()
-        ├─> LakeExtraction      (lake_extraction.py)   — shapely polygon from HydroLAKES
+        ├─> LakeExtraction      (lake_extraction.py)   — shapely polygon via hydrolakes.py
         ├─> data_check          (data_access/)          — download missing LocalData
         └─> For each data product (ERA5_Land, CRUTS, NWM):
               ├─> product_driver(polygon)               — fetch + spatially average
@@ -102,7 +102,7 @@ LIME (panel serve GLHE/LIME/app.py, or GLHE.LIME.app.serve(output_dir))
 - Every tab is a `make_*(state)` factory that watches `AppState` and redraws itself; components never talk to each other directly. Cross-component wiring (globe, caveats, header, CLAY job) lives in `LimeApp`.
 - Colours/fonts/CSS come only from `theme.py`. Dark/light is chosen at page load (`?theme=light`); the header switch reloads the page.
 - CLAY runs in a subprocess, one job per server (kept in `pn.state.cache`); the page polls it every 500 ms. `run_clay` prints `GLHE_OUTPUT_DIR=<path>` on success and the app loads that folder.
-- Never import `GLHE.CLAY.lake_extraction`/`CLAY_driver` at LIME import time (they need GDAL); `lake_lookup` reads HydroLAKES with geopandas and returns None when it is missing.
+- HydroLAKES is a GeoParquet file read by `GLHE/CLAY/hydrolakes.py` (shared by CLAY and LIME's `lake_lookup`): a local copy in `LocalData/` if present, else `s3://glhe/HydroLAKES/HydroLAKES_polys_v10.parquet`, fetching only the rows needed. Override with env `GLHE_HYDROLAKES`. Rebuild it from the shapefile with `data_access/aws_zarr_templates/hydrolakes_to_parquet.py`. No GDAL Python bindings are needed.
 - Caveats: queryearth rule files in `LIME/rules/` (`era5-land.geojson` vendored from vizqueryearth, `glhe.geojson` our own). See `rules/README.md` to add rules.
 - Dev data: `tests/LIME/fixtures/Fixture_Lake` is a synthetic CLAY output (regenerate with `make_fixture.py`).
 
@@ -117,7 +117,7 @@ pytest                        # all tests
 pytest -m "not slow"          # skip network/data tests
 pytest tests/CLAY/            # CLAY tests only
 pytest tests/test_CALCITE.py  # event bus tests
-pytest tests/LIME/            # LIME app, views, caveats, jobs (no browser, no GDAL needed)
+pytest tests/LIME/            # LIME app, views, caveats, jobs (no browser needed)
 ```
 
 Test markers (`pytest.ini`): `slow`, `subsetting_data`. The slow tests hit real data downloads — skip them in normal dev cycles.

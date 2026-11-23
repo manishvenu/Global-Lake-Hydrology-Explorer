@@ -41,7 +41,7 @@ podman rm -f "$NAME" >/dev/null 2>&1 || true
 # Security: run as your own (unprivileged) uid, read-only root, no capabilities,
 # no privilege escalation, memory/process caps, port on localhost only.
 podman create --name "$NAME" \
-  --userns=keep-id \
+  --userns=keep-id --user "$(id -u):$(id -g)" \
   --read-only --tmpfs /tmp:rw,size=2g \
   --cap-drop=ALL --security-opt=no-new-privileges \
   --memory "$MEMORY" --pids-limit 512 \
@@ -58,6 +58,11 @@ mkdir -p "$HOME/.config/systemd/user"
 podman rm -f "$NAME" >/dev/null  # the service recreates it from the unit (--new)
 systemctl --user daemon-reload
 systemctl --user enable --now "container-$NAME.service"
+
+echo "==> Checking CLAY and LIME import inside the container"
+for _ in $(seq 1 15); do podman container exists "$NAME" && break; sleep 1; done
+podman exec "$NAME" /opt/conda/bin/python -c "import GLHE.CLAY, GLHE.LIME.app" \
+  || { echo "Import check failed: see the error above" >&2; exit 1; }
 
 echo "==> Waiting for the app"
 for _ in $(seq 1 60); do

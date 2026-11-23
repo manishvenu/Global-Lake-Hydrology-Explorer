@@ -328,8 +328,8 @@ class LimeApp:
     # --------------------------------------------------------- choosing lakes
     @property
     def _lookup_available(self) -> bool:
-        """True when the HydroLAKES shapefile is on this machine."""
-        return Path(lake_lookup.HYDROLAKES_SHP).exists()
+        """True when HydroLAKES can be read (local copy or S3)."""
+        return lake_lookup.available()
 
     def _on_find(self) -> None:
         if self.id_input.value:
@@ -371,7 +371,7 @@ class LimeApp:
             msg = (
                 "No lake found there."
                 if self._lookup_available
-                else "HydroLAKES is not on this machine; type a HYLAK_ID instead."
+                else "HydroLAKES could not be read; type a HYLAK_ID instead."
             )
             _notify("info", msg)
             return
@@ -649,5 +649,27 @@ def serve(output_dir=None, port: int = 5006, address: str | None = None, show=Tr
 
 # `panel serve GLHE/LIME/app.py` runs this file with a __name__ like
 # "bokeh_app_<hash>"; build one page per browser session.
+def warm_hydrolakes() -> None:
+    """Load HydroLAKES' bounding-box index in the background, once per server,
+    so the first globe click is fast even when HydroLAKES is read from S3."""
+    if pn.state.cache.get("glhe_hydrolakes_warm"):
+        return
+    pn.state.cache["glhe_hydrolakes_warm"] = True
+
+    def _warm():
+        try:
+            from GLHE.CLAY import hydrolakes
+
+            if hydrolakes.available():
+                hydrolakes._bbox_index(hydrolakes.source())
+        except Exception as exc:  # the app still works; clicks just start slower
+            logger.warning("Could not preload HydroLAKES: %s", exc)
+
+    import threading
+
+    threading.Thread(target=_warm, daemon=True).start()
+
+
 if __name__.startswith("bokeh"):
+    warm_hydrolakes()
     build_app().servable(title="GLHE · Lake Explorer")

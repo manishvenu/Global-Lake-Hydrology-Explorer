@@ -1,13 +1,10 @@
 """
-Look up a lake in the local HydroLAKES shapefile, by ID or by a map click.
+Look up a lake in HydroLAKES, by ID or by a map click.
 
-Reads only the rows it needs (an attribute ``where`` filter or a small
-bounding box) with pyogrio, so it is fast even though HydroLAKES has 1.4
-million polygons. No GDAL Python bindings (``osgeo``) are required.
-
-Both functions return ``None`` when the shapefile is missing (it lives in
-``GLHE/CLAY/LocalData/``, which is downloaded separately) or nothing matches.
-On success they return::
+A thin layer over ``GLHE.CLAY.hydrolakes``, which reads the HydroLAKES
+GeoParquet file (a local copy if present, else straight from S3, fetching only
+the rows needed). Both functions return ``None`` when HydroLAKES cannot be read
+or nothing matches. On success they return::
 
     {"hylak_id": 67, "name": "Great_Salt_Lake", "area_km2": 4360.0,
      "geojson": {...FeatureCollection in EPSG:4326...}}
@@ -21,42 +18,20 @@ from __future__ import annotations
 import json
 import logging
 import warnings
-from pathlib import Path
 
 import pandas as pd
 
+from GLHE.CLAY import hydrolakes
+
 logger = logging.getLogger(__name__)
 
-#: Default location of the HydroLAKES polygons (same file CLAY uses).
-HYDROLAKES_SHP = (
-    Path(__file__).resolve().parent.parent
-    / "CLAY"
-    / "LocalData"
-    / "HydroLAKES_polys_v10_shp"
-    / "HydroLAKES_polys_v10.shp"
-)
-
-#: Half-width (degrees) of the box read around a clicked point.
+#: Half-width (degrees) of the box searched around a clicked point.
 CLICK_RADIUS_DEG = 0.05
 
 
-def _read(shp: Path, **filters):
-    """Read matching rows as a GeoDataFrame, or None if data/libraries are missing."""
-    if not shp.exists():
-        logger.info("HydroLAKES shapefile not found at %s", shp)
-        return None
-    try:
-        import geopandas as gpd
-
-        gdf = gpd.read_file(shp, engine="pyogrio", **filters)
-    except Exception as exc:  # missing pyogrio, corrupt file, bad filter...
-        logger.warning("HydroLAKES read failed: %s", exc)
-        return None
-    if gdf.empty:
-        return None
-    if gdf.crs is not None:
-        gdf = gdf.to_crs(4326)
-    return gdf
+def available(source: str | None = None) -> bool:
+    """True when HydroLAKES can be read (locally or from S3)."""
+    return hydrolakes.available(source)
 
 
 def _to_result(gdf) -> dict:
@@ -74,32 +49,40 @@ def _to_result(gdf) -> dict:
     }
 
 
-def lookup_by_id(hylak_id: int, shp: Path | str | None = None) -> dict | None:
-    """Find a lake by its HydroLAKES ID. Returns None if missing or not found."""
+def lookup_by_id(hylak_id: int, source: str | None = None) -> dict | None:
+    """Find a lake by its HydroLAKES ID. None if unreadable or not found."""
     try:
         hylak_id = int(hylak_id)
     except (TypeError, ValueError):
         return None
-    gdf = _read(Path(shp) if shp else HYDROLAKES_SHP, where=f"Hylak_id = {hylak_id}")
+    if not available(source):
+        return None
+    try:
+        gdf = hydrolakes.get_lake(hylak_id, source)
+    except Exception as exc:  # network error, corrupt file...
+        logger.warning("HydroLAKES lookup failed: %s", exc)
+        return None
     return None if gdf is None else _to_result(gdf)
 
 
-def lookup_by_point(
-    lon: float, lat: float, shp: Path | str | None = None
-) -> dict | None:
+def lookup_by_point(lon: float, lat: float, source: str | None = None) -> dict | None:
     """
     Find the lake under (or nearest to) a clicked point.
 
-    Reads only lakes whose bounding box overlaps a small box around the
-    point. A lake containing the point wins; otherwise the closest one in
-    the box is returned. None if nothing is nearby or data is missing.
+    Looks only at lakes whose bounding box overlaps a small box around the
+    point. A lake containing the point wins; otherwise the closest one in the
+    box is returned. None if nothing is nearby or HydroLAKES is unreadable.
     """
     from shapely.geometry import Point
 
-    r = CLICK_RADIUS_DEG
-    bbox = (lon - r, lat - r, lon + r, lat + r)
-    gdf = _read(Path(shp) if shp else HYDROLAKES_SHP, bbox=bbox)
-    if gdf is None:
+    if not available(source):
+        return None
+    try:
+        gdf = hydrolakes.lakes_near(lon, lat, CLICK_RADIUS_DEG, source)
+    except Exception as exc:
+        logger.warning("HydroLAKES lookup failed: %s", exc)
+        return None
+    if gdf.empty:
         return None
     pt = Point(lon, lat)
     # Areas/distances in degrees are only used to *rank* nearby lakes, so the

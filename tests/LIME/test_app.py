@@ -101,13 +101,13 @@ def test_catalog_click_and_filter(idle_job, tmp_path):
 
 
 def test_select_lake_without_hydrolakes(idle_job, monkeypatch, tmp_path):
-    monkeypatch.setattr(lake_lookup, "HYDROLAKES_SHP", tmp_path / "none.shp")
+    monkeypatch.setattr(lake_lookup, "available", lambda source=None: False)
     app = lime_app.build_app(job=idle_job, roots=[tmp_path]).lime
     app.select_lake(67)
     assert app.selected == {"hylak_id": 67}
     assert app.run_button.label == "Run CLAY for #67"
     assert not app.run_button.disabled
-    assert "not on this machine" in app.lake_info.object
+    assert "could not be read" in app.lake_info.object
 
 
 def test_typing_an_id_selects_it(idle_job, tmp_path):

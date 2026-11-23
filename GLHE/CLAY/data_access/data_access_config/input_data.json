@@ -23,8 +23,8 @@
       "name": "Lake_Shapefiles",
       "access_code": "local",
       "description": "Dataset of all lakes in the world",
-      "cloud": "HydroLAKES/HydroLAKES_polys_v10_shp",
-      "local_path": "HydroLAKES_polys_v10_shp"
+      "cloud": "HydroLAKES/HydroLAKES_polys_v10.parquet",
+      "local_path": "HydroLAKES_polys_v10.parquet"
     },
     {
       "name": "ERA5_Local",

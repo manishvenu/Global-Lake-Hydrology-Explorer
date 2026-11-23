@@ -108,8 +108,7 @@ def lake_info_html(selected: dict | None, lookup_available: bool) -> str:
     note = (
         "Not found in HydroLAKES."
         if lookup_available
-        else "HydroLAKES is not on this machine, so the name is unknown "
-        "until CLAY runs."
+        else "HydroLAKES could not be read, so the name is unknown " "until CLAY runs."
     )
     return (
         f'<div class="glhe-info">{head}<b>{id_txt}</b><br>'

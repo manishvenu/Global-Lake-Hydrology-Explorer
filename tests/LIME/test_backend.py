@@ -50,15 +50,15 @@ def test_catalog_default_roots_do_not_crash():
 
 # ------------------------------------------------------------ lake lookup
 def test_lookup_returns_none_when_data_missing(tmp_path):
-    missing = tmp_path / "nope.shp"
-    assert lake_lookup.lookup_by_id(67, shp=missing) is None
-    assert lake_lookup.lookup_by_point(-112.5, 41.1, shp=missing) is None
+    missing = str(tmp_path / "nope.parquet")
+    assert lake_lookup.lookup_by_id(67, source=missing) is None
+    assert lake_lookup.lookup_by_point(-112.5, 41.1, source=missing) is None
     assert lake_lookup.lookup_by_id("not a number") is None
 
 
 @pytest.fixture
 def mini_hydrolakes(tmp_path):
-    """A two-lake shapefile with HydroLAKES' column names."""
+    """A two-lake HydroLAKES GeoParquet file (same layout as the real one)."""
     import geopandas as gpd
     from shapely.geometry import box
 
@@ -71,28 +71,31 @@ def mini_hydrolakes(tmp_path):
         geometry=[box(-112.9, 40.7, -112.0, 41.6), box(-111.0, 40.0, -110.99, 40.01)],
         crs=4326,
     )
-    path = tmp_path / "mini_hydrolakes.shp"
-    gdf.to_file(path)
-    return path
+    from GLHE.CLAY import hydrolakes
+
+    path = tmp_path / "mini_hydrolakes.parquet"
+    hydrolakes.write_parquet(gdf, path)
+    return str(path)
 
 
 def test_lookup_by_id(mini_hydrolakes):
-    lake = lake_lookup.lookup_by_id(67, shp=mini_hydrolakes)
+    lake = lake_lookup.lookup_by_id(67, source=mini_hydrolakes)
     assert lake["hylak_id"] == 67
     assert lake["name"] == "Great_Salt_Lake"
     assert lake["area_km2"] == pytest.approx(4360.0)
     assert lake["geojson"]["type"] == "FeatureCollection"
-    assert lake_lookup.lookup_by_id(12345, shp=mini_hydrolakes) is None
+    assert lake_lookup.lookup_by_id(12345, source=mini_hydrolakes) is None
 
 
 def test_lookup_by_point(mini_hydrolakes):
     assert (
-        lake_lookup.lookup_by_point(-112.5, 41.1, shp=mini_hydrolakes)["hylak_id"] == 67
+        lake_lookup.lookup_by_point(-112.5, 41.1, source=mini_hydrolakes)["hylak_id"]
+        == 67
     )
     # Just outside the small unnamed lake: nearest one is returned, name falls back to ID.
-    near = lake_lookup.lookup_by_point(-110.98, 40.005, shp=mini_hydrolakes)
+    near = lake_lookup.lookup_by_point(-110.98, 40.005, source=mini_hydrolakes)
     assert near["hylak_id"] == 68 and near["name"] == "68"
-    assert lake_lookup.lookup_by_point(0.0, 0.0, shp=mini_hydrolakes) is None
+    assert lake_lookup.lookup_by_point(0.0, 0.0, source=mini_hydrolakes) is None
 
 
 # ------------------------------------------------------------------- jobs
