@@ -31,6 +31,9 @@ COOLDOWN_MINUTES="${GLHE_COOLDOWN_MINUTES:-10}"    # public mode: per-visitor wa
 # Lake tiles for the globe. GLHE_LAKE_TILES_URL (e.g. the S3 copy) wins; if it
 # is unset and the file exists locally, the app serves it at /tiles/.
 TILES_FILE="${GLHE_TILES_FILE:-$HOME/glhe-tiles/HydroLAKES_polys_v10.pmtiles}"
+# Serve CLAY's input data to other GLHE installs (1) or not (0): LocalData/zarr
+# at /zarr/... and the HydroLAKES parquet at /HydroLAKES/... (see README).
+SERVE_DATA="${GLHE_SERVE_DATA:-1}"
 IMAGE=localhost/glhe:latest
 NAME=glhe
 
@@ -63,6 +66,14 @@ elif [[ -f "$TILES_FILE" ]]; then
              -e GLHE_STATIC_TILES=1 -e "GLHE_LAKE_TILES_URL=/tiles/$(basename "$TILES_FILE")")
 fi
 
+data_args=(-e "GLHE_SERVE_DATA=$SERVE_DATA")
+HYDROLAKES_FILE="$DATA/LocalData/HydroLAKES_polys_v10.parquet"
+if [[ "$SERVE_DATA" == 1 ]]; then
+  mkdir -p "$DATA/LocalData/zarr"
+  # Only this one file is mounted into /srv/HydroLAKES, so only it is served.
+  [[ -f "$HYDROLAKES_FILE" ]] && data_args+=(-v "$HYDROLAKES_FILE:/srv/HydroLAKES/HydroLAKES_polys_v10.parquet:ro")
+fi
+
 echo "==> Replacing container $NAME"
 systemctl --user stop "container-$NAME.service" 2>/dev/null || true
 podman rm -f "$NAME" >/dev/null 2>&1 || true
@@ -79,6 +90,7 @@ podman create --name "$NAME" \
   -v "$DATA/LocalData:/app/GLHE/CLAY/LocalData:rw,Z" \
   "${secret_args[@]}" \
   "${tile_args[@]}" \
+  "${data_args[@]}" \
   -e GLHE_ORIGIN="$ORIGIN" \
   -e GLHE_PUBLIC="$PUBLIC" \
   -e GLHE_MAX_RUN_MINUTES="$MAX_RUN_MINUTES" \
