@@ -518,7 +518,15 @@ class LimeApp:
     def _on_caveats_changed(self, event) -> None:
         """Update the Caveats tab title and the caveat areas on the globe."""
         self.globe.caveat_geojson = caveats.caveats_to_geojson(event.new)
-        self.tabs[CAVEATS_TAB] = (self._caveats_title(), self.tabs[CAVEATS_TAB])
+        # Panel only sends a new tab title to the browser when the tab itself
+        # is replaced (renaming in place is not synced), so take the Caveats
+        # tab out and put it back with its new title, keeping the open tab.
+        title = self._caveats_title()
+        if self.tabs._names[CAVEATS_TAB] != title:
+            active = self.tabs.active
+            content = self.tabs.pop(CAVEATS_TAB)
+            self.tabs.insert(CAVEATS_TAB, (title, content))
+            self.tabs.active = active
 
     def _sync_cells(self, *_events) -> None:
         """Draw gridded cells on the globe only while the Gridded tab is open."""

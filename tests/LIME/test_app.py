@@ -255,3 +255,17 @@ def test_serve_is_exposed():
     from GLHE.LIME.app import serve
 
     assert callable(serve)
+
+
+def test_caveats_count_reaches_the_browser_model(idle_job):
+    """The Caveats tab title must update in the rendered (bokeh) model too."""
+    from bokeh.document import Document
+
+    app = lime_app.build_app(job=idle_job, roots=[FIXTURES]).lime
+    root = app.tabs.get_root(Document())
+    app.tabs.active = 1
+    app.load(str(FIXTURE), hylak_id=999999)
+    n = len(app.state.caveats)
+    assert n > 0
+    assert root.tabs[lime_app.CAVEATS_TAB].title == f"Caveats ({n})"
+    assert app.tabs.active == 1
