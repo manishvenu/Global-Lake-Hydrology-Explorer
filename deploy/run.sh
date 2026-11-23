@@ -21,8 +21,8 @@ DATA="${GLHE_DATA:-$HOME/glhe-data}"            # LakeOutputDirectory/, .temp/, 
 CDSAPIRC="${GLHE_CDSAPIRC:-$HOME/.cdsapirc}"     # ERA5 (Copernicus) API key, mounted read-only
 SECRETS="${GLHE_SECRETS:-$HOME/.config/glhe/secrets.env}"  # optional KEY=value lines, e.g. DAHITI_API_KEY
 PORT="${GLHE_PORT:-5006}"                        # bound to 127.0.0.1 only
-# Public-facing host[:port]s, comma-separated (Tailscale Funnel, Cloudflare Tunnel).
-ORIGIN="${GLHE_ORIGIN:-gram-wsl.tailbc2832.ts.net:8443,glhe.venumuddula.com}"
+# Public-facing host[:port]s, comma-separated (the Cloudflare Tunnel hostname).
+ORIGIN="${GLHE_ORIGIN:-glhe.venumuddula.com}"
 MEMORY="${GLHE_MEMORY:-5g}"
 PUBLIC="${GLHE_PUBLIC:-0}"                       # 1 = public mode (see GLHE/LIME/public.py)
 MAX_RUN_MINUTES="${GLHE_MAX_RUN_MINUTES:-45}"      # public mode: stop runs after this

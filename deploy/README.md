@@ -1,15 +1,16 @@
 # Deploying GLHE on the server (gram)
 
-The app runs in a **rootless Podman container**, started by a **systemd user service**, and is reachable **only on the tailnet** through `tailscale serve`.
+The app runs in a **rootless Podman container**, started by a **systemd user service**. The public reaches it at **https://glhe.venumuddula.com** through a **Cloudflare Tunnel**; Tailscale is only used for SSH and Cockpit.
 
 | What | URL |
 |---|---|
-| GLHE app | https://gram-wsl.tailbc2832.ts.net:8443 |
-| App usage (sessions, CPU, memory, logs; private mode only) | https://gram-wsl.tailbc2832.ts.net:8443/admin |
-| Machine + containers (Cockpit) | https://gram-wsl.tailbc2832.ts.net:9090 |
+| GLHE app (public) | https://glhe.venumuddula.com |
+| From gram itself, or through `ssh -L 5006:127.0.0.1:5006 gram` | http://localhost:5006/app |
+| App usage (sessions, CPU, memory, logs; private mode only) | http://localhost:5006/admin (same SSH tunnel) |
+| Machine + containers (Cockpit, tailnet only) | https://gram-wsl.tailbc2832.ts.net:9090 |
 
 ```
-browser ──tailnet──► tailscale serve :8443 ──► 127.0.0.1:5006 ──► container "glhe" (panel serve)
+browser ──► Cloudflare ──tunnel──► cloudflared on gram ──► 127.0.0.1:5006 ──► container "glhe" (panel serve)
                                                                      ├─ /data           ← ~/glhe-data (outputs, temp)
                                                                      ├─ .../LocalData   ← ~/glhe-data/LocalData (HydroLAKES, etc.)
                                                                      └─ CDSAPI_RC       ← ~/.cdsapirc (read-only)
@@ -25,8 +26,9 @@ The server runs from its own clean clone, `~/glhe-deploy`, so a work-in-progress
 git clone https://github.com/manishvenu/Global-Lake-Hydrology-Explorer.git ~/glhe-deploy
 cd ~/glhe-deploy
 deploy/run.sh                                        # build image, start service (first build: ~10 min)
-tailscale serve --bg --https=8443 http://127.0.0.1:5006
 ```
+
+Then put it online with the Cloudflare Tunnel (see "Custom domain" below).
 
 API keys other than Copernicus go in `~/.config/glhe/secrets.env` (one `KEY=value` per line, `chmod 600`), for example `DAHITI_API_KEY=...` for DAHITI water levels. `run.sh` passes the file to the container if it exists; products whose key is missing are skipped.
 
@@ -53,26 +55,25 @@ du -sh ~/glhe-data/*                          # disk used by outputs and data
 
 Rolling back: `git checkout <older commit> && deploy/run.sh`.
 
-## Public mode (internet, via Tailscale Funnel)
+## Public mode
 
 Public mode adds guards for strangers (see `GLHE/LIME/public.py`): each run stops after 45 min; lakes over 10,000 km² (or of unknown size) and lakes already processed cannot be run; each visitor gets one run per 10 min; only the visitor who started a run can cancel it; a "not validated" banner is shown; and the Panel `/admin` page is **off**.
 
 ```bash
 mkdir -p ~/.config/glhe && echo GLHE_PUBLIC=1 > ~/.config/glhe/deploy.env   # remembered by run.sh
 deploy/run.sh --no-build
-tailscale funnel --bg --https=8443 http://127.0.0.1:5006     # needs Funnel enabled in the tailnet policy
 ```
 
-Limits are set in the same `deploy.env` (`GLHE_MAX_RUN_MINUTES`, `GLHE_MAX_LAKE_AREA_KM2`, `GLHE_COOLDOWN_MINUTES`). To go private again: `tailscale funnel --https=8443 off`, then `tailscale serve --bg --https=8443 http://127.0.0.1:5006`, set `GLHE_PUBLIC=0` and `deploy/run.sh --no-build`. Big lakes for the public site: run them while private (or from `~/glhe-deploy` with `podman exec -w /data glhe /opt/conda/bin/python -m GLHE.LIME.run_clay <id>`); they then open for everyone from the cache.
+Limits are set in the same `deploy.env` (`GLHE_MAX_RUN_MINUTES`, `GLHE_MAX_LAKE_AREA_KM2`, `GLHE_COOLDOWN_MINUTES`). To take the site offline: `systemctl --user stop cloudflared-glhe` (the app keeps running, reachable over SSH). To run it without the public guards, set `GLHE_PUBLIC=0` and `deploy/run.sh --no-build`, but only with the tunnel stopped. Big lakes for the public site: run them while private (or from `~/glhe-deploy` with `podman exec -w /data glhe /opt/conda/bin/python -m GLHE.LIME.run_clay <id>`); they then open for everyone from the cache.
 
-**Never funnel Cockpit (`:9090`).**
+**Never expose Cockpit (`:9090`) publicly** (no Funnel, no Cloudflare route).
 
 ## Custom domain (Cloudflare Tunnel)
 
 https://glhe.venumuddula.com reaches the same app through a Cloudflare Tunnel:
 `cloudflared` on gram connects *out* to Cloudflare and Cloudflare sends visitors
 down that connection to `http://127.0.0.1:5006` (no open ports, no public IP).
-The Tailscale Funnel address keeps working alongside it.
+Tailscale Funnel is no longer used.
 
 - Program: `~/.local/bin/cloudflared`; settings: `~/.cloudflared/config.yml`;
   the tunnel's secret: `~/.cloudflared/<id>.json` (never commit it).
@@ -101,7 +102,7 @@ Where the browser gets it:
      (or through the S3 website).
   2. Let the site read it: S3 console → `glhe` → Permissions → CORS, paste
      ```json
-     [{"AllowedOrigins":["https://glhe.venumuddula.com","https://gram-wsl.tailbc2832.ts.net:8443"],"AllowedMethods":["GET","HEAD"],"AllowedHeaders":["Range","If-Match"],"ExposeHeaders":["ETag","Content-Length","Content-Range"],"MaxAgeSeconds":3000}]
+     [{"AllowedOrigins":["https://glhe.venumuddula.com"],"AllowedMethods":["GET","HEAD"],"AllowedHeaders":["Range","If-Match"],"ExposeHeaders":["ETag","Content-Length","Content-Range"],"MaxAgeSeconds":3000}]
      ```
      (add `"http://localhost:5006"` to `AllowedOrigins` for local development).
   3. Switch the app to it:
@@ -116,7 +117,8 @@ clicks look the lake up in HydroLAKES instead.
 ## Monitoring
 
 - **Cockpit** (`:9090`, log in as `manishrv`): CPU, memory, disk and network for the whole machine; *Services* shows `container-glhe`; *Podman containers* lists containers.
-- **Panel admin** (`:8443/admin`): who is using the app right now, per-session CPU/memory, and app logs.
+- **Panel admin** (`http://localhost:5006/admin` over `ssh -L 5006:127.0.0.1:5006 gram`; private mode only): who is using the app right now, per-session CPU/memory, and app logs.
+- **Disk**: Cockpit's *Storage* page shows the whole disk. Big GLHE files: `~/glhe-tiles/HydroLAKES_polys_v10.pmtiles` (~0.9 GB, lake tiles served at `/tiles`), `~/glhe-data` (`du -sh ~/glhe-data/*`).
 - **Tailscale admin console**: which devices are connected.
 
 ## Security
@@ -124,5 +126,5 @@ clicks look the lake up in HydroLAKES instead.
 - Rootless: the container runs as your own unprivileged user (`--userns=keep-id`), with every Linux capability dropped and `no-new-privileges`.
 - Read-only root file system; only `~/glhe-data` and `/tmp` are writable. The container cannot see the rest of your home directory.
 - Memory capped (`GLHE_MEMORY`, default 5g) and at most 512 processes.
-- The port is bound to `127.0.0.1`; the only way in is `tailscale serve` (tailnet only). **Funnel is off**; turning it on makes the app public.
+- The port is bound to `127.0.0.1`; the only way in from outside is the Cloudflare Tunnel (`glhe.venumuddula.com`). Tailscale does not serve the app (Funnel and serve for `:8443` are off).
 - The ERA5 key is mounted read-only and other keys come from `secrets.env`; none are baked into the image.
