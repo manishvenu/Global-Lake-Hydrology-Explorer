@@ -27,6 +27,8 @@ dependencies:
   # Data access
   - cdsapi
   - requests
+  - cfgrib
+  - scipy
   # Visualization
   - holoviews
   - hvplot

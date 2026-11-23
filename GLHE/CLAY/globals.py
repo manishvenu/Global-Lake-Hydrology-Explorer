@@ -12,12 +12,13 @@ config = {
     },
 }
 
-SLC_MAPPING_REVERSE_NAMES = {"p": "precip", "e": "evap", "i": "inflow", "o": "outflow"}
+SLC_MAPPING_REVERSE_NAMES = {"p": "precip", "e": "evap", "i": "inflow", "o": "outflow", "l": "water_level"}
 SLC_MAPPING_REVERSE_UNITS = {
     "e": "mm/month",
     "i": "m^3/month",
     "p": "mm/month",
     "o": "m^3/month",
+    "l": "m",
 }
 SLC_MAPPING = {
     "e": "e",
@@ -33,5 +34,9 @@ SLC_MAPPING = {
     "runoff": "i",
     "inflow": "i",
     "outflow": "o",
+    "l": "l",
+    "wse": "l",
+    "water_level": "l",
+    "water_surface_elevation": "l",
     # Add more mappings as needed
 }

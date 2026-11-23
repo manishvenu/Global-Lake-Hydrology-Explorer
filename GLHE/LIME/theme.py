@@ -67,7 +67,7 @@ COLORS = {
 #: Accent colour (teal) for the default dark theme. Convenience alias.
 ACCENT = COLORS["dark"]["accent"]
 
-#: Series colours by single-letter code (p/e/i/o), tuned per theme so they
+#: Series colours by single-letter code (p/e/i/o/l), tuned per theme so they
 #: stay readable on both backgrounds.
 PALETTE = {
     "dark": {
@@ -75,12 +75,14 @@ PALETTE = {
         "e": "#ffb547",  # evapotranspiration - amber
         "i": "#4ade80",  # inflow - green
         "o": "#b78cff",  # outflow - purple
+        "l": "#f472b6",  # water level - pink
     },
     "light": {
         "p": "#1f6fd1",
         "e": "#d97706",
         "i": "#15803d",
         "o": "#7c3aed",
+        "l": "#db2777",
     },
 }
 
@@ -90,6 +92,7 @@ SLC_LABELS = {
     "e": "Evapotranspiration",
     "i": "Inflow",
     "o": "Outflow",
+    "l": "Water level",
 }
 #: Short names for tight spots (KPI tiles, table headers, legends).
 SLC_SHORT = {
@@ -97,12 +100,14 @@ SLC_SHORT = {
     "e": "ET",
     "i": "Inflow",
     "o": "Outflow",
+    "l": "Level",
 }
 SLC_UNITS = {
     "p": "mm/month",
     "e": "mm/month",
     "i": "m³/month",
     "o": "m³/month",
+    "l": "m",
 }
 
 #: Line dash style per data product, so two products of the same variable

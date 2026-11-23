@@ -6,7 +6,7 @@ import sys
 import pandas as pd
 import GLHE.CLAY.globals
 from GLHE.CLAY import combined_data_functions, lake_extraction, helpers
-from GLHE.CLAY.data_access import data_check, ERA5_Land, CRUTS, NWM
+from GLHE.CLAY.data_access import data_check, ERA5_Land, CRUTS, NWM, DAHITI, GloFAS, GLEAM
 from GLHE.CALCITE import pubsub, events
 from pathlib import Path
 
@@ -214,6 +214,8 @@ class CLAY_driver:
         combined_data_functions.output_all_compiled_data_to_csv(
             GLHE.CLAY.globals.config["LAKE_NAME"] + "_Data.csv", self.pandas_dataset
         )
+        combined_data_functions.compute_trend_statistics(self.pandas_dataset)
+        combined_data_functions.compute_water_balance(self.pandas_dataset)
         self.export_data_product_config()
         combined_data_functions.write_and_output_README(self.read_me_information)
         combined_data_functions.write_lake_polygon(self.lake_polygon)

@@ -21,14 +21,15 @@ automatically — no separate pip step needed.
 
 ## Data requirements (first run)
 
-On the first run GLHE automatically downloads required datasets. The code
-tries AWS S3 first, then falls back to Dropbox. The Dropbox path can take up
-to 2 hours depending on your connection.
+On the first run GLHE automatically downloads required datasets from AWS S3.
+After a successful first run, cached pickle files are reused, so the download
+only happens once.
 
-To skip the long download, manually download the `LocalData` folder from the
-[GLHE Dropbox repository](https://www.dropbox.com/scl/fo/d9a8t8rs05qjr9dnzdzvw/AOIR2cebgd4tb3u5rjOm4RQ?rlkey=z8pd6py7ec1wwwt0rahae77zb&st=c10pjgqf&dl=0)
-and extract it as `GLHE/CLAY/LocalData/`. After a successful first run the
-cached pickle files are reused, so the download only happens once.
+To pre-cache all S3 data for offline use, call once before running:
+
+```python
+GLHE.CLAY.data_access.data_check.download_for_offline()
+```
 
 ## Quick start
 
@@ -58,6 +59,56 @@ See `sample_script.py` in the repository root for the full runnable example.
 
 The LIME web app is served at `http://localhost:5006/app`.
 
+## API keys and credentials
+
+### DAHITI (water level)
+
+DAHITI provides satellite-altimetry-derived water surface elevation for lakes
+worldwide.  It requires a free account — register at
+<https://dahiti.dgfi.tum.de/en/>.
+
+**API v2 (preferred)** — set one environment variable:
+
+```console
+$ export DAHITI_API_KEY=your_api_key_here
+```
+
+**API v1 (fallback)** — set username and password instead:
+
+```console
+$ export DAHITI_USERNAME=your_username
+$ export DAHITI_PASSWORD=your_password
+```
+
+If neither is set CLAY logs a warning and continues without water level data
+— the other products (ERA5-Land, CRU TS, NWM, GloFAS, GLEAM) are unaffected.
+
+### GloFAS (river discharge)
+
+GloFAS uses the same CDS API credentials as ERA5-Land.  No additional
+environment variables are needed — ensure `~/.cdsapirc` is configured.
+
+Reading the downloaded GRIB2 files requires `cfgrib`, which is included in the
+conda environment:
+
+```console
+$ conda install -c conda-forge cfgrib   # if updating an existing environment
+```
+
+### GLEAM (actual lake evaporation)
+
+GLEAM does not have a public API.  Download the monthly NetCDF files manually:
+
+1. Register at <https://www.gleam.eu> (free).
+2. Download `Ew_*_GLEAM_v3.*.nc` (open-water evaporation) or
+   `Ea_*_GLEAM_v3.*.nc` (total actual ET) for the years you need.
+3. Place the files in `GLHE/CLAY/LocalData/GLEAM/`.
+
+CLAY will raise a warning and skip GLEAM if no files are found, so the other
+products are unaffected.
+
+---
+
 ## Configuration
 
 ### Output directory
@@ -83,9 +134,11 @@ After a successful run the output directory contains:
 | File | Description |
 |------|-------------|
 | `config.json` | Lake metadata and file paths (read by LIME) |
-| `{lake}_monthly_avg_data.csv` | Merged monthly time-series for all data products |
-| `{lake}_all_data.png` | Multi-panel precipitation / evapotranspiration / runoff plot |
-| `Gridded_Data_{product}.zip` | GeoTIFF + metadata for each data product |
+| `{lake}_Data.csv` | Merged monthly time-series for all data products |
+| `{lake}_products_plot.png` | Multi-panel P / E / inflow / water level plot |
+| `{lake}_water_balance.csv` | P, E, P−E (mm/month), inflow (m³/month), water level (m) |
+| `{lake}_trend_stats.csv` | Mann-Kendall trend test and Sen's slope per variable |
+| `{lake}_gridded_data_layers_on_{date}.zip` | GeoTIFF snapshot for each gridded product |
 | `{lake}_NWM_lake_point.shp` | Lake centre point shapefile |
 | `Lake_Polygon.shp` | Lake boundary (EPSG:4326), written by CLAY; LIME uses it for the outline, area and region caveats |
 | `GLHE_root.log` | Root logger output |

@@ -51,7 +51,9 @@ panel serve GLHE/LIME/app.py --show                       # local
 
 See `sample_script.py` for the canonical example. The first run downloads data; subsequent runs use local cache (pickle files in the output directory).
 
-**First-run data**: The code tries AWS S3 first, then falls back to Dropbox. To avoid a 2-hour download, manually download the `LocalData` folder from Dropbox and place it at `GLHE/CLAY/LocalData/` before the first run.
+**First-run data**: The code uses AWS S3 by default. Call `GLHE.CLAY.data_access.data_check.download_for_offline()` once to cache everything locally for offline use.
+
+**DAHITI API key**: DAHITI water level data requires a free account at https://dahiti.dgfi.tum.de/en/. Set `DAHITI_API_KEY` (v2) or `DAHITI_USERNAME` + `DAHITI_PASSWORD` (v1) before running. Without credentials CLAY skips DAHITI and continues with ERA5-Land, CRU TS, and NWM.
 
 ---
 
@@ -60,7 +62,7 @@ See `sample_script.py` for the canonical example. The first run downloads data; 
 **`MVSeries`** (`GLHE/CLAY/helpers.py`) — the central unit of data. A thin wrapper around `pd.Series` that carries:
 - `dataset`: time-indexed `pd.Series`
 - `unit`: `pint.Unit`
-- `single_letter_code`: `"p"` (precip), `"e"` (evap), `"i"` (inflow), `"o"` (outflow)
+- `single_letter_code`: `"p"` (precip), `"e"` (evap), `"i"` (inflow), `"o"` (outflow), `"l"` (water level)
 - `product_name`: e.g. `"ERA5-Land"`
 - `xarray_dataarray`: original gridded `xr.DataArray` before spatial averaging
 
@@ -89,7 +91,7 @@ LIME (panel serve GLHE/LIME/app.py, or GLHE.LIME.app.serve(output_dir))
   └─> state.AppState   — loaded lake (reads config.json + CSV + polygon)
   └─> jobs.ClayJob     — runs `python -m GLHE.LIME.run_clay <id>` in a subprocess
   └─> catalog / lake_lookup / caveats (queryearth rules in LIME/rules/)
-  └─> components/      — globe (only JS: MapLibre), overview, series, gridded, table, caveats
+  └─> components/      — globe (only JS: MapLibre), overview, series, water_balance, gridded, table, caveats
 ```
 
 **Data products** are registered in `GLHE/CLAY/config/data_products.json` and their source URLs in `GLHE/CLAY/data_access_config/input_data.json`. Adding a new data source means:
@@ -162,6 +164,41 @@ CLAY writes all outputs to a per-lake directory under the configured output root
 - Logging: every module uses `logging.getLogger(__name__)`. File handlers are added by each data product's `DataAccess` subclass constructor.
 - Pickling: expensive intermediate results (e.g., xarray datasets) are pickled to the output directory for caching across reruns.
 - Code is formatted with `black`.
+
+---
+
+## Data distribution strategy — an ongoing design tension
+
+This is a core architectural challenge for GLHE. There are three distribution strategies in use, each with trade-offs:
+
+| Strategy | Products that use it | Pro | Con |
+|---|---|---|---|
+| **S3 Zarr** (maintainer-hosted) | CRU TS, ERA5-Local | Zero user friction; lazy cloud streaming | Maintainer must convert + upload; can't use for licensed data |
+| **API pull** | ERA5-Land, GloFAS, NWM, DAHITI | No hosting required | Requires user credentials; rate limits |
+| **Local manual** | GLEAM | No redistribution concern | Poor UX; user must know to download |
+
+### The S3 Zarr pipeline (maintainer workflow)
+
+Template scripts live in `GLHE/CLAY/data_access/aws_zarr_templates/`:
+
+1. **`netcdf_to_zarr.py`** — Convert raw NetCDF to chunked Zarr locally:
+   - Rechunk to `{time: 10, lat: 100, lon: 100}` (good for spatial subsetting)
+   - Compress with Blosc/zstd (`clevel=3`)
+   - Save with `consolidated=True` for fast metadata reads
+2. **`zarr_to_aws.py`** — Upload the local Zarr store to `s3://glhe/zarr/<product>.zarr`
+
+These scripts are currently hardcoded one-offs. Before adding a new S3-hosted product, generalize them — or run them manually and update `input_data.json` with the new `cloud` path.
+
+### The GLEAM problem
+
+GLEAM's data policy requires each user to download their own copy from gleam.eu — it cannot be legally redistributed on a public S3 bucket. The current workaround (LocalData/ manual placement) is the only safe option unless the user has their own private S3. A future improvement: support a `user_cloud` override field in `input_data.json` so users who convert GLEAM to Zarr and upload to their own bucket can skip the LocalData step.
+
+### Why this matters for new data products
+
+When adding a new data source, decide upfront:
+- **Can it be hosted on S3?** → Convert to Zarr, upload, add `"access_code": "local"` + `"cloud": "zarr/..."` to `input_data.json`
+- **Does it have an API?** → Write a DataAccess class that calls the API, add `"access_code": "api"` entry
+- **Licensed / no API?** → Use the GLEAM pattern: LocalData/ + clear docs on where to download
 
 ---
 

@@ -28,6 +28,8 @@ deploy/run.sh                                        # build image, start servic
 tailscale serve --bg --https=8443 http://127.0.0.1:5006
 ```
 
+API keys other than Copernicus go in `~/.config/glhe/secrets.env` (one `KEY=value` per line, `chmod 600`), for example `DAHITI_API_KEY=...` for DAHITI water levels. `run.sh` passes the file to the container if it exists; products whose key is missing are skipped.
+
 Data lives in `~/glhe-data` (override with `GLHE_DATA`). CLAY downloads what is missing into `~/glhe-data/LocalData` on its first run.
 
 ## Updating
@@ -63,4 +65,4 @@ Rolling back: `git checkout <older commit> && deploy/run.sh`.
 - Read-only root file system; only `~/glhe-data` and `/tmp` are writable. The container cannot see the rest of your home directory.
 - Memory capped (`GLHE_MEMORY`, default 5g) and at most 512 processes.
 - The port is bound to `127.0.0.1`; the only way in is `tailscale serve` (tailnet only). **Funnel is off**; turning it on makes the app public.
-- The ERA5 key is mounted read-only, never baked into the image.
+- The ERA5 key is mounted read-only and other keys come from `secrets.env`; none are baked into the image.

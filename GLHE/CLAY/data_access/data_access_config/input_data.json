@@ -32,6 +32,24 @@
       "description": "Dataset of global ERA5 for runoff, evap, and precip",
       "cloud": "zarr/ERA5.zarr",
       "local_path": "zarr/ERA5.zarr"
+    },
+    {
+      "name": "DAHITI",
+      "access_code": "api",
+      "description": "Water surface elevation from satellite altimetry via DAHITI API. Requires DAHITI_API_KEY env var.",
+      "api_access_script": "DAHITI"
+    },
+    {
+      "name": "GloFAS",
+      "access_code": "api",
+      "description": "Global river discharge from GloFAS v4 ERA5-based reanalysis via CDS API. Uses same credentials as ERA5-Land. Requires cfgrib.",
+      "api_access_script": "GloFAS"
+    },
+    {
+      "name": "GLEAM",
+      "access_code": "local",
+      "description": "Actual lake evaporation from GLEAM v3. Place NetCDF files in LocalData/GLEAM/ after downloading from gleam.eu.",
+      "local_path": "GLEAM"
     }
   ],
   "metadata": "Data products use S3 by default. Run download_for_offline() once to cache locally for offline use."

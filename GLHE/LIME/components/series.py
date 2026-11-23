@@ -126,7 +126,7 @@ def series_layout(df: pd.DataFrame, products: list[str], mode: str, dark: bool):
     data = aggregate(df, mode)
     charts = [
         chart
-        for slc in ("p", "e", "i", "o")
+        for slc in ("p", "e", "i", "o", "l")
         if (chart := variable_chart(data, slc, products, mode, dark)) is not None
     ]
     if not charts:

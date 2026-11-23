@@ -42,6 +42,7 @@ from GLHE.LIME.components.gridded import make_gridded
 from GLHE.LIME.components.overview import make_overview
 from GLHE.LIME.components.series import make_series
 from GLHE.LIME.components.table import make_table
+from GLHE.LIME.components.water_balance import make_water_balance
 from GLHE.LIME.state import AppState
 
 logger = logging.getLogger(__name__)
@@ -54,9 +55,9 @@ OUTPUT_DIR_ENV = "GLHE_OUTPUT_DIR"
 POLL_MS = 1000
 
 #: Index of the Gridded tab (cells are drawn on the globe only while it is open).
-GRIDDED_TAB = 2
+GRIDDED_TAB = 3
 #: Index of the Caveats tab (its title carries the number of caveats).
-CAVEATS_TAB = 3
+CAVEATS_TAB = 4
 
 #: Largest HYLAK_ID in HydroLAKES v1.0.
 MAX_HYLAK_ID = 1427688
@@ -288,6 +289,7 @@ class LimeApp:
         return pn.Tabs(
             ("Overview", make_overview(self.state)),
             ("Time series", make_series(self.state)),
+            ("Water balance", make_water_balance(self.state)),
             ("Gridded", make_gridded(self.state, globe=self.cells)),
             (self._caveats_title(), make_caveats(self.state)),
             ("Data", make_table(self.state)),

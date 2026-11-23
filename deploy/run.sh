@@ -11,6 +11,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 DATA="${GLHE_DATA:-$HOME/glhe-data}"            # LakeOutputDirectory/, .temp/, LocalData/
 CDSAPIRC="${GLHE_CDSAPIRC:-$HOME/.cdsapirc}"     # ERA5 (Copernicus) API key, mounted read-only
+SECRETS="${GLHE_SECRETS:-$HOME/.config/glhe/secrets.env}"  # optional KEY=value lines, e.g. DAHITI_API_KEY
 PORT="${GLHE_PORT:-5006}"                        # bound to 127.0.0.1 only
 ORIGIN="${GLHE_ORIGIN:-gram-wsl.tailbc2832.ts.net:8443}"  # the public-facing host:port
 MEMORY="${GLHE_MEMORY:-5g}"
@@ -32,6 +33,9 @@ if [[ -f "$CDSAPIRC" ]]; then
   secret_args=(-v "$CDSAPIRC:/run/secrets/cdsapirc:ro,Z" -e CDSAPI_RC=/run/secrets/cdsapirc)
 else
   echo "warning: $CDSAPIRC not found; ERA5-Land downloads will fail" >&2
+fi
+if [[ -f "$SECRETS" ]]; then
+  secret_args+=(--env-file "$SECRETS")
 fi
 
 echo "==> Replacing container $NAME"

@@ -1,6 +1,7 @@
 import zipfile
 import logging
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import rasterio
 import snakemd
@@ -310,6 +311,9 @@ def write_and_output_LIME_CONFIG(config_information: dict, hylak_id: int) -> Non
         "SERIES_DATA": events.TypeOfFileLIME.SERIES_DATA,
         "GRIDDED_DATA_FOLDER": events.TypeOfFileLIME.GRIDDED_DATA_FOLDER,
         "NWM_LAKE_POINT_SHAPEFILENAME": events.TypeOfFileLIME.NWM_LAKE_POINT_SHAPEFILENAME,
+        "WATER_BALANCE_DATA": events.TypeOfFileLIME.WATER_BALANCE_DATA,
+        "TREND_STATS_DATA": events.TypeOfFileLIME.TREND_STATS_DATA,
+        "HYPSOMETRY_DATA": events.TypeOfFileLIME.HYPSOMETRY_DATA,
     }
     ribbit = {
         "CLAY_OUTPUT_FOLDER_LOCATION": GLHE.CLAY.globals.config["DIRECTORIES"][
@@ -328,6 +332,119 @@ def write_and_output_LIME_CONFIG(config_information: dict, hylak_id: int) -> Non
         json.dump(ribbit, fp)
     logger.info("Wrote CONFIG file to: " + CONFIG_Name)
     return
+
+
+def compute_trend_statistics(dataset: pd.DataFrame) -> None:
+    """Mann-Kendall trend test and Sen's slope for every data column.
+
+    Writes {lake}_trend_stats.csv to the output directory.  Requires scipy.
+    Columns with fewer than 10 valid observations are skipped.
+    """
+    try:
+        from scipy import stats
+    except ImportError:
+        logger.warning("scipy not installed — skipping trend statistics")
+        return
+
+    rows = []
+    for col in dataset.columns:
+        series = dataset[col].dropna()
+        if len(series) < 10:
+            continue
+        x = np.arange(len(series))
+        tau, p_value = stats.kendalltau(x, series.values)
+        slope, intercept, _, _ = stats.theilslopes(series.values, x)
+        rows.append(
+            {
+                "variable": col,
+                "n_months": len(series),
+                "mann_kendall_tau": round(float(tau), 4),
+                "p_value": round(float(p_value), 4),
+                "significant_at_0.05": bool(p_value < 0.05),
+                "trend_direction": "increasing" if tau > 0 else "decreasing",
+                "sen_slope_per_month": round(float(slope), 6),
+                "sen_slope_per_year": round(float(slope) * 12, 4),
+            }
+        )
+
+    if not rows:
+        logger.info("No columns with sufficient data for trend analysis")
+        return
+
+    trend_df = pd.DataFrame(rows)
+    out_path = (
+        GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
+        + "/"
+        + GLHE.CLAY.globals.config["LAKE_NAME"]
+        + "_trend_stats.csv"
+    )
+    trend_df.to_csv(out_path, index=False)
+    logger.info("Trend statistics written to %s", out_path)
+    pubsub.EventBus.Publish(
+        pubsub.EventBus,
+        events.OutputFileEvent(
+            GLHE.CLAY.globals.config["LAKE_NAME"] + "_trend_stats.csv",
+            out_path,
+            ".csv",
+            "Mann-Kendall trend test and Sen's slope for each data variable",
+            events.TypeOfFileLIME.TREND_STATS_DATA,
+        ),
+    )
+
+
+def compute_water_balance(dataset: pd.DataFrame) -> None:
+    """Compute water balance components from available data and write a summary CSV.
+
+    Computes:
+      - P_mean_mm_month    — ensemble mean of all precipitation products
+      - E_mean_mm_month    — ensemble mean of all evaporation products
+      - P_minus_E_mm_month — net atmospheric water input to the lake surface
+      - Inflow_mean_m3_month — ensemble mean of river inflow (where available)
+      - Water_Level_mean_m  — ensemble mean of water surface elevation (where available)
+
+    P and E are in mm/month (depth over lake surface).  Inflow is in m³/month.
+    Converting between depth and volume requires lake area, which is not yet
+    available in this pipeline — the two quantities are reported separately.
+    """
+    p_cols = [c for c in dataset.columns if c.startswith("p.")]
+    e_cols = [c for c in dataset.columns if c.startswith("e.")]
+    i_cols = [c for c in dataset.columns if c.startswith("i.")]
+    l_cols = [c for c in dataset.columns if c.startswith("l.")]
+
+    if not p_cols and not e_cols:
+        logger.info("No P or E data available — skipping water balance output")
+        return
+
+    wb = pd.DataFrame(index=dataset.index)
+    if p_cols:
+        wb["P_mean_mm_month"] = dataset[p_cols].mean(axis=1)
+    if e_cols:
+        wb["E_mean_mm_month"] = dataset[e_cols].mean(axis=1)
+    if p_cols and e_cols:
+        wb["P_minus_E_mm_month"] = wb["P_mean_mm_month"] - wb["E_mean_mm_month"]
+    if i_cols:
+        wb["Inflow_mean_m3_month"] = dataset[i_cols].mean(axis=1)
+    if l_cols:
+        wb["Water_Level_mean_m"] = dataset[l_cols].mean(axis=1)
+
+    out_path = (
+        GLHE.CLAY.globals.config["DIRECTORIES"]["OUTPUT_DIRECTORY"]
+        + "/"
+        + GLHE.CLAY.globals.config["LAKE_NAME"]
+        + "_water_balance.csv"
+    )
+    wb.to_csv(out_path)
+    logger.info("Water balance components written to %s", out_path)
+    pubsub.EventBus.Publish(
+        pubsub.EventBus,
+        events.OutputFileEvent(
+            GLHE.CLAY.globals.config["LAKE_NAME"] + "_water_balance.csv",
+            out_path,
+            ".csv",
+            "Water balance components: P, E, P−E (mm/month), inflow (m³/month), water level (m)",
+            events.TypeOfFileLIME.WATER_BALANCE_DATA,
+        ),
+    )
 
 
 if __name__ == "__main__":

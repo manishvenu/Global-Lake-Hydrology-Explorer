@@ -42,7 +42,7 @@ Import GLHE, call the CLAY_driver, which will download all the required data the
 
 #### LIME web app
 
-LIME is the web interface: find a lake by HYLAK_ID (or by clicking the globe), run CLAY for it, and explore the results in tabs (Overview, Time series, Gridded, Caveats, Data). The Caveats tab lists known data issues that match the lake's place, dates and products, using [queryearth](https://github.com/CROCODILE-CESM/queryearth) rule files (including [vizqueryearth](https://github.com/CROCODILE-CESM/vizqueryearth)'s ERA5-Land notes).
+LIME is the web interface: find a lake by HYLAK_ID (or by clicking the globe), run CLAY for it, and explore the results in tabs (Overview, Time series, Water balance, Gridded, Caveats, Data). The Caveats tab lists known data issues that match the lake's place, dates and products, using [queryearth](https://github.com/CROCODILE-CESM/queryearth) rule files (including [vizqueryearth](https://github.com/CROCODILE-CESM/vizqueryearth)'s ERA5-Land notes).
 
 ```bash
 panel serve GLHE/LIME/app.py --show

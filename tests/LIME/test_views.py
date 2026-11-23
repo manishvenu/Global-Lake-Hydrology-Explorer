@@ -191,3 +191,68 @@ def test_charts_do_not_zoom_on_wheel(state):
     root = _render(lay)
     plots = list(root.select({"type": Plot}))
     assert plots and all(p.toolbar.active_scroll is None for p in plots)
+
+
+# ------------------------------------------------------------ water balance
+def _lake_with_water_balance(tmp_path, with_hypsometry=True):
+    """Copy of the fixture lake plus a water_balance.csv (and hypsometry)."""
+    import json
+    import shutil
+
+    out = tmp_path / "Fixture_Lake"
+    shutil.copytree(FIXTURE, out)
+    idx = pd.date_range("2000-01-01", periods=24, freq="MS")
+    wb = pd.DataFrame(
+        {
+            "P_mean_mm_month": np.linspace(20, 60, 24),
+            "E_mean_mm_month": np.linspace(10, 90, 24),
+            "Inflow_mean_m3_month": np.full(24, 5e8),
+            "Water_Level_mean_m": np.linspace(1280, 1281, 24),
+        },
+        index=idx,
+    )
+    wb["P_minus_E_mm_month"] = wb["P_mean_mm_month"] - wb["E_mean_mm_month"]
+    wb.to_csv(out / "Fixture_Lake_water_balance.csv")
+    config = json.loads((out / "config.json").read_text())
+    config["WATER_BALANCE_DATA"] = "Fixture_Lake_water_balance.csv"
+    if with_hypsometry:
+        pd.DataFrame(
+            {
+                "water_surface_elevation_m": [1279, 1280, 1281],
+                "surface_area_km2": [3000, 4000, 4500],
+            }
+        ).to_csv(out / "hyps.csv", index=False)
+        config["HYPSOMETRY_DATA"] = "hyps.csv"
+    (out / "config.json").write_text(json.dumps(config))
+    s = AppState()
+    s.load_output_dir(out)
+    return s
+
+
+def test_water_balance_charts_all_panels(tmp_path):
+    from GLHE.LIME.components import water_balance as wbm
+
+    s = _lake_with_water_balance(tmp_path)
+    wb = wbm.read_water_balance(s.path_for("WATER_BALANCE_DATA"))
+    hyps = wbm.read_hypsometry(s.path_for("HYPSOMETRY_DATA"))
+    charts = wbm.water_balance_charts(wb, hyps, dark=True)
+    titles = [c.opts.get().kwargs.get("title", "") for c in charts]
+    assert len(charts) == 4
+    assert any("P − E" in t for t in titles)
+    assert any("Hypsometric" in t for t in titles)
+    _render(wbm.make_water_balance(s))
+
+
+def test_water_balance_empty_without_csv(state):
+    from GLHE.LIME.components import water_balance as wbm
+
+    assert wbm.read_water_balance(state.path_for("WATER_BALANCE_DATA")) is None
+    _render(wbm.make_water_balance(state))
+    assert "Re-run CLAY" in wbm.water_balance_view(state).object
+
+
+def test_water_balance_empty_without_lake():
+    from GLHE.LIME.components import water_balance as wbm
+
+    _render(wbm.make_water_balance(AppState()))
+    assert "No lake loaded" in wbm.water_balance_view(AppState()).object
