@@ -154,7 +154,6 @@ CLAY writes all outputs to a per-lake directory under the configured output root
 | `GLHE/CLAY/data_access_config/input_data.json` | Source URLs / access methods per product |
 | `GLHE/CLAY/caveat_rules/*.geojson` | queryearth caveat rules (written per lake by CLAY, shown in LIME's Caveats tab) |
 | env `GLHE_OUTPUT_DIR` | Lake folder LIME opens at start-up |
-| env `GLHE_OUTPUT_ROOTS` | Extra folders (`:`-separated) LIME scans for processed lakes |
 | env `GLHE_LAKE_TILES_URL` | Lake vector tiles (PMTiles) drawn on the globe; default the S3 copy, `""` = none |
 
 ---

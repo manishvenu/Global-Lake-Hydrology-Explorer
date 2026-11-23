@@ -19,7 +19,7 @@ def fake_clay(output_dir):
 
 
 def make_page(**kw):
-    kw.setdefault("roots", [FIXTURES])
+    kw.setdefault("root", FIXTURES)
     kw.setdefault("job", jobs.ClayJob(command=fake_clay(FIXTURE)))
     template = lime_app.build_app(**kw)
     assert isinstance(template, pn.template.BootstrapTemplate)
@@ -92,11 +92,11 @@ def test_clicking_a_lake_on_the_globe_selects_it():
     assert "Unnamed lake" in page.lake_text.object
 
 
-def test_run_clay_then_open_the_result():
+def test_run_clay_then_open_the_result(wait):
     page = make_page()
     page.select_lake(999999, {"area_km2": 5.0})
     page.run_clay()
-    assert page.job.wait(30) == "done"
+    assert wait(page.job) == "done"
     page.poll_job()
     assert "working" in page.log.value
     assert page.lake is not None and page.lake["name"] == "Fixture_Lake"

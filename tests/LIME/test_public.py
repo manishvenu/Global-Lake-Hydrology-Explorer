@@ -52,16 +52,16 @@ def test_cooldown(public_mode):
     assert public.visitor_block_reason("5.6.7.8", now=1060) is None
 
 
-def test_time_limit_stops_job():
+def test_time_limit_stops_job(wait):
     job = slow_job(max_seconds=0.5)
     assert job.start(1)
-    assert job.wait(15) == "failed"
+    assert wait(job) == "failed"
     assert any("Time limit reached" in line for line in job.log)
 
 
 def test_app_blocks_processed_and_unknown_size_lakes(public_mode, tmp_path):
     job = slow_job()
-    app = lime_app.build_app(job=job, roots=[FIXTURES]).lime
+    app = lime_app.build_app(job=job, root=FIXTURES).lime
     app.select_lake(999999, {"hylak_id": 999999, "area_km2": 50.0})  # the fixture lake
     assert app.run_button.disabled and app.run_button.label == "Already processed"
     app.select_lake(1234, {"hylak_id": 1234})
@@ -71,11 +71,11 @@ def test_app_blocks_processed_and_unknown_size_lakes(public_mode, tmp_path):
     assert public.BANNER in [getattr(o, "object", None) for o in app.main()]
 
 
-def test_app_cooldown_and_cancel_only_by_starter(public_mode):
+def test_app_cooldown_and_cancel_only_by_starter(public_mode, wait):
     job = slow_job()
     try:
-        a = lime_app.build_app(job=job, roots=[FIXTURES]).lime
-        b = lime_app.build_app(job=job, roots=[FIXTURES]).lime
+        a = lime_app.build_app(job=job, root=FIXTURES).lime
+        b = lime_app.build_app(job=job, root=FIXTURES).lime
         lake = {"hylak_id": 1235, "area_km2": 20.0}
         a.select_lake(1235, dict(lake))
         a.run_clay()
@@ -85,7 +85,7 @@ def test_app_cooldown_and_cancel_only_by_starter(public_mode):
         b.cancel_clay()
         assert job.is_running
         job.cancel()
-        job.wait(15)
+        wait(job)
         a.poll_job()
         a.run_clay()  # same visitor, inside the cooldown
         assert not job.is_running

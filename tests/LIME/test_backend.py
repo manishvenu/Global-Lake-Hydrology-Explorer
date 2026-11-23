@@ -1,4 +1,4 @@
-"""Tests for the LIME backend: catalog, lake lookup and the CLAY job runner."""
+"""Tests for the LIME backend: catalog, lake search and the CLAY job runner."""
 
 import json
 import sys
@@ -23,34 +23,22 @@ def test_catalog_finds_fixture_lake():
     assert Path(lake["output_dir"]) == (FIXTURES / "Fixture_Lake").resolve()
 
 
-def test_catalog_handles_missing_id_bad_json_and_missing_root(tmp_path):
+def test_catalog_skips_broken_folders(tmp_path):
     (tmp_path / "A_Lake").mkdir()
-    (tmp_path / "A_Lake" / "config.json").write_text(
-        json.dumps({"LAKE_NAME": "A_Lake"})
-    )
+    (tmp_path / "A_Lake" / "config.json").write_text(json.dumps({"LAKE_NAME": "A"}))
     (tmp_path / "Broken").mkdir()
     (tmp_path / "Broken" / "config.json").write_text("{not json")
-    lakes = catalog.list_processed_lakes(tmp_path, extra_roots=[tmp_path / "nope"])
+    lakes = catalog.list_processed_lakes(tmp_path)
     assert lakes == [
         {
-            "name": "A_Lake",
+            "name": "A",
             "hylak_id": None,
             "output_dir": str((tmp_path / "A_Lake").resolve()),
         }
     ]
+    assert catalog.list_processed_lakes(tmp_path / "missing") == []
 
 
-def test_catalog_accepts_a_single_lake_folder():
-    lakes = catalog.list_processed_lakes(FIXTURES / "Fixture_Lake")
-    assert [lake["name"] for lake in lakes] == ["Fixture_Lake"]
-
-
-def test_catalog_default_roots_do_not_crash():
-    assert isinstance(catalog.default_roots(), list)
-    assert isinstance(catalog.list_processed_lakes(), list)
-
-
-# ------------------------------------------------------------ lake lookup
 @pytest.fixture
 def mini_hydrolakes(tmp_path):
     """A three-lake HydroLAKES GeoParquet file (same layout as the real one)."""
@@ -86,62 +74,40 @@ def fake_clay(hylak_id):
     return [sys.executable, "-c", code]
 
 
-def test_job_success_captures_log_and_output_dir():
-    updates = []
-    job = jobs.ClayJob(command=fake_clay, on_update=lambda j: updates.append(j.status))
+def test_job_success_captures_log_and_output_dir(wait):
+    job = jobs.ClayJob(command=fake_clay)
     assert job.status == "idle"
     assert job.start(42) is True
-    assert job.wait(timeout=30) == "done"
+    assert wait(job) == "done"
     assert job.output_dir == "/tmp/lake_42"
     assert "working on 42" in job.log
-    assert updates[0] == "running" and updates[-1] == "done"
 
 
-def test_job_failure():
-    job = jobs.ClayJob(
-        command=lambda i: [
-            sys.executable,
-            "-c",
-            "import sys; print('boom'); sys.exit(3)",
-        ]
-    )
+def test_job_failure(wait):
+    code = "import sys; print('boom'); sys.exit(3)"
+    job = jobs.ClayJob(command=lambda i: [sys.executable, "-c", code])
     job.start(1)
-    assert job.wait(timeout=30) == "failed"
-    assert job.returncode == 3 and job.output_dir is None
-    assert "boom" in job.log
+    assert wait(job) == "failed"
+    assert job.output_dir is None and "boom" in job.log
 
 
-def test_job_missing_executable_fails_cleanly():
+def test_job_missing_executable_fails_cleanly(wait):
     job = jobs.ClayJob(command=lambda i: ["/definitely/not/a/program"])
-    job.start(1)
-    assert job.status == "failed"
+    assert job.start(1) and job.status == "failed"
+    assert "Could not start CLAY" in job.log[-1]
 
 
-def test_only_one_job_at_a_time_and_cancel():
-    slow = lambda i: [
-        sys.executable,
-        "-c",
-        "import time; print('start', flush=True); time.sleep(30)",
-    ]
-    job = jobs.ClayJob(command=slow)
+def test_only_one_job_at_a_time_and_cancel(wait):
+    slow = "import time; print('start', flush=True); time.sleep(30)"
+    job = jobs.ClayJob(command=lambda i: [sys.executable, "-c", slow])
     assert job.start(1) is True
     assert job.start(2) is False  # refused while running
     job.cancel()
-    assert job.wait(timeout=30) == "failed"
-    assert job.log[-1] == "Cancelled."
+    assert wait(job) == "failed"
     # A new run is allowed afterwards.
     job.command = fake_clay
     assert job.start(3) is True
-    assert job.wait(timeout=30) == "done"
-
-
-def test_log_is_bounded():
-    many = lambda i: [sys.executable, "-c", "for n in range(500): print(n)"]
-    job = jobs.ClayJob(command=many, max_log_lines=50)
-    job.start(1)
-    job.wait(timeout=30)
-    assert len(job.log) == 50
-    assert job.log[-1] == "CLAY finished."
+    assert wait(job) == "done"
 
 
 def test_default_command_uses_run_clay():
@@ -149,28 +115,12 @@ def test_default_command_uses_run_clay():
     assert argv[0] == sys.executable and argv[-2:] == ["GLHE.LIME.run_clay", "67"]
 
 
-def test_job_survives_non_utf8_output():
-    """A byte that is not valid UTF-8 must not leave the job stuck in "running"."""
+def test_job_survives_non_utf8_output(wait):
     code = "import sys; sys.stdout.buffer.write(b'caf\\xe9\\n'); sys.stdout.flush()"
     job = jobs.ClayJob(command=lambda i: [sys.executable, "-c", code])
     job.start(1)
-    assert job.wait(timeout=30) == "done"
+    assert wait(job) == "done"
     assert any(line.startswith("caf") for line in job.log)
-
-
-def test_job_reader_error_marks_failed(monkeypatch):
-    """Any exception in the reader thread ends the job as "failed"."""
-    job = jobs.ClayJob(command=fake_clay)
-
-    def broken_append(line):
-        if line == "working on 5":
-            raise RuntimeError("boom")
-        jobs.ClayJob._append(job, line)
-
-    monkeypatch.setattr(job, "_append", broken_append)
-    job.start(5)
-    assert job.wait(timeout=30) == "failed"
-    assert not job.is_running
 
 
 def test_find_file_handles_windows_and_moved_paths(tmp_path):

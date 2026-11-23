@@ -181,9 +181,9 @@ def in_background(work, then) -> None:
 class Lime:
     """One browser page: its widgets and what happens when they are used."""
 
-    def __init__(self, output_dir=None, job=None, roots=None):
+    def __init__(self, output_dir=None, job=None, root=None):
         self.job = job or shared_job()
-        self.roots = roots  # folders with processed lakes (None = CLAY's default)
+        self.root = root  # folder of processed lakes (None = CLAY's output folder)
         self.selected = None  # the lake picked in the sidebar (a dict)
         self.catalog = []  # processed lakes
         self.started_here = False  # did this page start the current CLAY run?
@@ -363,8 +363,7 @@ class Lime:
 
     # ---- showing results --------------------------------------------------
     def refresh_catalog(self) -> None:
-        roots = self.roots or [None]
-        self.catalog = catalog.list_processed_lakes(roots[0], roots[1:])
+        self.catalog = catalog.list_processed_lakes(self.root)
         options = {"": None}
         for e in self.catalog:
             label = e["name"].replace("_", " ")
@@ -423,12 +422,12 @@ def _url_arg(name: str) -> str | None:
     return values[0].decode() if values else None
 
 
-def build_app(output_dir=None, job=None, roots=None):
+def build_app(output_dir=None, job=None, root=None):
     """The LIME page. ``template.lime`` is the Lime object behind it."""
     output_dir = (
         output_dir or _url_arg("output_dir") or os.environ.get("GLHE_OUTPUT_DIR")
     )
-    lime = Lime(output_dir=output_dir, job=job, roots=roots)
+    lime = Lime(output_dir=output_dir, job=job, root=root)
     template = lime.template()
     template.lime = lime
     return template
