@@ -1,16 +1,18 @@
-# Deploying GLHE on the server (gram)
+# Deploying GLHE on the server (cnc)
+
+The app runs on **cnc-wsl**: the WSL Ubuntu of the standard Windows user `cnc` on the home PC (MVLGG), Linux user `general`, reached with `ssh general@cnc-wsl` over Tailscale. It moved there from gram (the admin account's WSL) on 2026-11-27; gram keeps Cockpit and an old copy of the data, with the GLHE services disabled. cnc's WSL only runs while `cnc` is signed in to Windows (locking is fine; **never sign `cnc` out**).
 
 The app runs in a **rootless Podman container**, started by a **systemd user service**. The public reaches it at **https://glhe.venumuddula.com** through a **Cloudflare Tunnel**; Tailscale is only used for SSH and Cockpit.
 
 | What | URL |
 |---|---|
 | GLHE app (public) | https://glhe.venumuddula.com |
-| From gram itself, or through `ssh -L 5006:127.0.0.1:5006 gram` | http://localhost:5006/app |
+| From cnc itself, or through `ssh -L 5006:127.0.0.1:5006 general@cnc-wsl` | http://localhost:5006/app |
 | App usage (sessions, CPU, memory, logs; private mode only) | http://localhost:5006/admin (same SSH tunnel) |
 | Machine + containers (Cockpit, tailnet only) | https://cockpit.venumuddula.com (redirects to https://gram-wsl.tailbc2832.ts.net) |
 
 ```
-browser ──► Cloudflare ──tunnel──► cloudflared on gram ──► 127.0.0.1:5006 ──► container "glhe" (panel serve)
+browser ──► Cloudflare ──tunnel──► cloudflared on cnc ──► 127.0.0.1:5006 ──► container "glhe" (panel serve)
                                                                      ├─ /data           ← ~/glhe-data (outputs, temp)
                                                                      ├─ .../LocalData   ← ~/glhe-data/LocalData (HydroLAKES, etc.)
                                                                      └─ CDSAPI_RC       ← ~/.cdsapirc (read-only)
@@ -18,7 +20,7 @@ browser ──► Cloudflare ──tunnel──► cloudflared on gram ──►
 
 ## First-time setup
 
-One-time root steps (already done on gram): `loginctl enable-linger manishrv`, the `dbus-user-session` package, and `tailscale set --operator=manishrv`.
+One-time root steps (already done on cnc): `apt install podman dbus-user-session uidmap` and `loginctl enable-linger general`.
 
 The server runs from its own clean clone, `~/glhe-deploy`, so a work-in-progress checkout (`~/glhe`) never affects the live app.
 
@@ -79,7 +81,7 @@ works only on the tailnet.
 ## Custom domain (Cloudflare Tunnel)
 
 https://glhe.venumuddula.com reaches the same app through a Cloudflare Tunnel:
-`cloudflared` on gram connects *out* to Cloudflare and Cloudflare sends visitors
+`cloudflared` on cnc connects *out* to Cloudflare and Cloudflare sends visitors
 down that connection to `http://127.0.0.1:5006` (no open ports, no public IP).
 Tailscale Funnel is no longer used.
 
@@ -95,9 +97,9 @@ Tailscale Funnel is no longer used.
 
 ## Where the data lives on this server
 
-Everything CLAY reads is on gram's disk, so nothing needs S3; the `s3://glhe` copies can be deleted to save money (copied down on 2026-11-23).
+Everything CLAY reads is on cnc's disk, so nothing needs S3; the `s3://glhe` copies can be deleted to save money (copied down on 2026-11-23).
 
-| What | On gram | Inside the container | Size |
+| What | On cnc | Inside the container | Size |
 |---|---|---|---|
 | HydroLAKES (search, outlines, every CLAY run) | `~/glhe-data/LocalData/HydroLAKES_polys_v10.parquet` | `/app/GLHE/CLAY/LocalData/HydroLAKES_polys_v10.parquet` | 0.9 GB |
 | ERA5-Land monthly (tp, e, ro) | `~/glhe-data/LocalData/zarr/ERA5.zarr` | `/app/GLHE/CLAY/LocalData/zarr/ERA5.zarr` | 13 GB |
@@ -105,7 +107,7 @@ Everything CLAY reads is on gram's disk, so nothing needs S3; the `s3://glhe` co
 | Lake tiles for the globe | `~/glhe-tiles/HydroLAKES_polys_v10.pmtiles` | `/tiles/...` (read-only) | 0.9 GB |
 | CLAY results (one folder per lake) | `~/glhe-data/LakeOutputDirectory/` | `/data/LakeOutputDirectory/` | grows |
 
-CLAY checks `LocalData/` first, so on gram the server and S3 are never used. `run.sh` mounts `~/glhe-data/LocalData` into the container read-write.
+CLAY checks `LocalData/` first, so on cnc the server and S3 are never used. `run.sh` mounts `~/glhe-data/LocalData` into the container read-write.
 
 **Served to other GLHE installs** (`GLHE_SERVE_DATA=1`, the default; set `GLHE_SERVE_DATA=0` in `~/.config/glhe/deploy.env` to stop). The layout mirrors the old S3 bucket, and CLAY elsewhere reads it automatically (`GLHE/CLAY/data_sources.py`: local, then this server, then S3):
 
@@ -149,8 +151,8 @@ clicks look the lake up in HydroLAKES instead.
 
 ## Monitoring
 
-- **Cockpit** (https://cockpit.venumuddula.com, tailnet only, log in as `manishrv`): CPU, memory, disk and network for the whole machine; *Services* shows `container-glhe`; *Podman containers* lists containers.
-- **Panel admin** (`http://localhost:5006/admin` over `ssh -L 5006:127.0.0.1:5006 gram`; private mode only): who is using the app right now, per-session CPU/memory, and app logs.
+- **Cockpit** (https://cockpit.venumuddula.com, tailnet only, log in as `manishrv`): CPU, memory, disk and network for gram only. GLHE now runs on cnc, so use `systemctl --user status container-glhe` and `podman stats glhe` there.
+- **Panel admin** (`http://localhost:5006/admin` over `ssh -L 5006:127.0.0.1:5006 general@cnc-wsl`; private mode only): who is using the app right now, per-session CPU/memory, and app logs.
 - **Disk**: Cockpit's *Storage* page shows the whole disk. Big GLHE files: see "Where the data lives on this server" (about 15 GB of inputs in `~/glhe-data/LocalData` plus the 0.9 GB tiles); `du -sh ~/glhe-data/* ~/glhe-data/LocalData/*`.
 - **Tailscale admin console**: which devices are connected.
 
